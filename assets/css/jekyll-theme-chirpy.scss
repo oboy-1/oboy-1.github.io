@@ -1,0 +1,40 @@
+---
+---
+
+@import 'main
+{%- if jekyll.environment == 'production' -%}
+  .bundle
+{%- endif -%}
+';
+
+/* append your custom style below */
+@media (prefers-color-scheme: light) {
+  #sidebar {
+    background-color: #FF6600;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  #sidebar {
+    background-color: #333;
+  }
+}
+
+.nav-link, .site-title, {
+  --site-title-color: #FFF;
+  color: white !important;
+  font-family: Verdana, Arial, Sans-serif !important;
+}
+
+.site-subtitle {
+  color: white !important;
+  font-weight: 400 !important;
+}
+
+.panel-heading {
+ color: #FF6600 !important;
+}
+
+#mode-toggle {
+  display: none !important;
+}
