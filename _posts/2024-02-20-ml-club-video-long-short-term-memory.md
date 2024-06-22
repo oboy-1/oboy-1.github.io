@@ -2,7 +2,7 @@
 id: 186
 title: 'ML Club Video: Long Short-Term Memory'
 date: '2024-02-20T13:29:26+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=186'
 permalink: /2024/02/20/ml-club-video-long-short-term-memory/

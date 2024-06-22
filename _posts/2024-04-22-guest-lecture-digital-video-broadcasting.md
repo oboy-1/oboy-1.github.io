@@ -2,7 +2,7 @@
 id: 337
 title: 'Guest Lecture: Digital Video Broadcasting'
 date: '2024-04-22T21:25:45+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=337'
 permalink: /2024/04/22/guest-lecture-digital-video-broadcasting/

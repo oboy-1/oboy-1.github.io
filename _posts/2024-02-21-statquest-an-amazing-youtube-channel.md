@@ -2,7 +2,7 @@
 id: 213
 title: 'StatQuest &#8211; an amazing YouTube Channel!'
 date: '2024-02-21T13:11:06+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=213'
 permalink: /2024/02/21/statquest-an-amazing-youtube-channel/

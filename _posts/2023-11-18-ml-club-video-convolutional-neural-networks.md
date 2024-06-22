@@ -2,7 +2,7 @@
 id: 50
 title: 'ML Club Video: Convolutional Neural Networks!'
 date: '2023-11-18T23:14:20+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=50'
 permalink: /2023/11/18/ml-club-video-convolutional-neural-networks/

@@ -2,7 +2,7 @@
 id: 698
 title: 'Coding with Karthik: Perceptron Learning Algorithm in C'
 date: '2024-05-25T21:10:23+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'https://www.karthikvedula.com/?p=698'
 permalink: /2024/05/25/coding-with-karthik-perceptron-learning-algorithm-in-c/

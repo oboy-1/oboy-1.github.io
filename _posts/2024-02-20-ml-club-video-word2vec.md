@@ -2,7 +2,7 @@
 id: 181
 title: 'ML Club Video: Word2Vec'
 date: '2024-02-20T13:28:12+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=181'
 permalink: /2024/02/20/ml-club-video-word2vec/

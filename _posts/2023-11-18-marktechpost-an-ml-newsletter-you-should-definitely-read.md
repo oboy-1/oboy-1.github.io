@@ -2,7 +2,7 @@
 id: 64
 title: 'MarkTechPost: An ML newsletter you should definitely read!'
 date: '2023-11-18T23:11:17+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=64'
 permalink: /2023/11/18/marktechpost-an-ml-newsletter-you-should-definitely-read/

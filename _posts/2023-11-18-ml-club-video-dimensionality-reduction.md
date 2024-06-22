@@ -2,7 +2,7 @@
 id: 41
 title: 'ML Club Video: Dimensionality Reduction'
 date: '2023-11-18T23:12:31+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=41'
 permalink: /2023/11/18/ml-club-video-dimensionality-reduction/

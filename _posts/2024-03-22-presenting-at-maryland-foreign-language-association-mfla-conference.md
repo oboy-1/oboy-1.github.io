@@ -2,7 +2,7 @@
 id: 286
 title: 'Presenting at Maryland Foreign Language Association (MFLA) Conference'
 date: '2024-03-22T14:34:48+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=286'
 permalink: /2024/03/22/presenting-at-maryland-foreign-language-association-mfla-conference/

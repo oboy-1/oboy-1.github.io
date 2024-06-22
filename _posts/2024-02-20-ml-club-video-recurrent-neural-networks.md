@@ -2,7 +2,7 @@
 id: 183
 title: 'ML Club Video: Recurrent Neural Networks'
 date: '2024-02-20T13:29:01+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=183'
 permalink: /2024/02/20/ml-club-video-recurrent-neural-networks/

@@ -2,7 +2,7 @@
 id: 152
 title: 'Coding with Karthik: Visualizing the Perceptron Learning Algorithm'
 date: '2024-01-05T03:13:07+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=152'
 permalink: /2024/01/05/visualizing-the-perceptron-learning-algorithm/

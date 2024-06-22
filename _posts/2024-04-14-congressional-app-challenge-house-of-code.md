@@ -2,7 +2,7 @@
 id: 435
 title: 'Congressional App Challenge House of Code'
 date: '2024-04-14T23:50:39+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=435'
 permalink: /2024/04/14/congressional-app-challenge-house-of-code/

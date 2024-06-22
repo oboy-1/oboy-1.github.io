@@ -2,7 +2,7 @@
 id: 197
 title: 'ML Club Video: Vision Transformers'
 date: '2024-02-20T13:30:35+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=197'
 permalink: /2024/02/20/ml-club-video-vision-transformers/

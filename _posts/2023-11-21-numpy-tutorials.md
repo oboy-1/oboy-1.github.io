@@ -2,7 +2,7 @@
 id: 120
 title: 'Coding with Karthik: Numpy Tutorials'
 date: '2023-11-21T01:17:03+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=120'
 permalink: /2023/11/21/numpy-tutorials/

@@ -2,7 +2,7 @@
 id: 189
 title: 'ML Club Video: The Transformer'
 date: '2024-02-20T13:29:54+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=189'
 permalink: /2024/02/20/ml-club-video-the-transformer/

@@ -2,7 +2,7 @@
 id: 17
 title: 'ML Club Video: Linear Regression to Neural Networks'
 date: '2023-11-07T02:11:01+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'https://karthikvedula.com/?p=17'
 permalink: /2023/11/07/ml-club-video-linear-regression-to-neural-networks/

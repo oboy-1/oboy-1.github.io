@@ -2,7 +2,7 @@
 id: 520
 title: 'Cool Website I Found for Learning Git'
 date: '2024-04-28T02:54:16+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'https://www.karthikvedula.com/?p=520'
 permalink: /2024/04/28/cool-website-i-found-for-learning-git/

@@ -2,7 +2,7 @@
 id: 342
 title: 'Coding with Karthik: Progress bars with TQDM'
 date: '2024-04-13T14:47:55+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=342'
 permalink: /2024/04/13/coding-with-karthik-progress-bars-with-tqdm/

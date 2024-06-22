@@ -2,7 +2,7 @@
 id: 226
 title: 'Use Machine Learning for Making Birthday Cards!'
 date: '2024-02-24T00:14:03+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=226'
 permalink: /2024/02/24/use-machine-learning-for-making-cards/

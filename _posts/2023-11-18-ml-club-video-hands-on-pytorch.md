@@ -2,7 +2,7 @@
 id: 67
 title: 'ML Club Video: Hands-on PyTorch!'
 date: '2023-11-18T23:16:43+00:00'
-author: 'Karthik Vedula'
+
 layout: post
 guid: 'http://karthikvedula.com/?p=67'
 permalink: /2023/11/18/ml-club-video-hands-on-pytorch/
