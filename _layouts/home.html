@@ -10,36 +10,37 @@ refactor: true
 
 {% assign posts = '' | split: '' %}
 
- <!-- Slideshow container -->
+ <!-- SLIDESHOW  -->
 <div class="slideshow-container">
 
   <!-- Full-width images with number and caption text -->
   <div class="mySlides">
-    <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" frameborder="0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/Uvm9yZk3YAQ?feature=oembed" title="ML Club Video: Long Short-Term Memory" width="100%" height="350"></iframe>
+    <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" frameborder="0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/Uvm9yZk3YAQ?feature=oembed" title="ML Club Video: Long Short-Term Memory" width="100%" height="300"></iframe>
   </div>
   <div class="mySlides">
-      <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" frameborder="0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/YjrGt-WJWgA?feature=oembed" title="ML Club Video: Recurrent Neural Networks" width="100%" height="350"></iframe>
+      <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" frameborder="0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/YjrGt-WJWgA?feature=oembed" title="ML Club Video: Recurrent Neural Networks" width="100%" height="300"></iframe>
   </div>
 
   <div class="mySlides">
-  <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" frameborder="0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/IUzQOOdQ_No?feature=oembed" title="ML Club Video: Words and Vectors" width="100%" height="350"></iframe>
+  <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" frameborder="0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/IUzQOOdQ_No?feature=oembed" title="ML Club Video: Words and Vectors" width="100%" height="300"></iframe>
   </div>
 
   <!-- Next and previous buttons -->
   <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
   <a class="next" onclick="plusSlides(1)">&#10095;</a>
 
-  <div height="20"><h4 style="text-align:center">Featured lectures.  View more <a href="{{ site.baseurl }}/categories/ml-club">here</a></h3></div>
 </div>
-<br>
+
 
 <!-- The dots/circles -->
 <div style="text-align:center">
+  <div><h4 style="text-align:center">Featured lectures.  View more <a href="{{ site.baseurl }}/categories/ml-club">here</a></h4></div>
   <span class="dot" onclick="currentSlide(1)"></span>
   <span class="dot" onclick="currentSlide(2)"></span>
   <span class="dot" onclick="currentSlide(3)"></span>
 </div>
 
+<hr style="border: 1px solid">
 <script>
 let slideIndex = 1;
 showSlides(slideIndex);
@@ -82,7 +83,8 @@ function showSlides(n) {
 }
 
 .mySlides {
-border-radius: 10px; overflow: hidden;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 /* Next & previous buttons */
@@ -130,6 +132,7 @@ border-radius: 10px; overflow: hidden;
 }
 
 </style>
+ <!-- END SLIDESHOW  CODE-->
 
 <!-- Get pinned posts -->
 
