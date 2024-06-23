@@ -15,6 +15,7 @@ tags:
     - 'Machine Learning'
     - 'Perceptron Learning'
     - Programming
+math: true
 ---
 
 The Perceptron Learning Algorithm is a classification algorithm that generates a line such that it fully separates the data into two classes. This is done by starting off with a randomly generated line, and then the lines slope (weight) and its intercept (bias) are updated according the misclassified points. This happens until the line classifies **all** points correctly (so if the data isn’t linearly separable, this algorithm will run forever…).
@@ -100,7 +101,7 @@ samples = (samples[0][20:], samples[1][20:])
 
 ### 2. Train perceptron on the data
 
-The function below returns samples that were misclassified by the line $y = b + \vec{w}_1 \cdot \vec{x}_2 + \vec{w}_2 \cdot \vec{x}_2$
+The function below returns samples that were misclassified by the line $$y = b + \vec{w}_1 \cdot \vec{x}_2 + \vec{w}_2 \cdot \vec{x}_2$$
 
 
 ```python
