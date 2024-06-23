@@ -9,7 +9,6 @@ permalink: /2023/11/18/ml-club-video-convolutional-neural-networks/
 categories:
     - 'Machine Learning'
     - 'ML Club'
-    - Uncategorized
 tags:
     - 'Computer Vision'
     - 'Convolutional Neural Networks'

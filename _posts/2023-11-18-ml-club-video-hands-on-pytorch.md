@@ -9,7 +9,6 @@ permalink: /2023/11/18/ml-club-video-hands-on-pytorch/
 categories:
     - 'Machine Learning'
     - 'ML Club'
-    - Uncategorized
 tags:
     - 'Machine Learning'
     - 'Neural Network'

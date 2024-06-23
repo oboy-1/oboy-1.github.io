@@ -9,7 +9,6 @@ permalink: /2024/05/25/coding-with-karthik-perceptron-learning-algorithm-in-c/
 categories:
     - 'Coding with Karthik'
     - 'Machine Learning'
-    - Uncategorized
 tags:
     - 'C Programming Language'
     - 'Perceptron Learning'

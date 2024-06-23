@@ -9,7 +9,6 @@ permalink: /2024/02/20/ml-club-video-the-transformer/
 categories:
     - 'Machine Learning'
     - 'ML Club'
-    - Uncategorized
 tags:
     - ChatGPT
     - 'Machine Learning'

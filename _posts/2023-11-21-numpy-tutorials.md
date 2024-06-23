@@ -9,7 +9,6 @@ permalink: /2023/11/21/numpy-tutorials/
 categories:
     - 'Coding with Karthik'
     - 'Machine Learning'
-    - Uncategorized
 tags:
     - 'Machine Learning'
     - Numpy

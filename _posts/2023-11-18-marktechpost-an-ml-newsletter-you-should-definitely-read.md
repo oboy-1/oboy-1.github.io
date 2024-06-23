@@ -8,7 +8,6 @@ guid: 'http://karthikvedula.com/?p=64'
 permalink: /2023/11/18/marktechpost-an-ml-newsletter-you-should-definitely-read/
 categories:
     - 'Machine Learning'
-    - Uncategorized
 tags:
     - 'Machine Learning'
     - 'ML News'

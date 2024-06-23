@@ -11,7 +11,6 @@ footnotes:
 categories:
     - 'Coding with Karthik'
     - 'Machine Learning'
-    - Uncategorized
 tags:
     - 'Machine Learning'
     - 'Perceptron Learning'

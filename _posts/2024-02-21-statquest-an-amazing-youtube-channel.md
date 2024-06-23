@@ -8,7 +8,6 @@ guid: 'http://karthikvedula.com/?p=213'
 permalink: /2024/02/21/statquest-an-amazing-youtube-channel/
 categories:
     - 'Machine Learning'
-    - Uncategorized
 tags:
     - 'Machine Learning'
     - 'YoutTube Channel'

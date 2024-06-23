@@ -10,7 +10,6 @@ footnotes:
     - ''
 categories:
     - 'ML Club'
-    - Uncategorized
 tags:
     - 'Digital Video Broadcasting'
 ---

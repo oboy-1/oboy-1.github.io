@@ -9,7 +9,6 @@ permalink: /2023/11/18/ml-club-video-dimensionality-reduction/
 categories:
     - 'Machine Learning'
     - 'ML Club'
-    - Uncategorized
 tags:
     - 'Dimensionality Reduction'
     - 'Machine Learning'
