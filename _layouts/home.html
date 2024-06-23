@@ -42,9 +42,6 @@ refactor: true
 
 <hr style="border: 1px solid">
 <script>
-let slideIndex = 1;
-showSlides(slideIndex);
-
 // Next/previous controls
 function plusSlides(n) {
   showSlides(slideIndex += n);
@@ -70,6 +67,9 @@ function showSlides(n) {
   slides[slideIndex-1].style.display = "block";
   dots[slideIndex-1].className += " dot-active";
 }
+
+let slideIndex = 1;
+showSlides(slideIndex);
 </script>
 
 <style>
