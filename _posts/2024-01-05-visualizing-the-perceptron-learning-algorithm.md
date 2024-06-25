@@ -24,7 +24,7 @@ Walk through the code and see a cool animation on the bottom!
 
 ### 1. Prepare dataset
 
-Create linearly seperable data (initially vertical/horizontal) and then rotate it
+Create linearly separable data (initially vertical/horizontal) and then rotate it
 
 
 ```python
@@ -143,7 +143,7 @@ B = np.random.randint(-10,10)
 W1 = np.random.randint(-10,10)
 W2 = np.random.randint(-10,10)
 
-count = 0 # used for ordering the intermediate steps that will be also outputed
+count = 0 # used for ordering the intermediate steps that will be also output-ed
 
 misclassified = get_misclassified(samples, W1, W2, B)
 while len(misclassified) != 0:
