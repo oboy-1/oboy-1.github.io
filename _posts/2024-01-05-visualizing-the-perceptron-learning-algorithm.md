@@ -226,7 +226,7 @@ One problem with the perceptron learning algorithm is that it cannot separate ce
 
 You can use activation functions other than the $\text{sgn}$ function.  Check out the examples below:
 
-<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyActivations.html" title="Graphs of different activation functions" style="width: 100%; height: 550px;"></iframe>
+<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyActivations.html" title="Graphs of different activation functions" style="width: 100%; height: 620px;"></iframe>
 
 These different activation functions can allow prediction to not just be a discrete value (e.g. $1$ or $-1$) but rather be a specifically scaled, continuous set of numbers that could be the output.
 
