@@ -1,0 +1,668 @@
+<!-- Author: Karthik S. Vedula (www.karthikvedula.com) -->
+<!-- <!DOCTYPE html> -->
+<!-- <html lang="en"> -->
+<!-- <head> -->
+<!--   <meta charset="UTF-8"> -->
+<!--   <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+<!--   <title>Perceptron Learning Algorithm</title> -->
+<!--   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
+<!--   <script src="https://d3js.org/d3.v5.min.js"></script> -->
+<!--   <style> -->
+<!--     #status { -->
+<!--       margin-top: 20px; -->
+<!--       font-weight: bold; -->
+<!--       font-family: sans-serif; -->
+<!--     } -->
+<!---->
+<!---->
+<!--   .button-5 { -->
+<!--     align-items: center; -->
+<!--     background-clip: padding-box; -->
+<!--     background-color: #fa6400; -->
+<!--     border: 1px solid transparent; -->
+<!--     border-radius: .25rem; -->
+<!--     box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0; -->
+<!--     box-sizing: border-box; -->
+<!--     color: #fff; -->
+<!--     cursor: pointer; -->
+<!--     display: inline-flex; -->
+<!--     font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif; -->
+<!--     font-size: 15px; -->
+<!--     font-weight: 600; -->
+<!--     justify-content: center; -->
+<!--     line-height: 1.25; -->
+<!--     margin: 0; -->
+<!--     min-height: 3rem; -->
+<!--     padding: calc(.875rem - 1px) calc(1.5rem - 1px); -->
+<!--     position: relative; -->
+<!--     text-decoration: none; -->
+<!--     transition: all 250ms; -->
+<!--     user-select: none; -->
+<!--     -webkit-user-select: none; -->
+<!--     touch-action: manipulation; -->
+<!--     vertical-align: baseline; -->
+<!--     width: auto; -->
+<!--   } -->
+<!---->
+<!--   .button-5:hover, -->
+<!--   .button-5:focus { -->
+<!--     background-color: #fb8332; -->
+<!--     box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px; -->
+<!--   } -->
+<!---->
+<!--   .button-5:hover { -->
+<!--     transform: translateY(-1px); -->
+<!--   } -->
+<!---->
+<!--   .button-5:active { -->
+<!--     background-color: #c85000; -->
+<!--     box-shadow: rgba(0, 0, 0, .06) 0 2px 4px; -->
+<!--     transform: translateY(0); -->
+<!--   } -->
+<!--   </style> -->
+<!-- </head> -->
+<!-- <body> -->
+<!--   <div id="graph"></div> -->
+<!--   <button onclick="startTraining()" class="button-5" role="button">Train Perceptron</button> -->
+<!--   <button onclick="switchColor()" class="button-5" role="button">Switch Color</button> -->
+<!--   <button onclick="resetPlot()" class="button-5" role="button">Reset</button> -->
+<!--   <div id="status"></div> -->
+<!--   <script> -->
+<!--     let blueSelect = true; -->
+<!---->
+<!--     let stopTraining = false; -->
+<!---->
+<!--     let weights = getRandomWeights() -->
+<!--     let learningRate = 0.01; -->
+<!---->
+<!--     /* Plotly graph setup */ -->
+<!--     let layout = { -->
+<!--       title: 'Perceptron Training', -->
+<!--       xaxis: { range: [-1.5, 1.5] }, -->
+<!--       yaxis: { range: [-1.5, 1.5] }, -->
+<!--       showlegend: true, -->
+<!--     }; -->
+<!---->
+<!--     let trace0 = { -->
+<!--       x: [], -->
+<!--       y: [], -->
+<!--       mode: 'markers', -->
+<!--       type: 'scatter', -->
+<!--       name: 'Class 0', -->
+<!--       marker: { color: 'red' } -->
+<!--     }; -->
+<!---->
+<!--     let trace1 = { -->
+<!--       x: [], -->
+<!--       y: [], -->
+<!--       mode: 'markers', -->
+<!--       type: 'scatter', -->
+<!--       name: 'Class 1', -->
+<!--       marker: { color: 'blue' } -->
+<!--     }; -->
+<!---->
+<!--     let traceBoundary = { -->
+<!--       x: [-1.5, 1.5], -->
+<!--       y: [-1.5, 1.5], -->
+<!--       mode: 'lines', -->
+<!--       type: 'scatter', -->
+<!--       name: 'Decision Boundary', -->
+<!--       line: { color: 'green' } -->
+<!--     }; -->
+<!---->
+<!--     let traceHighlight = { -->
+<!--       x: [], -->
+<!--       y: [], -->
+<!--       mode: 'markers', -->
+<!--       type: 'scatter', -->
+<!--       name: 'Highlight', -->
+<!--       showlegend: false, -->
+<!--       marker: { -->
+<!--         color: 'yellow', -->
+<!--         size: 12, -->
+<!--         line: { -->
+<!--           color:'Black', -->
+<!--           width: 2 -->
+<!--         } -->
+<!--       } -->
+<!--     }; -->
+<!---->
+<!--     Plotly.newPlot('graph', [trace0, trace1, traceBoundary, traceHighlight], layout); -->
+<!--     plotDecisionBoundary(); -->
+<!---->
+<!--     async function startTraining() { -->
+<!--       stopTraining = false; -->
+<!--       trainPerceptron(); -->
+<!--     } -->
+<!---->
+<!--     async function trainPerceptron() { -->
+<!--       plotDecisionBoundary(); -->
+<!--       document.getElementById("status").innerText = "Training..."; -->
+<!---->
+<!--       let X0 = []; -->
+<!--       let X1 = []; -->
+<!---->
+<!--       /* Collect data from traces */ -->
+<!--       for (let i = 0; i < trace0.x.length; i++) { -->
+<!--         X0.push([trace0.x[i], trace0.y[i]]); -->
+<!--       } -->
+<!--       for (let i = 0; i < trace1.x.length; i++) { -->
+<!--         X1.push([trace1.x[i], trace1.y[i]]); -->
+<!--       } -->
+<!---->
+<!--       for (let epoch = 0; epoch < 100; epoch++) {  /* Limiting to 10 epochs for simplicity */ -->
+<!--         if (stopTraining) { -->
+<!--           return; -->
+<!--         } -->
+<!---->
+<!--         let allCorrect = true; -->
+<!---->
+<!--         for (let i = 0; i < X0.length; i++) { -->
+<!--           let xi = X0[i]; -->
+<!--           let prediction = predict(xi); -->
+<!--           let error = 0 - prediction; -->
+<!---->
+<!--           if (error != 0) { -->
+<!--             allCorrect = false; -->
+<!--             await highlightPoint(i, 0); -->
+<!--           } -->
+<!---->
+<!--           weights[0] += learningRate * error * xi[0]; -->
+<!--           weights[1] += learningRate * error * xi[1]; -->
+<!--           weights[2] += learningRate * error; -->
+<!---->
+<!--           await updateDecisionBoundary(); -->
+<!--         } -->
+<!---->
+<!--         for (let i = 0; i < X1.length; i++) { -->
+<!--           let xi = X1[i]; -->
+<!--           let prediction = predict(xi); -->
+<!--           let error = 1 - prediction; -->
+<!---->
+<!--           if (error != 0) { -->
+<!--             allCorrect = false; -->
+<!--             await highlightPoint(i, 1); -->
+<!--           } -->
+<!---->
+<!--           weights[0] += learningRate * error * xi[0]; -->
+<!--           weights[1] += learningRate * error * xi[1]; -->
+<!--           weights[2] += learningRate * error; -->
+<!---->
+<!--           await updateDecisionBoundary(); -->
+<!--         } -->
+<!---->
+<!--         if (allCorrect) { -->
+<!--           break; -->
+<!--         } -->
+<!---->
+<!--         document.getElementById("status").innerText = "Training... On epoch " + epoch.toString(); -->
+<!--       } -->
+<!---->
+<!--       document.getElementById("status").innerText = "Training Finished!"; -->
+<!--     } -->
+<!---->
+<!--     /* Predict function */ -->
+<!--     function predict(xi) { -->
+<!--       let sum = weights[0] * xi[0] + weights[1] * xi[1] + weights[2]; -->
+<!--       return sum >= 0 ? 1 : 0; -->
+<!--     } -->
+<!---->
+<!--     /* Highlight point function */ -->
+<!--     async function highlightPoint(index, classLabel) { -->
+<!--       let trace = classLabel == 0 ? trace0 : trace1; -->
+<!---->
+<!--       /* Temporarily remove the highlighted point from the original trace */ -->
+<!--       let highlightedPoint = { x: trace.x[index], y: trace.y[index] }; -->
+<!--       trace.x.splice(index, 1); -->
+<!--       trace.y.splice(index, 1); -->
+<!--       traceHighlight.x = [highlightedPoint.x]; -->
+<!--       traceHighlight.y = [highlightedPoint.y]; -->
+<!---->
+<!--       /* Update plot */ -->
+<!--       Plotly.react('graph', [trace0, trace1, traceBoundary, traceHighlight], layout); -->
+<!--       await sleep(100); -->
+<!---->
+<!--       /* Move the point back to the original trace */ -->
+<!--       trace.x.splice(index, 0, highlightedPoint.x); -->
+<!--       trace.y.splice(index, 0, highlightedPoint.y); -->
+<!--       traceHighlight.x = []; -->
+<!--       traceHighlight.y = []; -->
+<!---->
+<!--       /* Update plot again */ -->
+<!--       Plotly.react('graph', [trace0, trace1, traceBoundary, traceHighlight], layout); -->
+<!--     } -->
+<!---->
+<!--     /* Update decision boundary */ -->
+<!--     async function updateDecisionBoundary() { -->
+<!--       plotDecisionBoundary(); -->
+<!---->
+<!--       await sleep(10); -->
+<!--     } -->
+<!---->
+<!--     function switchColor() { -->
+<!--       blueSelect = !blueSelect; -->
+<!--     } -->
+<!---->
+<!--     function plotDecisionBoundary() { -->
+<!--       let x1 = -1.5; -->
+<!--       let x2 = 1.5; -->
+<!--       let y1 = -(weights[2] + weights[0] * x1) / weights[1]; -->
+<!--       let y2 = -(weights[2] + weights[0] * x2) / weights[1]; -->
+<!---->
+<!--       traceBoundary.x = [x1, x2]; -->
+<!--       traceBoundary.y = [y1, y2]; -->
+<!---->
+<!--       Plotly.react('graph', [trace0, trace1, traceBoundary], layout); -->
+<!--     } -->
+<!---->
+<!--     /* Adds point on click -- from https://stackoverflow.com/questions/71755717/plotly-js-adding-point-on-click-2022/71757501#71757501 */ -->
+<!--     var myPlot = document.getElementById('graph'); -->
+<!--     d3.select(".plotly").on('click', function(d, i) { -->
+<!--       var e = d3.event; -->
+<!--       var bgrect = document.getElementsByClassName('gridlayer')[0].getBoundingClientRect(); -->
+<!--       var x = ((e.x - bgrect['x']) / (bgrect['width'])) * (myPlot.layout.xaxis.range[1] - myPlot.layout.xaxis.range[0]) + myPlot.layout.xaxis.range[0]; -->
+<!--       var y = ((e.y - bgrect['y']) / (bgrect['height'])) * (myPlot.layout.yaxis.range[0] - myPlot.layout.yaxis.range[1]) + myPlot.layout.yaxis.range[1]; -->
+<!--       if (x.between(myPlot.layout.xaxis.range[0], myPlot.layout.xaxis.range[1]) && -->
+<!--         y.between(myPlot.layout.yaxis.range[0], myPlot.layout.yaxis.range[1])) { -->
+<!--         Plotly.extendTraces(myPlot, { -->
+<!--           x: [ -->
+<!--             [x] -->
+<!--           ], -->
+<!--           y: [ -->
+<!--             [y] -->
+<!--           ] -->
+<!--         }, [blueSelect == true ? 1 : 0]); -->
+<!--       } -->
+<!--     }); -->
+<!---->
+<!--     /* Helper function to check if a number is within a range */ -->
+<!--     Number.prototype.between = function(min, max) { -->
+<!--       return this >= min && this <= max; -->
+<!--     }; -->
+<!---->
+<!--     /* Helper function for sleep */ -->
+<!--     function sleep(ms) { -->
+<!--       return new Promise(resolve => setTimeout(resolve, ms)); -->
+<!--     } -->
+<!---->
+<!--     function getRandomWeights() { -->
+<!--       while (true) { -->
+<!--         let weights = []; -->
+<!--         for (let i = 0; i < 3; i++) { -->
+<!--           /* Generate a random number between -0.5 and 0.5 */ -->
+<!--           let weight = (Math.random() - 0.5); -->
+<!--           weights.push(weight); -->
+<!--         } -->
+<!---->
+<!--         let y1 = -(weights[2] + weights[0] * -1.5) / weights[1]; -->
+<!--         let y2 = -(weights[2] + weights[0] * 1.5) / weights[1]; -->
+<!---->
+<!--         if (y1 >= 1.5 || y2 >= 1.5 || y1 <= -1.5 || y2 <= -1.5) { -->
+<!--           continue; -->
+<!--         } -->
+<!---->
+<!--         return weights; -->
+<!--       } -->
+<!--     } -->
+<!---->
+<!--     async function resetPlot() { -->
+<!--       stopTraining = true; -->
+<!--       sleep(500); -->
+<!--       weights = getRandomWeights(); -->
+<!--       trace0.x = []; -->
+<!--       trace0.y = []; -->
+<!--       trace1.x = []; -->
+<!--       trace1.y = []; -->
+<!--       traceHighlight.x = []; -->
+<!--       traceHighlight.y = []; -->
+<!--       document.getElementById("status").innerText = ""; -->
+<!--       Plotly.newPlot('graph', [trace0, trace1, traceBoundary, traceHighlight], layout); -->
+<!--       plotDecisionBoundary(); -->
+<!--     } -->
+<!--   </script> -->
+<!-- </body> -->
+<!-- </html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perceptron Learning Algorithm</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      font-family: sans-serif;
+    }
+
+    .button-5 {
+      align-items: center;
+      background-clip: padding-box;
+      background-color: #fa6400;
+      border: 1px solid transparent;
+      border-radius: .25rem;
+      box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+      box-sizing: border-box;
+      color: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      justify-content: center;
+      line-height: 1.25;
+      margin: 0;
+      min-height: 3rem;
+      padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+      position: relative;
+      text-decoration: none;
+      transition: all 250ms;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      vertical-align: baseline;
+      width: auto;
+    }
+
+    .button-5:hover,
+    .button-5:focus {
+      background-color: #fb8332;
+      box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+    }
+
+    .button-5:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-5:active {
+      background-color: #c85000;
+      box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+      transform: translateY(0);
+    }
+
+    .slider-container {
+      margin: 20px;
+      width: 50%;
+    }
+
+    .slider-container input[type=range] {
+      width: 100%;
+    }
+
+    .slider-container label {
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="graph"></div>
+  <div class="slider-container">
+    <label for="learningRate">Learning Rate: <span id="lrValue">0.01</span></label>
+    <input type="range" min="0.01" max="0.5" step="0.01" value="0.01" class="slider" id="learningRate">
+  </div>
+  <button onclick="startTraining()" class="button-5" role="button">Train Perceptron</button>
+  <button onclick="switchColor()" class="button-5" role="button">Switch Color</button>
+  <button onclick="resetPlot()" class="button-5" role="button">Reset</button>
+  <div id="status"></div>
+  <script>
+    let blueSelect = true;
+    let stopTraining = false;
+    let weights = getRandomWeights();
+    let learningRate = 0.01; // Default learning rate
+
+    /* Plotly graph setup */
+    let layout = {
+      title: 'Perceptron Training',
+      xaxis: { range: [-1.5, 1.5] },
+      yaxis: { range: [-1.5, 1.5] },
+      showlegend: true,
+    };
+
+    let trace0 = {
+      x: [],
+      y: [],
+      mode: 'markers',
+      type: 'scatter',
+      name: 'Class 0',
+      marker: { color: 'red' }
+    };
+
+    let trace1 = {
+      x: [],
+      y: [],
+      mode: 'markers',
+      type: 'scatter',
+      name: 'Class 1',
+      marker: { color: 'blue' }
+    };
+
+    let traceBoundary = {
+      x: [-1.5, 1.5],
+      y: [-1.5, 1.5],
+      mode: 'lines',
+      type: 'scatter',
+      name: 'Decision Boundary',
+      line: { color: 'green' }
+    };
+
+    let traceHighlight = {
+      x: [],
+      y: [],
+      mode: 'markers',
+      type: 'scatter',
+      name: 'Highlight',
+      showlegend: false,
+      marker: {
+        color: 'yellow',
+        size: 12,
+        line: {
+          color: 'Black',
+          width: 2
+        }
+      }
+    };
+
+    Plotly.newPlot('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
+    plotDecisionBoundary();
+
+    document.getElementById('learningRate').oninput = function () {
+      learningRate = parseFloat(this.value);
+      document.getElementById('lrValue').textContent = learningRate.toFixed(2);
+    };
+
+    async function startTraining() {
+      stopTraining = false;
+      trainPerceptron();
+    }
+
+    async function trainPerceptron() {
+      plotDecisionBoundary();
+      document.getElementById("status").innerText = "Training...";
+
+      let X0 = [];
+      let X1 = [];
+
+      /* Collect data from traces */
+      for (let i = 0; i < trace0.x.length; i++) {
+        X0.push([trace0.x[i], trace0.y[i]]);
+      }
+      for (let i = 0; i < trace1.x.length; i++) {
+        X1.push([trace1.x[i], trace1.y[i]]);
+      }
+
+      for (let epoch = 0; epoch < 100; epoch++) {  /* Limiting to 10 epochs for simplicity */
+        if (stopTraining) {
+          return;
+        }
+
+        let allCorrect = true;
+
+        for (let i = 0; i < X0.length; i++) {
+          let xi = X0[i];
+          let prediction = predict(xi);
+          let error = 0 - prediction;
+
+          if (error != 0) {
+            allCorrect = false;
+            await highlightPoint(i, 0);
+          }
+
+          weights[0] += learningRate * error * xi[0];
+          weights[1] += learningRate * error * xi[1];
+          weights[2] += learningRate * error;
+
+          await updateDecisionBoundary();
+        }
+
+        for (let i = 0; i < X1.length; i++) {
+          let xi = X1[i];
+          let prediction = predict(xi);
+          let error = 1 - prediction;
+
+          if (error != 0) {
+            allCorrect = false;
+            await highlightPoint(i, 1);
+          }
+
+          weights[0] += learningRate * error * xi[0];
+          weights[1] += learningRate * error * xi[1];
+          weights[2] += learningRate * error;
+
+          await updateDecisionBoundary();
+        }
+
+        if (allCorrect) {
+          break;
+        }
+
+        document.getElementById("status").innerText = "Training... On epoch " + epoch.toString();
+      }
+
+      document.getElementById("status").innerText = "Training Finished!";
+    }
+
+    /* Predict function */
+    function predict(xi) {
+      let sum = weights[0] * xi[0] + weights[1] * xi[1] + weights[2];
+      return sum >= 0 ? 1 : 0;
+    }
+
+    /* Highlight point function */
+    async function highlightPoint(index, classLabel) {
+      let trace = classLabel == 0 ? trace0 : trace1;
+
+      /* Temporarily remove the highlighted point from the original trace */
+      let highlightedPoint = { x: trace.x[index], y: trace.y[index] };
+      trace.x.splice(index, 1);
+      trace.y.splice(index, 1);
+      traceHighlight.x = [highlightedPoint.x];
+      traceHighlight.y = [highlightedPoint.y];
+
+      /* Update plot */
+      Plotly.react('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
+      await sleep(100);
+
+      /* Move the point back to the original trace */
+      trace.x.splice(index, 0, highlightedPoint.x);
+      trace.y.splice(index, 0, highlightedPoint.y);
+      traceHighlight.x = [];
+      traceHighlight.y = [];
+
+      /* Update plot again */
+      Plotly.react('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
+    }
+
+    /* Update decision boundary */
+    async function updateDecisionBoundary() {
+      plotDecisionBoundary();
+
+      await sleep(10);
+    }
+
+    function switchColor() {
+      blueSelect = !blueSelect;
+    }
+
+    function plotDecisionBoundary() {
+      let x1 = -1.5;
+      let x2 = 1.5;
+      let y1 = -(weights[2] + weights[0] * x1) / weights[1];
+      let y2 = -(weights[2] + weights[0] * x2) / weights[1];
+
+      traceBoundary.x = [x1, x2];
+      traceBoundary.y = [y1, y2];
+
+      Plotly.react('graph', [trace0, trace1, traceBoundary], layout);
+    }
+
+    /* Adds point on click -- from https://stackoverflow.com/questions/71755717/plotly-js-adding-point-on-click-2022/71757501#71757501 */
+    var myPlot = document.getElementById('graph');
+    d3.select(".plotly").on('click', function(d, i) {
+      var e = d3.event;
+      var bgrect = document.getElementsByClassName('gridlayer')[0].getBoundingClientRect();
+      var x = ((e.x - bgrect['x']) / (bgrect['width'])) * (myPlot.layout.xaxis.range[1] - myPlot.layout.xaxis.range[0]) + myPlot.layout.xaxis.range[0];
+      var y = ((e.y - bgrect['y']) / (bgrect['height'])) * (myPlot.layout.yaxis.range[0] - myPlot.layout.yaxis.range[1]) + myPlot.layout.yaxis.range[1];
+      if (x.between(myPlot.layout.xaxis.range[0], myPlot.layout.xaxis.range[1]) &&
+        y.between(myPlot.layout.yaxis.range[0], myPlot.layout.yaxis.range[1])) {
+        Plotly.extendTraces(myPlot, {
+          x: [
+            [x]
+          ],
+          y: [
+            [y]
+          ]
+        }, [blueSelect == true ? 1 : 0]);
+      }
+    });
+
+    /* Helper function to check if a number is within a range */
+    Number.prototype.between = function(min, max) {
+      return this >= min && this <= max;
+    };
+
+    /* Helper function for sleep */
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function getRandomWeights() {
+      while (true) {
+        let weights = [];
+        for (let i = 0; i < 3; i++) {
+          /* Generate a random number between -0.5 and 0.5 */
+          let weight = (Math.random() - 0.5);
+          weights.push(weight);
+        }
+
+        let y1 = -(weights[2] + weights[0] * -1.5) / weights[1];
+        let y2 = -(weights[2] + weights[0] * 1.5) / weights[1];
+
+        if (y1 >= 1.5 || y2 >= 1.5 || y1 <= -1.5 || y2 <= -1.5) {
+          continue;
+        }
+
+        return weights;
+      }
+    }
+
+    async function resetPlot() {
+      stopTraining = true;
+      await sleep(500);
+      weights = getRandomWeights();
+      trace0.x = [];
+      trace0.y = [];
+      trace1.x = [];
+      trace1.y = [];
+      traceHighlight.x = [];
+      traceHighlight.y = [];
+      document.getElementById("status").innerText = "";
+      Plotly.newPlot('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
+      plotDecisionBoundary();
+    }
+  </script>
+</body>
+</html>
+
