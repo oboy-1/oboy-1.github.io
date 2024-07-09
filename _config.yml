@@ -16,10 +16,10 @@ timezone: America/New_York
 
 title: Karthik's Blog # the main title
 
-tagline: "Hey, I'm Karthik! I am a junior in Poolesville High School and a Computer Team Captain and founder of Poolesville High School Machine Learning club.  This blog is a place for my Machine Learning Club lecture videos, CS posts, photos, and more!"
+tagline: "by Karthik S. Vedula"
 
 description: >- # used by seo meta and the atom feed
-  Karthik S. Vedula's Website -- Machine Learning, Coding Tutorials, Beautiful Photos, and more!
+  Karthik S. Vedula's Blog -- Machine Learning, Coding Tutorials, Photos, and more!
 
 # Fill in the protocol & hostname for your site.
 # e.g. 'https://username.github.io', note that it does not end with a '/'.
