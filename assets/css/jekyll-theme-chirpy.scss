@@ -12,6 +12,8 @@
   #sidebar {
     background-color: #FF6600;
   }
+
+
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,3 +41,9 @@
   display: none !important;
 }
 
+hr {
+    border: none;
+    border-top: 5px dotted #ff8800;
+    height: 1px;
+    margin: 50px 0;
+}

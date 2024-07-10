@@ -72,7 +72,8 @@ $$ \text{sgn}(Ax_a + By_b + C), $$
 where the value of $1$ denotes the point is part of one group and a value of $-1$ denotes the point is part of the other.  
 
 > The $\text{sgn}$ function computes the sign of the input.  It is defined as follows:
-$$
+>
+>$$
 \text{sgn}(x) = \begin{cases} 
 1 & \text{if } x > 0 \\ 
 0 & \text{if } x = 0 \\ 
@@ -81,7 +82,7 @@ $$
 $$
 {: .prompt-tip }
 
-Given a training dataset -- set of points $(x, y, a)$ were $x$ and $y$ are coordinates and $a$ is $1$ or $-1$ depending on which group the point is part of -- we can find misclassified points by finding points whose $a$ value is different than the prediction.
+Given a training dataset -- set of points $(x, y, a)$ were $x$ and $y$ are coordinates and $a$ is $1$ or $-1$ depending on which group the point is part of -- we can find misclassified points by finding points whose $a$ value is different from the prediction.
 
 #### The "learning" in perceptron learning
 
@@ -131,7 +132,7 @@ Below is a [Desmos](https://www.desmos.com/) embedding that demonstrates how wei
 
 ##### Learning Rate
 
-The learning rate, "$r$", scales how much we correct our perceptron for each misclassified point.  High learning rate means we overcorrect, meaning the line will bounce around the data more.  Low learning rate means that the we undercorrect, meaning the line will not move much and hence will take a longer time to train.  See the algorithm below to view how this constant is factored into weight updates:
+The learning rate, "$r$", scales how much we correct our perceptron for each misclassified point.  High learning rate means we might overcorrect, meaning the line will bounce around the data more.  Low learning rate means that we might undercorrect, meaning the line will not move much and hence will take a longer time to train.  See the algorithm below to view how this constant is factored into weight updates:
 
 {% include pseudocode.html id="2" code="
 \begin{algorithm}
@@ -213,7 +214,7 @@ Since it becomes difficult to graph $n$-dimensional data, a better way to graphi
 
 ### Non-linearly separable data
 
-One problem with the perceptron learning algorithm is that it cannot separate certain kinds of data.  Specifically, the algorithm requires that the data is **linearly separable**, meaning that there exists a line that separates the data into the two groups (i.e. there does indeed exist a linear solution).  If the data is not linearly separable, the line will end up bouncing around, never halting.  Run the example below to see how that happens.
+One caveat with the perceptron learning algorithm is that it cannot separate any kind of arbitrary data.  Specifically, the algorithm requires that the data is **linearly separable**, meaning that there exists a line that separates the data into the two groups (i.e. there does indeed exist a linear solution).  If the data is not linearly separable, the line will end up bouncing around, never halting.  Run the example below to see how that happens.
 
 > Find the proof that the algorithm converges on linearly separable data [here](http://www.cs.columbia.edu/~mcollins/courses/6998-2012/notes/perc.converge.pdf).
 {:.prompt-info}
@@ -245,7 +246,11 @@ These multi-layered perceptrons became now what are called feed-forward artifici
 
 These neurons form the foundation behind the machine learning algorithms of today -- Just know that when you use tools like GPT, there are billions of perceptrons hard at work! 
 
-### Algorithm Implementation in Python
+* * * *
+
+### Appendix: Algorithm Implementation in Python
+
+Enough with the theory -- let's get into implementing this in code!
 
 #### Prepare dataset
 
