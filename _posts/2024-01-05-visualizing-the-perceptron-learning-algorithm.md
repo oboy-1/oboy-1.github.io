@@ -22,11 +22,10 @@ pin: true
 
 ### Introduction
 
-The perceptron is an early innovation made in the field of machine learning.  Designed to mimic the human brain, it went on to build the foundations of today's neural networks.
-
+The perceptron is an early innovation made in the field of machine learning.  Designed to mimic the neurons in the human brain, it went on to build the foundations of today's neural networks.  The perceptron was developed by Frank Rosenblatt at the Cornell Aeronautical Laboratory ([source](https://www.ling.upenn.edu/courses/cogs501/Rosenblatt1958.pdf)). 
 
 ![png]({{ site.baseurl }}/assets/images/2024/07/perceptron.jpeg){: width="500"}
-_Mark 1 Perceptron Machine, the first implementation of the perceptron algorithm ([source](https://www.flickr.com/photos/127906254@N06/20897323365/))_
+_Mark 1 Perceptron Machine, the first implementation of the perceptron learning algorithm ([source](https://www.flickr.com/photos/127906254@N06/20897323365/))_
 
 To truly understand how the perceptron works, we must first view it from a geometrical perspective before getting into the "neural" aspect of it. A single perceptron is a linear classifier -- it separates two groups using a line.  Given a training dataset, the perceptron **learns** by readjusting itself based on points it misclassified (points on the wrong side of the line) at every timestep.
 
@@ -216,7 +215,7 @@ Since it becomes difficult to graph $n$-dimensional data, a better way to graphi
 
 One caveat with the perceptron learning algorithm is that it cannot separate any kind of arbitrary data.  Specifically, the algorithm requires that the data is **linearly separable**, meaning that there exists a line that separates the data into the two groups (i.e. there does indeed exist a linear solution).  If the data is not linearly separable, the line will end up bouncing around, never halting.  Run the example below to see how that happens.
 
-> Find the proof that the algorithm converges on linearly separable data [here](http://www.cs.columbia.edu/~mcollins/courses/6998-2012/notes/perc.converge.pdf).
+> Find a proof that the algorithm converges on linearly separable data [here](http://www.cs.columbia.edu/~mcollins/courses/6998-2012/notes/perc.converge.pdf).
 {:.prompt-info}
 
 <iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis_circle.html" title="Demo of the Perceptron Learning Algorithm (circle data)" style="width: 100%; height: 550px;"></iframe>

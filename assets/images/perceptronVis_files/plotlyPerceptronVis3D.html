@@ -96,7 +96,18 @@
         yaxis: { range: [-1.5, 1.5] },
         zaxis: { range: [-1.5, 1.5] }
       },
-      showlegend: true,
+      showlegend: false,
+      autosize: false,
+      scene: {
+        xaxis: { title: 'X' },
+        yaxis: { title: 'Y' },
+        zaxis: { title: 'Z' },
+        aspectratio: {
+          x: 1.5,
+          y: 1.5,
+          z: 1.5
+        }
+      },
     };
 
     let traceBoundary = {
