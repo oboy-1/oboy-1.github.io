@@ -7,7 +7,6 @@ layout: post
 guid: 'https://karthikvedula.com/?p=17'
 permalink: /2023/11/07/ml-club-video-linear-regression-to-neural-networks/
 categories:
-    - 'Machine Learning'
     - 'ML Club'
 tags:
     - 'Linear Regression'
