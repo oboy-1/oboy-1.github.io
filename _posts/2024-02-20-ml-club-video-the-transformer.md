@@ -7,11 +7,11 @@ layout: post
 guid: 'http://karthikvedula.com/?p=189'
 permalink: /2024/02/20/ml-club-video-the-transformer/
 categories:
-    - 'Machine Learning'
+    
     - 'ML Club'
 tags:
     - ChatGPT
-    - 'Machine Learning'
+    
     - 'Natural Language Processing'
     - 'Time Series'
 ---

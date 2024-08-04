@@ -7,11 +7,11 @@ layout: post
 guid: 'http://karthikvedula.com/?p=226'
 permalink: /2024/02/24/use-machine-learning-for-making-cards/
 categories:
-    - 'Machine Learning'
+    
 tags:
     - 'Birthday Cards'
     - DALL-E
-    - 'Machine Learning'
+    
     - 'Stable Diffusion'
     - 'Text to Image'
 ---

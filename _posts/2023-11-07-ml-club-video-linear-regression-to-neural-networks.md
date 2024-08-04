@@ -10,7 +10,7 @@ categories:
     - 'ML Club'
 tags:
     - 'Linear Regression'
-    - 'Machine Learning'
+    
     - 'Neural Network'
 ---
 

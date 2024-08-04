@@ -11,9 +11,9 @@ footnotes:
     - ''
 categories:
     - 'Coding with Karthik'
-    - 'Machine Learning'
+    
 tags:
-    - 'Machine Learning'
+    
     - 'Perceptron Learning'
     - Programming
 math: true

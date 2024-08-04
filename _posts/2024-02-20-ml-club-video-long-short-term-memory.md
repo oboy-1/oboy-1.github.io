@@ -7,11 +7,11 @@ layout: post
 guid: 'http://karthikvedula.com/?p=186'
 permalink: /2024/02/20/ml-club-video-long-short-term-memory/
 categories:
-    - 'Machine Learning'
+    
     - 'ML Club'
 tags:
     - LSTMs
-    - 'Machine Learning'
+    
     - 'Natural Language Processing'
     - 'Time Series'
 ---

@@ -8,9 +8,9 @@ guid: 'http://karthikvedula.com/?p=120'
 permalink: /2023/11/21/numpy-tutorials/
 categories:
     - 'Coding with Karthik'
-    - 'Machine Learning'
+    
 tags:
-    - 'Machine Learning'
+    
     - Numpy
     - Programming
 ---

@@ -7,12 +7,12 @@ layout: post
 guid: 'http://karthikvedula.com/?p=50'
 permalink: /2023/11/18/ml-club-video-convolutional-neural-networks/
 categories:
-    - 'Machine Learning'
+    
     - 'ML Club'
 tags:
     - 'Computer Vision'
     - 'Convolutional Neural Networks'
-    - 'Machine Learning'
+    
 ---
 
 When you look at a face, what do you see? You see eyes, ears, a nose, and other facial features. When a computer normally looks at a photo of a face, it sees pixels – individual blocks of color arranged in an organized array. But this method isn’t as effective as our “human” method is – even from a deep-learning perspective. Therefore, we use Convolutional Neural Networks (CNNs) – which use sliding windows – to pick up on *features* rather than *pixels,* and to find relationships *between* different parts of the image to make their prediction.

@@ -7,10 +7,10 @@ layout: post
 guid: 'http://karthikvedula.com/?p=183'
 permalink: /2024/02/20/ml-club-video-recurrent-neural-networks/
 categories:
-    - 'Machine Learning'
+    
     - 'ML Club'
 tags:
-    - 'Machine Learning'
+    
     - 'Natural Language Processing'
     - 'Time Series'
 ---

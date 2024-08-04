@@ -7,10 +7,10 @@ layout: post
 guid: 'http://karthikvedula.com/?p=197'
 permalink: /2024/02/20/ml-club-video-vision-transformers/
 categories:
-    - 'Machine Learning'
+    
     - 'ML Club'
 tags:
-    - 'Machine Learning'
+    
     - ViT
 ---
 

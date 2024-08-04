@@ -8,7 +8,7 @@ guid: 'https://www.karthikvedula.com/?p=698'
 permalink: /2024/05/25/coding-with-karthik-perceptron-learning-algorithm-in-c/
 categories:
     - 'Coding with Karthik'
-    - 'Machine Learning'
+    
 tags:
     - 'C Programming Language'
     - 'Perceptron Learning'

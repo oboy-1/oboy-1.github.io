@@ -7,11 +7,11 @@ layout: post
 guid: 'http://karthikvedula.com/?p=41'
 permalink: /2023/11/18/ml-club-video-dimensionality-reduction/
 categories:
-    - 'Machine Learning'
+    
     - 'ML Club'
 tags:
     - 'Dimensionality Reduction'
-    - 'Machine Learning'
+    
     - 'Principal Component Analysis'
     - t-SNE
 ---

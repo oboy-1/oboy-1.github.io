@@ -10,7 +10,7 @@ footnotes:
     - ''
 categories:
     - 'Coding with Karthik'
-    - 'Machine Learning'
+    
 tags:
     - Programming
     - TQDM

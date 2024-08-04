@@ -7,10 +7,10 @@ layout: post
 guid: 'http://karthikvedula.com/?p=181'
 permalink: /2024/02/20/ml-club-video-word2vec/
 categories:
-    - 'Machine Learning'
+    
     - 'ML Club'
 tags:
-    - 'Machine Learning'
+    
     - 'Natural Language Processing'
     - 'Word Embeddings'
 ---

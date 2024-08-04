@@ -7,10 +7,10 @@ layout: post
 guid: 'http://karthikvedula.com/?p=67'
 permalink: /2023/11/18/ml-club-video-hands-on-pytorch/
 categories:
-    - 'Machine Learning'
+    
     - 'ML Club'
 tags:
-    - 'Machine Learning'
+    
     - 'Neural Network'
     - Programming
     - PyTorch
