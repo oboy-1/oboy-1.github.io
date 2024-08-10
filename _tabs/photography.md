@@ -1,7 +1,7 @@
 ---
 layout: post
 icon: fas fa-camera
-order: 4
+order: 1
 toc: true
 ---
 
@@ -35,7 +35,7 @@ toc: true
 
 ---
 
-## Seattle
+## State of Washington
 
 {% for image in site.static_files %}
     {% if image.path contains 'assets/images/photography/seattle' %}
