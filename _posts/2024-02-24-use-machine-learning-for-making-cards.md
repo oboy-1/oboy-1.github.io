@@ -7,7 +7,7 @@ layout: post
 guid: 'http://karthikvedula.com/?p=226'
 permalink: /2024/02/24/use-machine-learning-for-making-cards/
 categories:
-    
+    - 'Cool Tools/Resources'
 tags:
     - 'Birthday Cards'
     - DALL-E

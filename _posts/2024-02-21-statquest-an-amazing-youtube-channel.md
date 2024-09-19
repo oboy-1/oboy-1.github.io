@@ -7,9 +7,8 @@ layout: post
 guid: 'http://karthikvedula.com/?p=213'
 permalink: /2024/02/21/statquest-an-amazing-youtube-channel/
 categories:
-    
+    - 'Cool Tools/Resources'
 tags:
-    
     - 'YoutTube Channel'
 ---
 

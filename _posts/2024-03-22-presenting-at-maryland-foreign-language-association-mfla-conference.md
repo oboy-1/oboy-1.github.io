@@ -7,7 +7,7 @@ layout: post
 guid: 'http://karthikvedula.com/?p=286'
 permalink: /2024/03/22/presenting-at-maryland-foreign-language-association-mfla-conference/
 categories:
-    
+    - Uncategorized
 tags:
     - Conference
     - 'Foreign Language'

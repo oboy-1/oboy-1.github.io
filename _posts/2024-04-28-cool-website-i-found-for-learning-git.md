@@ -7,7 +7,7 @@ layout: post
 guid: 'https://www.karthikvedula.com/?p=520'
 permalink: /2024/04/28/cool-website-i-found-for-learning-git/
 categories:
-    - Uncategorized
+    - 'Cool Tools/Resources'
 ---
 
 > https://learngitbranching.js.org -- It’s a really cool website!
