@@ -9,7 +9,7 @@ permalink: /2024/02/21/statquest-an-amazing-youtube-channel/
 categories:
     - 'Cool Tools/Resources'
 tags:
-    - 'YoutTube Channel'
+    - 'YouTube Channel'
 ---
 
 If you are looking for amazing, conceptual videos on Machine Learning, check out **StatQuest**! Unlike other channels, StatQuest assumes that you have no math experience! Every calculation is **intuitively explained**, and yet no method is simply abstracted from/obscured. I have used StatQuest for a lot of my ML Club lessons – and you should definitely watch those videos too!

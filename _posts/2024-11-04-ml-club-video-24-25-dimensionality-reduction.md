@@ -1,25 +1,17 @@
 ---
-id: 41
-title: 'ML Club Video: Dimensionality Reduction'
-date: '2023-11-18T23:12:31+00:00'
-
+title: 'ML Club Video (2024-25): Dimensionality Reduction'
 layout: post
-guid: 'http://karthikvedula.com/?p=41'
-permalink: /2023/11/18/ml-club-video-dimensionality-reduction/
 categories:
-    
     - 'ML Club'
 tags:
     - 'Dimensionality Reduction'
-    
     - 'Principal Component Analysis'
-    - t-SNE
+    - 't-SNE'
 ---
 
-> Update: There is a new video on this topic from 2024.  Please refer to the new video [here](https://karthikvedula.com/posts/ml-club-video-24-25-dimensionality-reduction/) as it is updated with more info.
-{: .prompt-info }
+<iframe allow="autoplay" height="480" loading="lazy" src="https://www.youtube.com/embed/LbGzh4nbpI0?si=kjHPmnGxGERM9xX7" width="640"></iframe>
 
-<iframe allow="autoplay" height="480" loading="lazy" src="https://drive.google.com/file/d/1pFSbEyLe64mXvXm3CLhUp2utG7P106Nl/preview" width="640"></iframe>In this ML Club session, we’ll learn how to visualize 1000-dimensional data!
+In this ML Club session, we’ll learn how to visualize 1000-dimensional data!
 
 High dimensional data is everywhere!
 
