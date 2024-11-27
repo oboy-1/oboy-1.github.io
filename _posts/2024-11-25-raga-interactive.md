@@ -11,7 +11,7 @@ pin: true
 math: true
 ---
 
-In Carnatic (and in Hindustani, though this blog post will focus on Carnatic) music, there is the concept of **raga**.  At face value, a raga is just a scale or a collection of notes.  Think of it as a subset of 16 possible notes 
+In Carnatic (and in Hindustani, though this blog post will focus on Carnatic) music, there is the concept of **raga**.  At face value, a raga is just a scale or a collection of notes.  Think of it as a subset of 16 possible notes:
 
 $$R \subset \{S, R1, R2, R3, G1, G2, G3, M1, M2, P, D1, D2, D3, N1, N2, N3\}.$$
 
