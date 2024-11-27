@@ -29,7 +29,7 @@ A **Melakarta Raga** is a raga $R_{M}$ with the following conditions:
 2. The arohana and avorohana are sorted. (This and the above condition make the arohana and avarohana symmetric)
 3. The upper $SA$ is included in the scale.
 
-As per this definition, we know that, to construct a Melakarta raga $R_{M},$ we have $1$ choice for $S$, $3$ choices for $R$ ($R1, R2, R3$), etc.  Multiply all this out and we get
+As per this definition, we know that, to construct a Melakarta raga $R_{M},$ we have $1$ choice for $S$, $3$ choices for $R$ ($R1, R2, R3$), etc.  Muliuply all this out and we get
 
 $$ 1 \cdot 3 \cdot 3 \cdot 2 \cdot 1 \cdot 3 \cdot 3 = 162 $$
 
@@ -43,7 +43,7 @@ $$\{(R1, G1), (R1, G2), (R1, G3), (R2, G2), (R2, G3), (R3, G3)\}.$$
 
 These pairs, combined with the specification of which $M$ note ($M1$ or $M2$) actually are given a name: **chakras**.  Each of the $2 \cdot 6 = 12$ **chakras** has a name as well: "Indu", "Netra", "Agni", "Veda", "Bana", "Ritu", "Rishi", "Vasu", "Brahma", "Disi", "Rudra", "Adi". 
 
-Similarly, due to analogous equality in pitches, we have $6$ $D, N$ pairs:
+Similarly, due to analogus equality in pitches, we have $6$ $D, N$ pairs:
 
 $$\{(D1,N1),(D1,N2),(D1,N3),(D2,N2),(D2,N3),(D3,N3)\}.$$
 
@@ -79,7 +79,7 @@ Each melakarta is assigned a number, defined by the algorithm below:
     \STATE let $f: \{1\dots6\} \rightarrow \{(R1, G1), (R1, G2)\dots\}$, where $f$ maps to the corresponding $R, G$ pairing for a given chakra number (implemented as a list, with input being index)
     \STATE $R, G = f(\text{chakra})$
     \STATE subNumber = $(n - 1) \mod 6 + 1$
-    \STATE let $g: \{1\dots6\} \rightarrow \{(D1, N1), (D1, N2)\dots\}$, analogous to $f$
+    \STATE let $g: \{1\dots6\} \rightarrow \{(D1, N1), (D1, N2)\dots\}$, analogus to $f$
     \STATE $D, N = f(\text{subNumber})$
     \STATE return $R, G, M, D, N$ \COMMENT{not returning S or P as they come in only one form}
 \ENDPROCEDURE
