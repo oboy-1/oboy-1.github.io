@@ -33,14 +33,13 @@ refactor: true
 
 
 <!-- The dots/circles -->
-<div style="text-align:center">
-  <div><h4 style="text-align:center">Featured lectures.  View more <a href="{{ site.baseurl }}/categories/ml-club">here</a></h4></div>
+<div style="text-align:center;">
+  <div><h4 style="text-align:center;margin:0;padding:3;">Featured lectures.  View more <a href="{{ site.baseurl }}/categories/ml-club">here</a></h4></div>
   <span class="dot" onclick="currentSlide(1)"></span>
   <span class="dot" onclick="currentSlide(2)"></span>
   <span class="dot" onclick="currentSlide(3)"></span>
 </div>
 
-<hr style="border: 1px solid">
 <script>
 function plusSlides(n) {
   showSlides(slideIndex += n);
