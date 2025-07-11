@@ -27,4 +27,4 @@ _image from <https://learnopencv.com/understanding-convolutional-neural-networks
 
 **More interested? Watch the ML Club video below!**
 
-<iframe allow="autoplay" height="480" loading="lazy" src="https://drive.google.com/file/d/1opKwg5ds1mho8JVCYaFD4Pp4ht_6V8uw/preview" width="640"></iframe>
+<iframe allow="autoplay" height="480" loading="lazy" src="https://www.youtube.com/embed/E1jnstgA00M" width="640"></iframe>

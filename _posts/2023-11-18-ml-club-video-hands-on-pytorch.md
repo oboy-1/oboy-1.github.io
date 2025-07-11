@@ -93,4 +93,4 @@ class CNN(nn.Module):
 
 **See the video lecture below**!
 
-<iframe allow="autoplay" height="480" loading="lazy" src="https://drive.google.com/file/d/1vvfa-p-QzTb1I8wHqmc7tXE9-FkDVLrW/preview" width="640"></iframe>
+<iframe allow="autoplay" height="480" loading="lazy" src="https://www.youtube.com/embed/QLIzJiltQsM" width="640"></iframe>

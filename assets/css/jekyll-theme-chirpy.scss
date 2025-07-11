@@ -13,6 +13,19 @@
     background-color: #FF6600;
   }
 
+  /* Make selected/active navigation buttons have fully white text in light mode */
+  .nav-link.active,
+  .nav-link[aria-current="page"],
+  .nav-link[aria-current="true"],
+  .nav-item.active .nav-link,
+  .sidebar .nav-link.active,
+  .sidebar .nav-link[aria-current="page"],
+  .sidebar .nav-link[aria-current="true"],
+  .sidebar .nav-item.active .nav-link {
+    color: #FFFFFF !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
 
 }
 
@@ -31,6 +44,8 @@
 .site-subtitle {
   color: white !important;
   font-weight: 100 !important;
+  font-style: normal !important;
+  font-weight: 600 !important;
 }
 
 .panel-heading {
@@ -46,4 +61,10 @@ hr {
     border-top: 5px dotted #ff8800;
     height: 1px;
     margin: 50px 0;
+}
+
+h2 {
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 0.2em;
+  margin-bottom: 1.2em;
 }
