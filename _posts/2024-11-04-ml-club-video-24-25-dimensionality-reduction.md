@@ -9,7 +9,7 @@ tags:
     - 't-SNE'
 ---
 
-<iframe allow="autoplay" height="480" loading="lazy" src="https://www.youtube.com/embed/LbGzh4nbpI0?si=kjHPmnGxGERM9xX7" width="640"></iframe>
+<iframe allow="autoplay" height="480" loading="lazy" src="https://www.youtube.com/embed/LbGzh4nbpI0?si=kjHPmnGxGERM9xX7" width="640" allowfullscreen></iframe>
 
 In this ML Club session, we’ll learn how to visualize 1000-dimensional data!
 

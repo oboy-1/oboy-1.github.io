@@ -24,4 +24,4 @@ The transformer is an neural network architecture proposed at Google for dethron
 
 The transformer architecture is what is behind the language models of today – from Google Translate to ChatGPT. Want to learn how these work? Watch the video!
 
-<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="" frameborder="0" height="388" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/PC1PDz9mYU0?feature=oembed" title="ML Club Video: Transformers" width="690"></iframe>
+<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen frameborder="0" height="388" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/PC1PDz9mYU0?feature=oembed" title="ML Club Video: Transformers" width="690"></iframe>

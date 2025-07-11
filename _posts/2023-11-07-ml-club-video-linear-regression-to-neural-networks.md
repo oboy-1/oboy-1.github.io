@@ -14,7 +14,7 @@ tags:
     - 'Neural Network'
 ---
 
-<iframe allow="autoplay" height="480" loading="lazy" src="https://drive.google.com/file/d/17N08DVvCioo-3QDfLxhjkg7XwopFpY7W/preview" width="640"></iframe>In this ML club session, we go from Linear Regression to Neural Networks in just one go!
+<iframe allow="autoplay" height="480" loading="lazy" src="https://www.youtube.com/embed/XKM53w8Unc8" width="640" allowfullscreen></iframe>In this ML club session, we go from Linear Regression to Neural Networks in just one go!
 
 Linear Regression is all about lines of best fit for a given dataset. But how do we find lines of best fit? Here is a quick answer:
 
