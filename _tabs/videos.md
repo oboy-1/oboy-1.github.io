@@ -120,10 +120,7 @@ My high school senior research project presentation.
 
 ## Additional Resources
 
-### Related Blog Posts
 - **[Visualizing the Perceptron Learning Algorithm]({{ site.baseurl }}/2024/01/05/visualizing-the-perceptron-learning-algorithm/)** - Interactive visualization and deep dive into the perceptron learning algorithm
 - **[Coding with Karthik: Perceptron Learning Algorithm in C]({{ site.baseurl }}/2024/05/25/coding-with-karthik-perceptron-learning-algorithm-in-c/)** - Implementation of the perceptron algorithm in C programming language
-
-### External Resources
 - **[StatQuest YouTube Channel]({{ site.baseurl }}/2024/02/21/statquest-an-amazing-youtube-channel/)** - Excellent machine learning tutorials
 - **[NumPy Tutorials]({{ site.baseurl }}/2023/11/21/numpy-tutorials/)** - Essential Python library for numerical computing 
