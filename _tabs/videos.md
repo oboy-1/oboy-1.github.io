@@ -29,12 +29,12 @@ Learn how to visualize 1000-dimensional data using PCA and t-SNE!
 <iframe allow="autoplay" height="315" loading="lazy" src="https://www.youtube.com/embed/LbGzh4nbpI0?si=kjHPmnGxGERM9xX7" width="560" allowfullscreen></iframe>
 <p style="font-size:0.9em;color:gray;margin-top:0.2em;">🔗 <a href="{{ site.baseurl }}/posts/ml-club-video-24-25-dimensionality-reduction/" style="color:gray;">Related post</a></p>
 
-### Linear Regression to Neural Networks
-**Date:** November 7, 2023  
+### Linear Regression to Neural Networks (2024-25)
+**Date:** November 13, 2024  
 Learn how we go from simple linear regression to complex neural networks in one comprehensive session!
 
-<iframe allow="autoplay" height="315" loading="lazy" src="https://www.youtube.com/embed/XKM53w8Unc8" width="560" allowfullscreen></iframe>
-<p style="font-size:0.9em;color:gray;margin-top:0.2em;">🔗 <a href="{{ site.baseurl }}/2023/11/07/ml-club-video-linear-regression-to-neural-networks/" style="color:gray;">Related post</a></p>
+<iframe allow="autoplay" height="315" loading="lazy" src="https://www.youtube.com/embed/6A_dVw9bo5M?si=ncIm9ymdUUQTH7N8" width="560" allowfullscreen></iframe>
+<p style="font-size:0.9em;color:gray;margin-top:0.2em;">🔗 <a href="{{ site.baseurl }}/posts/linear-to-nn" style="color:gray;">Related post</a></p>
 
 ## Neural Networks
 
@@ -51,6 +51,13 @@ Explore how CNNs revolutionized computer vision and image recognition!
 
 <iframe allow="autoplay" height="315" loading="lazy" src="https://www.youtube.com/embed/E1jnstgA00M" width="560" allowfullscreen></iframe>
 <p style="font-size:0.9em;color:gray;margin-top:0.2em;">🔗 <a href="{{ site.baseurl }}/2023/11/18/ml-club-video-convolutional-neural-networks/" style="color:gray;">Related post</a></p>
+
+### GANs and Autoencoders
+Learn how models that make fake pictures of people actually work!
+
+<iframe allow="autoplay" height="315" loading="lazy" src="https://www.youtube.com/embed/51xxn7tZ8VE" width="560" allowfullscreen></iframe>
+
+## Time Series & NLP Intro
 
 ### Recurrent Neural Networks
 **Date:** February 20, 2024  

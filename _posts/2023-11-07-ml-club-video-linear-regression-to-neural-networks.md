@@ -14,6 +14,10 @@ tags:
     - 'Neural Network'
 ---
 
+
+> Update: There is a new video on this topic from 2024.  Please refer to the new video [here]({{ site.baseurl }}/posts/linear-to-nn) as it is updated with more info.
+{: .prompt-info }
+
 <iframe allow="autoplay" height="480" loading="lazy" src="https://www.youtube.com/embed/XKM53w8Unc8" width="640" allowfullscreen></iframe>In this ML club session, we go from Linear Regression to Neural Networks in just one go!
 
 Linear Regression is all about lines of best fit for a given dataset. But how do we find lines of best fit? Here is a quick answer:
