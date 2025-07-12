@@ -68,10 +68,10 @@ h2 {
 }
 
 /* Consistent styling for markdown image captions */
-.post-content em,
-.post-content p em,
-.content em,
-.content p em {
+.post-content img + em,
+.post-content img + p em,
+.content img + em,
+.content img + p em {
   display: block !important;
   text-align: center !important;
   font-style: italic !important;
@@ -83,30 +83,10 @@ h2 {
 
 /* Dark mode support for image captions */
 @media (prefers-color-scheme: dark) {
-  .post-content em,
-  .post-content p em,
-  .content em,
-  .content p em {
-    color: #888 !important;
-  }
-}
-
-/* Consistent styling for markdown image captions */
-.post-content em:last-child,
-.post-content p em:last-child {
-  display: block;
-  text-align: center;
-  font-style: italic;
-  color: #666;
-  font-size: 0.9em;
-  margin-top: 0.5em;
-  margin-bottom: 1.5em;
-}
-
-/* Dark mode support for image captions */
-@media (prefers-color-scheme: dark) {
-  .post-content em:last-child,
-  .post-content p em:last-child {
-    color: #aaa;
+  .post-content img + em,
+  .post-content img + p em,
+  .content img + em,
+  .content img + p em {
+    color: #aaa !important;
   }
 }
