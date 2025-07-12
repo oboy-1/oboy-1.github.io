@@ -10,15 +10,14 @@ refactor: true
 
 {% assign posts = '' | split: '' %}
 
-<div class="intro-card" style="max-width: 700px; margin: 2em auto 2em auto; display: flex; align-items: center; background: rgba(255,255,255,0.95); border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); padding: 2em;">
-  <div style="flex-shrink: 0; margin-right: 2em; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; width: 220px; height: 180px; display: flex; align-items: stretch;">
-    <iframe allow="autoplay" loading="lazy" src="https://www.youtube.com/embed/LbGzh4nbpI0?si=kjHPmnGxGERM9xX7" style="border:0; display:block; width:100%; height:100%; object-fit: cover; border-radius: 8px;" allowfullscreen></iframe>
+<div class="intro-card" style="max-width: 900px; margin: 2em auto 2em auto; display: flex; align-items: center; background: rgba(255,255,255,0.95); border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); padding: 2em; gap: 2em;">
+  <div style="flex-shrink: 0; border-radius: 8px; overflow: hidden; width: 220px; height: 260px; display: flex; align-items: stretch; background-image: url('{{ site.baseurl }}/assets/images/homepage.jpeg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
   </div>
-  <div>
+  <div style="flex: 1;">
     <h2 style="margin-top:0; margin-bottom:0.5em;">Hi, I'm Karthik!</h2>
     <p style="margin-bottom:0.5em; font-size:1.1em;">Welcome to my blog! I'm a student passionate about machine learning, coding, and sharing what I learn. Here you'll find ML Club lectures, tutorials, and snapshots from my journey in computer science and beyond.</p>
     <p style="color: #888; font-size:0.95em; margin-bottom:0;">
-      Explore my <b><a href="/videos/" style="text-decoration: none;">lecture videos</a></b> and travel <b><a href="/photography/" style="text-decoration: none;">photos</a></b> using the tabs in the sidebar—check out the sample video on the left! Scroll down for <b><a href="/archives/" style="text-decoration: none;">blog posts</a></b>. Thanks for visiting!
+      Explore my <b><a href="/videos/" style="text-decoration: none;">lecture videos</a></b> and travel <b><a href="/photography/" style="text-decoration: none;">photos</a></b> using the tabs in the sidebar. Scroll down for <b><a href="/archives/" style="text-decoration: none;">blog posts</a></b>. Thanks for visiting!
     </p>
   </div>
 </div>
@@ -41,6 +40,63 @@ refactor: true
   .intro-card p:last-child {
     color: #aaaaaa !important;
   }
+}
+
+@media (max-width: 768px) {
+  .intro-card {
+    margin: 1em auto 1em auto !important;
+    padding: 1.5em !important;
+    border-radius: 12px !important;
+    flex-direction: column !important;
+    gap: 1.5em !important;
+    text-align: center !important;
+  }
+  
+  .intro-card > div:first-child {
+    width: 180px !important;
+    height: 213px !important;
+    margin: 0 auto !important;
+  }
+  
+  .intro-card h2 {
+    font-size: 1.5em !important;
+  }
+  
+  .intro-card p {
+    font-size: 1em !important;
+  }
+  
+  .intro-card p:last-child {
+    font-size: 0.9em !important;
+  }
+}
+
+/* Prevent any loading effects on the intro card image */
+.intro-card img {
+  opacity: 1 !important;
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Disable shimmer effect on preview-img wrapper */
+.intro-card .preview-img {
+  background: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+.intro-card .preview-img.shimmer {
+  background: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Override any theme shimmer styles */
+.preview-img.shimmer {
+  background: none !important;
+  animation: none !important;
+  transition: none !important;
 }
 </style>
 

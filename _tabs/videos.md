@@ -104,7 +104,7 @@ Explore the critical aspects of machine learning: uncertainty quantification, mo
 
 <iframe allow="autoplay" height="315" loading="lazy" src="https://www.youtube.com/embed/vJCAmd68jYM" width="560" allowfullscreen></iframe>
 
-## Guest Lecture
+## Special Lectures
 
 ### Guest Lecture: Digital Video Broadcasting
 **Date:** April 22, 2024  
@@ -112,6 +112,11 @@ Special guest lecture on digital video broadcasting and its impact on modern com
 
 <iframe allow="autoplay" height="315" loading="lazy" src="https://www.youtube.com/embed/OpwLexzfNfU" width="560" allowfullscreen></iframe>
 <p style="font-size:0.9em;color:gray;margin-top:0.2em;">🔗 <a href="{{ site.baseurl }}/2024/04/22/guest-lecture-digital-video-broadcasting/" style="color:gray;">Related post</a></p>
+
+### Senior Research Project
+My high school senior research project presentation.
+
+<iframe allow="autoplay" height="315" loading="lazy" src="https://www.youtube.com/embed/a98ilCiw9g4" width="560" allowfullscreen></iframe>
 
 ## Additional Resources
 
