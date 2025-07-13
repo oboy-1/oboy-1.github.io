@@ -67,27 +67,3 @@ h2 {
   margin-bottom: 1.2em;
 }
 
-/* Consistent styling for markdown image captions */
-.post-content em,
-.content em,
-.card-text em,
-.post em {
-  display: block !important;
-  text-align: center !important;
-  font-style: italic !important;
-  color: #666 !important;
-  font-size: 0.9em !important;
-  margin-top: 0.5em !important;
-  margin-bottom: 1.5em !important;
-  border: 2px solid red !important;
-}
-
-/* Dark mode support for image captions */
-@media (prefers-color-scheme: dark) {
-  .post-content em,
-  .content em,
-  .card-text em,
-  .post em {
-    color: #aaa !important;
-  }
-}
