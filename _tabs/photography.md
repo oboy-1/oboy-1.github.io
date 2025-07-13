@@ -38,7 +38,8 @@ This is my photography page.  As you can see from the photo above, I have been l
 ## Lunar Eclipse
 
 ![Image]({{ site.baseurl }}/assets/images/photography/lunarEclipse.jpg)
-_Taken on Nov. 8, 2022 in Maryland_
+<figcaption>Taken on Nov. 8, 2022 in Maryland</figcaption>
+
 
 ---
 

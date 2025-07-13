@@ -25,13 +25,15 @@ pin: true
 The perceptron is an early innovation made in the field of machine learning.  Designed to mimic the neurons in the human brain, it went on to build the foundations of today's neural networks.  The perceptron was developed by Frank Rosenblatt at the Cornell Aeronautical Laboratory ([source](https://www.ling.upenn.edu/courses/cogs501/Rosenblatt1958.pdf)). 
 
 ![png]({{ site.baseurl }}/assets/images/2024/07/perceptron.jpeg){: width="500"}
-_Mark 1 Perceptron Machine, the first implementation of the perceptron learning algorithm ([source](https://www.flickr.com/photos/127906254@N06/20897323365/))_
+<figcaption>Mark 1 Perceptron Machine, the first implementation of the perceptron learning algorithm (<a href="https://www.flickr.com/photos/127906254@N06/20897323365/">source</a>)</figcaption>
+
 
 To truly understand how the perceptron works, we must first view it from a geometrical perspective before getting into the "neural" aspect of it. A single perceptron is a linear classifier -- it separates two groups using a line.  Given a training dataset, the perceptron **learns** by readjusting itself based on points it misclassified (points on the wrong side of the line) at every timestep.
 
 ![png]({{ site.baseurl }}/assets/images/2024/07/perceptronVisLine.png){:.light width="500"}
 ![png]({{ site.baseurl }}/assets/images/2024/07/perceptronVisLine_dark.png){:.dark width="500"}
-_The perceptron aims to split data into two groups using a line_
+<figcaption>The perceptron aims to split data into two groups using a line</figcaption>
+
 
 When the problem is in 2D, it becomes very easy for us humans to figure out a solution to the problem -- we can simply eyeball a line that separates two groups.  But when it comes to higher dimensions (or simply just programming a computer to do this process for us), we will need a more well-defined algorithm.
 
@@ -207,7 +209,8 @@ This vector can extend to any dimensions needed, meaning that our perceptron can
 
 ![png]({{ site.baseurl }}/assets/images/2024/07/anatomyPerceptron.png){:.light width="600"}
 ![png]({{ site.baseurl }}/assets/images/2024/07/anatomyPerceptron_dark.png){:.dark width="600"}
-_Different parts of a perceptron_
+<figcaption>Different parts of a perceptron</figcaption>
+
 
 Since it becomes difficult to graph $n$-dimensional data, a better way to graphically represent the perceptron is as a "neuron" which gets $n$ inputs.  Each of these inputs is multiplied by the respective weight $w_n$ and all of the products are summed up.  The sum is then put through an **activation function**, in this case the $\text{sgn}$ function.
 
@@ -236,7 +239,8 @@ These different activation functions can allow prediction to not just be a discr
 
 ![png]({{ site.baseurl }}/assets/images/2024/07/mlp.png){:.light width="600"}
 ![png]({{ site.baseurl }}/assets/images/2024/07/mlp_dark.png){:.dark width="600"}
-_Generated from [http://alexlenail.me/NN-SVG/index.html](http://alexlenail.me/NN-SVG/index.html)_
+<figcaption>Generated from <a href="http://alexlenail.me/NN-SVG/index.html">http://alexlenail.me/NN-SVG/index.html</a></figcaption>
+
 
 These multi-layered perceptrons became now what are called feed-forward artificial neural networks, from which a plethora of other kinds of neural networks were built from later on.  The beauty of this is that the powerful properties of these neural networks all stem from a swarm of perceptrons that interact with each other.
 
