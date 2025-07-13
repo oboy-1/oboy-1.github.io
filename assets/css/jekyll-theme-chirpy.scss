@@ -68,10 +68,10 @@ h2 {
 }
 
 /* Consistent styling for markdown image captions */
-.post-content img + em,
-.post-content img + p em,
-.content img + em,
-.content img + p em {
+.post-content em,
+.content em,
+.card-text em,
+.post em {
   display: block !important;
   text-align: center !important;
   font-style: italic !important;
@@ -79,14 +79,15 @@ h2 {
   font-size: 0.9em !important;
   margin-top: 0.5em !important;
   margin-bottom: 1.5em !important;
+  border: 2px solid red !important;
 }
 
 /* Dark mode support for image captions */
 @media (prefers-color-scheme: dark) {
-  .post-content img + em,
-  .post-content img + p em,
-  .content img + em,
-  .content img + p em {
+  .post-content em,
+  .content em,
+  .card-text em,
+  .post em {
     color: #aaa !important;
   }
 }
