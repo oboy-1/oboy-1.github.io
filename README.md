@@ -5,3 +5,5 @@
 My personal blog, made in Jekyll and deployed on Github Pages.
 
 Modified [this theme](https://chirpy.cotes.page/).
+
+Enjoy!
