@@ -21,7 +21,7 @@ As I graduate high school and move on to college, I wanted to take a moment to w
 
 The ML Club was born out of a simple belief: **the best way to learn is to teach.** When you challenge yourself not just to understand a concept, but to explain it clearly to others, you gain a much deeper appreciation for the subject. Thanks to the club---and to its members, whose unwavering enthusiasm I am so grateful for---I grew from being merely curious about ML to wanting to dedicate my future to it. Without the club, I wouldn’t have the same passion and appreciation for the field that I carry today.
 
-While running ML Club, I had the wonderful opportunity to teach (along with some amazing coaches) these AI lectures to the [NorthSouth Foundation](https://www.northsouth.org) Learning Journey Program, reaching over 120 students and raised funds for 50 college scholarships in India.
+Experience in ML Club opened up so many other opportunities.  I had the wonderful opportunity to teach (along with some amazing coaches) these AI lectures to the [NorthSouth Foundation](https://www.northsouth.org) Learning Journey Program, reaching over 120 students and raised funds for 50 college scholarships in India.
 
 ![Image]({{ site.baseurl }}/assets/images/2025/08/club_photo.jpeg){: width="500"}
 <figcaption>ML Club 2024-25 club photo</figcaption>
