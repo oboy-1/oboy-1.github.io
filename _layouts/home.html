@@ -16,10 +16,18 @@ refactor: true
   </div>
   <div style="flex: 1;">
     <h2 style="margin-top:0; margin-bottom:0.5em;">Hi, I'm Karthik!</h2>
-    <p style="margin-bottom:0.5em; font-size:1.1em;">Welcome to my blog! I'm a student passionate about machine learning, coding, and sharing what I learn. Here you'll find ML Club lectures, tutorials, and snapshots from my journey in computer science and beyond.</p>
-    <p style="color: #888; font-size:0.95em; margin-bottom:0;">
+    <p style="margin-bottom:0.5em; font-size:1.1em;">Welcome to my blog! I'm a student passionate about machine learning and sharing what I learn.</p>
+    <p style="color: #777; font-size:0.95em; margin-bottom:0;">
       Explore my <b><a href="/videos/" style="text-decoration: none;">lecture videos</a></b> and travel <b><a href="/photography/" style="text-decoration: none;">photos</a></b> using the tabs in the sidebar. Scroll down for <b><a href="/archives/" style="text-decoration: none;">blog posts</a></b>. Thanks for visiting!
     </p>
+    <div class="news-box" style="margin-top: 0.1em; font-size: 0.9em;">
+  <h3 style="margin-bottom: 0.15em; font-size: 1em; font-weight: bold;">Latest News</h3>
+  <ul style="list-style: none; padding-left: 0; margin-bottom: 0;">
+    {% for item in site.data.news limit:1 %}
+    <li style="margin-bottom: 0em;">{{ item | markdownify | strip_newlines }}</li>
+    {% endfor %}
+  </ul>
+</div>
   </div>
 </div>
 
@@ -29,15 +37,15 @@ refactor: true
     background: rgba(40, 40, 40, 0.95) !important;
     box-shadow: 0 2px 16px rgba(0,0,0,0.3) !important;
   }
-  
+
   .intro-card h2 {
     color: #ffffff !important;
   }
-  
+
   .intro-card p {
     color: #cccccc !important;
   }
-  
+
   .intro-card p:last-child {
     color: #aaaaaa !important;
   }
@@ -52,21 +60,21 @@ refactor: true
     gap: 1.5em !important;
     text-align: center !important;
   }
-  
+
   .intro-card > div:first-child {
     width: 180px !important;
     height: 213px !important;
     margin: 0 auto !important;
   }
-  
+
   .intro-card h2 {
     font-size: 1.5em !important;
   }
-  
+
   .intro-card p {
     font-size: 1em !important;
   }
-  
+
   .intro-card p:last-child {
     font-size: 0.9em !important;
   }
