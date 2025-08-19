@@ -36,8 +36,8 @@ social:
   links:
     # The first element serves as the copyright owner's link
     # Uncomment below to add more social links
-    - mailto:karthik@vedula.me
     - https://www.linkedin.com/in/karthik-s-vedula/
+    - mailto:karthik@vedula.me
     - https://github.com/oboy-1 # change to your github homepage
 
 # Site Verification Settings
