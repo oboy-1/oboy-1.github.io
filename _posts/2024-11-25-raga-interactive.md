@@ -7,7 +7,6 @@ tags:
     - Carnatic
     - Ragas
 
-pin: true
 math: true
 ---
 
