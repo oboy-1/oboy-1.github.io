@@ -23,7 +23,7 @@ refactor: true
     <div class="news-box" style="margin-top: 0.1em; font-size: 0.9em;">
   <h3 style="margin-bottom: 0.15em; font-size: 1em; font-weight: bold;">Latest News</h3>
   <ul style="list-style: none; padding-left: 0; margin-bottom: 0;">
-    {% for item in site.data.news limit:1 %}
+    {% for item in site.data.news limit:2 %}
     <li style="margin-bottom: 0em;">{{ item | markdownify | strip_newlines }}</li>
     {% endfor %}
   </ul>
