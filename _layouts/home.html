@@ -13,29 +13,62 @@ refactor: true
 
 <div class="intro-card" style="max-width: 900px; margin: 2em auto 2em auto; display: flex; align-items: center; background: rgba(255,255,255,0.95); border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); padding: 2em; gap: 2em;">
   <div style="flex-shrink: 0; border-radius: 8px; overflow: hidden; width: 220px; height: 260px; display: flex; align-items: stretch; background-image: url('{{ site.baseurl }}/assets/images/homepage.jpeg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
-  </div>
+</div>
   <div style="flex: 1;">
     <h2 style="margin-top:0; margin-bottom:0.5em;">Hi, I'm Karthik!</h2>
     <p style="margin-bottom:0.5em; font-size:1.1em;">Welcome to my blog! I'm a student passionate about machine learning and sharing what I learn.</p>
     <p style="color: #777; font-size:0.95em; margin-bottom:0;">
       Explore my <b><a href="/videos/" style="text-decoration: none;">lecture videos</a></b> and travel <b><a href="/photography/" style="text-decoration: none;">photos</a></b> using the tabs in the sidebar. Scroll down for <b><a href="/archives/" style="text-decoration: none;">blog posts</a></b>. Thanks for visiting!
     </p>
-    <div class="news-box" style="margin-top: 0.1em; font-size: 0.9em;">
+<div class="news-box" style="margin-top: 0.1em; font-size: 0.9em;">
+
   <h3 style="margin-bottom: 0.15em; font-size: 1em; font-weight: bold;">Latest News</h3>
   <ul style="list-style: none; padding-left: 0; margin-bottom: 0;">
     {% for item in site.data.news limit:2 %}
-    <li style="margin-bottom: 0em;">{{ item | markdownify | strip_newlines }}</li>
+      <li style="margin-bottom: 0em;">
+      <span style="display: inline;">
+        <b>{{ item.date }}:</b> {{ item.content | markdownify | replace: '<p>', '' | replace: '</p>', '' | strip_newlines }}
+      </span>
+    </li>
     {% endfor %}
   </ul>
+
+  {% if site.data.news.size > 2 %}
+  <div style="text-align: right; margin-top: 0.5em;">
+    <a href="{{ site.baseurl }}/news" class="news-button">All News</a>
+  </div>
+  {% endif %}
 </div>
   </div>
 </div>
 
 <style>
+/* === Default (light mode) === */
+.intro-card {
+  background: white;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  padding: 2em;
+  color: #333;
+}
+
+/* Default text colors */
+.intro-card h2 {
+  color: #000;
+}
+.intro-card p {
+  color: #555;
+}
+.intro-card p:last-child {
+  color: #777;
+}
+
+/* === Dark mode overrides === */
 @media (prefers-color-scheme: dark) {
   .intro-card {
     background: rgba(40, 40, 40, 0.95) !important;
     box-shadow: 0 2px 16px rgba(0,0,0,0.3) !important;
+    color: #ccc !important; /* fallback for text */
   }
 
   .intro-card h2 {
@@ -51,11 +84,11 @@ refactor: true
   }
 }
 
+/* === Responsive tweaks === */
 @media (max-width: 768px) {
   .intro-card {
-    margin: 1em auto 1em auto !important;
+    margin: 1em auto !important;
     padding: 1.5em !important;
-    border-radius: 12px !important;
     flex-direction: column !important;
     gap: 1.5em !important;
     text-align: center !important;
@@ -79,36 +112,7 @@ refactor: true
     font-size: 0.9em !important;
   }
 }
-
-/* Prevent any loading effects on the intro card image */
-.intro-card img {
-  opacity: 1 !important;
-  transition: none !important;
-  animation: none !important;
-  transform: none !important;
-}
-
-/* Disable shimmer effect on preview-img wrapper */
-.intro-card .preview-img {
-  background: none !important;
-  animation: none !important;
-  transition: none !important;
-}
-
-.intro-card .preview-img.shimmer {
-  background: none !important;
-  animation: none !important;
-  transition: none !important;
-}
-
-/* Override any theme shimmer styles */
-.preview-img.shimmer {
-  background: none !important;
-  animation: none !important;
-  transition: none !important;
-}
 </style>
-
 
 <!-- Get pinned posts -->
 
