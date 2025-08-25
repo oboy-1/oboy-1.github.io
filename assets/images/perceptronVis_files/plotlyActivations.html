@@ -1,215 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activation Functions</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <style>
-        .button-group {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .button-group button {
-            padding: 10px;
-            margin: 5px;
-            border: none;
-            cursor: pointer;
-            background-color: #f0f0f0;
-        }
-        .button-group button:hover {
-            background-color: #ccc;
-        }
-        .button-group button.active {
-            background-color: #FF6600;
-            color: #FFF;
-        }
-        #latex {
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activation Functions</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: white;
+      color: black;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .button-group button {
+      padding: 10px;
+      margin: 5px;
+      border: none;
+      cursor: pointer;
+      background-color: #f0f0f0;
+      color: black;
+      transition: background 0.2s;
+    }
+
+    .button-group button:hover {
+      background-color: #ccc;
+    }
+
+    .button-group button.active {
+      background-color: #FF6600;
+      color: #FFF;
+    }
+
+    #latex {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    /* Dark mode styles */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #1b1b1e;
+        color: #e0e0e0;
+      }
+
+      .button-group button {
+        background-color: #333;
+        color: #e0e0e0;
+      }
+
+      .button-group button:hover {
+        background-color: #555;
+      }
+
+      .button-group button.active {
+        background-color: #FF6600;
+        color: white;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="button-group">
-        <button onclick="plotSigmoid()" class="active">Sigmoid</button>
-        <button onclick="plotTanh()">Tanh</button>
-        <button onclick="plotRelu()">ReLU</button>
-        <button onclick="plotLeakyRelu()">Leaky ReLU</button>
-        <button onclick="plotElu()">ELU</button>
-        <button onclick="plotSign()">Sign</button>
-    </div>
-    <div id="latex">$$\sigma(x) = \frac{1}{1 + e^{-x}}$$</div>
-    <div id="plot" style="width:100%;height:100%;"></div>
-    <script>
-        /* Define activation functions */
-        function sigmoid(x) {
-            return 1 / (1 + Math.exp(-x));
-        }
+  <div class="button-group">
+    <button onclick="plotSigmoid()" class="active">Sigmoid</button>
+    <button onclick="plotTanh()">Tanh</button>
+    <button onclick="plotRelu()">ReLU</button>
+    <button onclick="plotLeakyRelu()">Leaky ReLU</button>
+    <button onclick="plotElu()">ELU</button>
+    <button onclick="plotSign()">Sign</button>
+  </div>
+  <div id="latex">$$\sigma(x) = \frac{1}{1 + e^{-x}}$$</div>
+  <div id="plot" style="width:100%;height:100%;"></div>
 
-        function tanh(x) {
-            return Math.tanh(x);
-        }
+  <script>
+    /* Activation functions */
+    function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+    function tanh(x) { return Math.tanh(x); }
+    function relu(x) { return Math.max(0, x); }
+    function leakyRelu(x, alpha=0.2) { return x > 0 ? x : alpha * x; }
+    function elu(x, alpha=1) { return x >= 0 ? x : alpha * (Math.exp(x) - 1); }
+    function sign(x) { return x > 0 ? 1 : (x < 0 ? -1 : 0); }
 
-        function relu(x) {
-            return Math.max(0, x);
-        }
+    /* Generate data */
+    let x = [], sigmoidY=[], tanhY=[], reluY=[], leakyReluY=[], eluY=[], signY=[];
+    for (let i = -10; i <= 10; i += 0.1) {
+      x.push(i);
+      sigmoidY.push(sigmoid(i));
+      tanhY.push(tanh(i));
+      reluY.push(relu(i));
+      leakyReluY.push(leakyRelu(i));
+      eluY.push(elu(i));
+      signY.push(sign(i));
+    }
 
-        function leakyRelu(x, alpha=0.2) {
-            return x > 0 ? x : alpha * x;
-        }
+    /* Traces */
+    const traces = {
+      Sigmoid: { x, y: sigmoidY, mode: 'lines', name: 'Sigmoid' },
+      Tanh: { x, y: tanhY, mode: 'lines', name: 'Tanh' },
+      ReLU: { x, y: reluY, mode: 'lines', name: 'ReLU' },
+      'Leaky ReLU': { x, y: leakyReluY, mode: 'lines', name: 'Leaky ReLU' },
+      ELU: { x, y: eluY, mode: 'lines', name: 'ELU' },
+      Sign: { x, y: signY, mode: 'lines', name: 'Sign' }
+    };
 
-        function elu(x, alpha=1) {
-            return x >= 0 ? x : alpha * (Math.exp(x) - 1);
-        }
+    /* Update Plotly layout colors based on theme */
+    function updatePlotlyTheme() {
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const theme = {
+        paper_bgcolor: isDark ? "#1b1b1e" : "white",
+        plot_bgcolor: isDark ? "#1b1b1e" : "white",
+        font: { color: isDark ? "#e0e0e0" : "black" },
+        xaxis: { color: isDark ? "#e0e0e0" : "black" },
+        yaxis: { color: isDark ? "#e0e0e0" : "black" }
+      };
 
-        function sign(x) {
-            return x > 0 ? 1 : (x < 0 ? -1 : 0);
-        }
+      const plotDiv = document.getElementById('plot');
+      if (plotDiv.data) {
+        Plotly.relayout(plotDiv, theme);
+      }
+    }
 
-        /* Generate data points */
-        let x = [];
-        let sigmoidY = [];
-        let tanhY = [];
-        let reluY = [];
-        let leakyReluY = [];
-        let eluY = [];
-        let signY = [];
-        for (let i = -10; i <= 10; i += 0.1) {
-            x.push(i);
-            sigmoidY.push(sigmoid(i));
-            tanhY.push(tanh(i));
-            reluY.push(relu(i));
-            leakyReluY.push(leakyRelu(i));
-            eluY.push(elu(i));
-            signY.push(sign(i));
-        }
-
-        /* Create traces */
-        let sigmoidTrace = {
-            x: x,
-            y: sigmoidY,
-            mode: 'lines',
-            name: 'Sigmoid'
+    /* Plot functions */
+    function plotFunction(funcName, latex) {
+        const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const layout = {
+            title: funcName + ' Activation Function',
+            paper_bgcolor: isDark ? "#1b1b1e" : "white",
+            plot_bgcolor: isDark ? "#1b1b1e" : "white",
+            font: { color: isDark ? "#e0e0e0" : "black" },
+            xaxis: { title: "Input", range: [-10, 10], color: isDark ? "#e0e0e0" : "black" },
+            yaxis: { title: "Output", color: isDark ? "#e0e0e0" : "black" }
         };
 
-        let tanhTrace = {
-            x: x,
-            y: tanhY,
-            mode: 'lines',
-            name: 'Tanh'
-        };
+      Plotly.newPlot('plot', [traces[funcName]], layout);
+      setActiveButton(funcName);
+      updateLatex(latex);
+    }
 
-        let reluTrace = {
-            x: x,
-            y: reluY,
-            mode: 'lines',
-            name: 'ReLU'
-        };
+    function plotSigmoid() {
+      plotFunction('Sigmoid', "$$\\sigma(x) = \\frac{1}{1 + e^{-x}}$$");
+    }
 
-        let leakyReluTrace = {
-            x: x,
-            y: leakyReluY,
-            mode: 'lines',
-            name: 'Leaky ReLU'
-        };
+    function plotTanh() {
+      plotFunction('Tanh', "$$\\tanh(x) = \\frac{e^x - e^{-x}}{e^x + e^{-x}}$$");
+    }
 
-        let eluTrace = {
-            x: x,
-            y: eluY,
-            mode: 'lines',
-            name: 'ELU'
-        };
+    function plotRelu() {
+      plotFunction('ReLU', "$$\\text{ReLU}(x) = \\max(0, x)$$");
+    }
 
-        let signTrace = {
-            x: x,
-            y: signY,
-            mode: 'lines',
-            name: 'Sign'
-        };
+    function plotLeakyRelu() {
+      plotFunction('Leaky ReLU', "$$\\text{Leaky ReLU}(x) = \\begin{cases} x & \\text{if } x > 0 \\\\ 0.2x & \\text{if } x \\leq 0 \\end{cases}$$");
+    }
 
-        function plotSigmoid() {
-            Plotly.newPlot('plot', [sigmoidTrace], {
-                title: 'Sigmoid Activation Function',
-                xaxis: { title: 'Input', range: [-10, 10] },
-                yaxis: { title: 'Output' }
-            });
-            setActiveButton('Sigmoid');
-            updateLatex("$$\\sigma(x) = \\frac{1}{1 + e^{-x}}$$");
-        }
+    function plotElu() {
+      plotFunction('ELU', "$$\\text{ELU}(x) = \\begin{cases} x & \\text{if } x > 0 \\\\ e^x - 1 & \\text{if } x \\leq 0 \\end{cases}$$");
+    }
 
-        function plotTanh() {
-            Plotly.newPlot('plot', [tanhTrace], {
-                title: 'Tanh Activation Function',
-                xaxis: { title: 'Input', range: [-10, 10] },
-                yaxis: { title: 'Output' }
-            });
-            setActiveButton('Tanh');
-            updateLatex("$$\\tanh(x) = \\frac{e^x - e^{-x}}{e^x + e^{-x}}$$");
-        }
+    function plotSign() {
+      plotFunction('Sign', "$$\\text{sgn}(x) = \\begin{cases} 1 & \\text{if } x > 0 \\\\ -1 & \\text{if } x < 0 \\\\ 0 & \\text{if } x = 0 \\end{cases}$$");
+    }
 
-        function plotRelu() {
-            Plotly.newPlot('plot', [reluTrace], {
-                title: 'ReLU Activation Function',
-                xaxis: { title: 'Input', range: [-10, 10] },
-                yaxis: { title: 'Output' }
-            });
-            setActiveButton('ReLU');
-            updateLatex("$$\\text{ReLU}(x) = \\max(0, x)$$");
-        }
+    function setActiveButton(name) {
+      document.querySelectorAll('.button-group button').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === name);
+      });
+    }
 
-        function plotLeakyRelu() {
-            Plotly.newPlot('plot', [leakyReluTrace], {
-                title: 'Leaky ReLU Activation Function',
-                xaxis: { title: 'Input', range: [-10, 10] },
-                yaxis: { title: 'Output' }
-            });
-            setActiveButton('Leaky ReLU');
-            updateLatex("$$\\text{Leaky ReLU}(x) = \\begin{cases} x & \\text{if } x > 0 \\\\ 0.2x & \\text{if } x \\leq 0 \\end{cases}$$");
-        }
+    function updateLatex(latex) {
+      document.getElementById('latex').innerHTML = latex;
+      if (typeof MathJax !== 'undefined') {
+        MathJax.typeset();
+      }
+    }
 
-        function plotElu() {
-            Plotly.newPlot('plot', [eluTrace], {
-                title: 'ELU Activation Function',
-                xaxis: { title: 'Input', range: [-10, 10] },
-                yaxis: { title: 'Output' }
-            });
-            setActiveButton('ELU');
-            updateLatex("$$\\text{ELU}(x) = \\begin{cases} x & \\text{if } x > 0 \\\\ e^x - 1 & \\text{if } x \\leq 0 \\end{cases}$$");
-        }
+    /* Event listener for theme changes */
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", updatePlotlyTheme);
 
-        function plotSign() {
-            Plotly.newPlot('plot', [signTrace], {
-                title: 'Sign Activation Function',
-                xaxis: { title: 'Input', range: [-10, 10] },
-                yaxis: { title: 'Output' }
-            });
-            setActiveButton('Sign');
-            updateLatex("$$\\text{sgn}(x) = \\begin{cases} 1 & \\text{if } x > 0 \\\\ -1 & \\text{if } x < 0 \\\\ 0 & \\text{if } x = 0 \\end{cases}$$");
-        }
-
-        function setActiveButton(name) {
-            let buttons = document.querySelectorAll('.button-group button');
-            buttons.forEach(button => {
-                if (button.textContent === name) {
-                    button.classList.add('active');
-                } else {
-                    button.classList.remove('active');
-                }
-            });
-        }
-
-        function updateLatex(latex) {
-            document.getElementById('latex').innerHTML = latex;
-            MathJax.typeset();
-        }
-
-        /* Initial plot */
-        plotSigmoid();
-    </script>
+    /* Initial plot and theme check */
+    window.onload = () => {
+      plotSigmoid();
+      updatePlotlyTheme();
+    };
+  </script>
 </body>
 </html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>2D → 1D Projection with Displayed Variance</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+  /* ---------- THEME VARIABLES ---------- */
+  :root {
+    --bg: #ffffff;
+    --text: #111827;           /* near-black */
+    --muted: #475569;          /* slate-600 */
+    --panel: #f8fafc;          /* light panel */
+    --panel-2: #e2e8f0;
+    --border: rgba(15, 23, 42, 0.08);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+
+    --track-bg: #f0f0f0;       /* slider track background */
+    --connect-line: #808080;   /* connecting lines to projection */
+    --point-original: #1e40af; /* blue-800 */
+    --axis-line: #15803d;      /* green-700 */
+    --pc-line: #dc143c;        /* crimson for PC lines */
+
+    --accent: #ff6600;         /* orange */
+    --accent-2: #ff9533;
+
+    --plot-paper: #ffffff;
+    --plot-bg: #ffffff;
+    --grid: #e5e7eb;           /* gridline color */
+    --legend-bg: rgba(255,255,255,0.0);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);     /* requested background */
+      --text: #e5e7eb;
+      --muted: #cbd5e1;
+      --panel: #25262b;        /* dark panel */
+      --panel-2: #2f3137;
+      --border: rgba(148, 163, 184, 0.16);
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.40);
+
+      --track-bg: #3a3b42;
+      --connect-line: #9aa0a6;
+      --point-original: #93c5fd; /* blue-300 */
+      --axis-line: #34d399;      /* emerald-400 */
+      --pc-line: #f87171;        /* red-400 */
+
+      --plot-paper: rgb(27,27,30);
+      --plot-bg: #1f2024;
+      --grid: #3a3b42;
+      --legend-bg: rgba(0,0,0,0.0);
+    }
+  }
+
+  /* ---------- BASE LAYOUT ---------- */
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    transition: background-color 180ms ease, color 180ms ease;
+    padding: 16px;
+  }
+
+  #plot { width: 800px; height: 600px; max-width: 95vw; }
+
+  .slider-container {
+    width: 90%;
+    max-width: 800px;
+    margin-top: 20px;
+    position: relative;
+  }
+
+  .orange-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--track-bg);
+    outline: none;
+    transition: background 180ms ease;
+  }
+  .orange-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid rgba(0,0,0,0.08);
+  }
+  .orange-slider::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: none;
+  }
+
+  .slider-ruler {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ---------- VARIANCE PANEL ---------- */
+  #varianceContainer {
+    margin-top: 20px;
+    padding: 14px 18px;
+    font-size: 1.05em;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    width: 580px;
+    max-width: 95vw;
+    justify-content: space-between;
+    gap: 20px;
+    transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+  }
+  #varianceIndicator { display: flex; align-items: center; gap: 15px; }
+  #varianceValue { min-width: 50px; text-align: right; }
+  #varianceBar {
+    width: 180px; height: 12px;
+    background: linear-gradient(to right, var(--panel-2), var(--panel));
+    border-radius: 6px;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+    border: 1px solid var(--border);
+  }
+  #varianceFill {
+    height: 100%;
+    background: linear-gradient(to right, var(--accent), var(--accent-2));
+    border-radius: 6px;
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 2px 6px rgba(255, 102, 0, 0.35);
+  }
+  #varianceRange {
+    font-size: 0.90em;
+    color: var(--muted);
+    font-weight: 600;
+    background: rgba(127,127,127,0.08);
+    padding: 8px 12px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  /* ---------- BUTTON & PCA TOGGLE ---------- */
+  #regenerateButton {
+    margin-top: 15px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  #regenerateButton:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45);
+    transform: translateY(-1px);
+  }
+  #regenerateButton:active { transform: translateY(0); }
+
+  #showPCAContainer {
+    margin-top: 10px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; font-size: 0.95em; color: var(--text);
+  }
+  #showPCALabel { cursor: pointer; user-select: none; font-weight: 600; }
+  #showPCACheckbox { width: 18px; height: 18px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="plot"></div>
+
+<div id="varianceContainer" style="display: flex; flex-direction: column; gap: 8px;">
+  <div id="varianceIndicator" style="display: flex; flex-direction: column; align-items: flex-start;">
+    <span>
+      Variance: <span id="varianceValue">0.00</span>
+    </span>
+  </div>
+
+    <div id="varianceBar" style="margin-top: 4px; width: 100%; height: 8px; background: #eee; border-radius: 4px;">
+      <div id="varianceFill" style="height: 100%; width: 0%; background: orange; border-radius: 4px;"></div>
+    </div>
+  <div id="varianceRange">
+    Range: <span id="minVariance">0.00</span> – <span id="maxVariance">0.00</span>
+  </div>
+</div>
+
+
+<button id="regenerateButton">🔄 Regenerate Data</button>
+
+<div id="showPCAContainer">
+  <input type="checkbox" id="showPCACheckbox">
+  <label for="showPCACheckbox" id="showPCALabel">Show Principal Components</label>
+</div>
+
+<div class="slider-container">
+  <input type="range" min="0" max="180" value="45" class="orange-slider" id="angleSlider">
+  <div class="slider-ruler">
+    <span>0°</span><span>30°</span><span>60°</span><span>90°</span><span>120°</span><span>150°</span><span>180°</span>
+  </div>
+</div>
+
+<script>
+/* ---------- UTILITIES: THEME & VARS ---------- */
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function applySliderVisual(sliderEl) {
+  const accent = cssVar('--accent');
+  const track = cssVar('--track-bg');
+  const pct = (sliderEl.value - sliderEl.min) / (sliderEl.max - sliderEl.min) * 100;
+  sliderEl.style.background = `linear-gradient(to right, ${accent} 0%, ${accent} ${pct}%, ${track} ${pct}%, ${track} 100%)`;
+}
+
+/* ---------- DATA GEN & MATH ---------- */
+function generateLinearData(numPoints = 10) {
+  const points = [];
+  const slope = -3 + Math.random() * 6; // [-3, 3]
+  const intercept = 0;
+  for (let i = 0; i < numPoints; i++) {
+    const x = -4.5 + (9 * i / (numPoints - 1)) + (Math.random() - 0.5) * 7;
+    let y = slope * x + intercept + (Math.random() - 0.5) * 7;
+    const clampedX = Math.max(-5, Math.min(5, x));
+    const clampedY = Math.max(-5, Math.min(5, y));
+    points.push({ x: clampedX, y: clampedY });
+  }
+  return points;
+}
+function projectData(points, angle) {
+  const u_x = Math.cos(angle), u_y = Math.sin(angle);
+  return points.map(p => {
+    const projectionValue = p.x * u_x + p.y * u_y;
+    return { x: projectionValue * u_x, y: projectionValue * u_y, value: projectionValue };
+  });
+}
+function computeVariance(values) {
+  const mean = values.reduce((a,b)=>a+b,0)/values.length;
+  return values.reduce((a,b)=>a+(b-mean)**2,0)/values.length;
+}
+function calculatePCA(points) {
+  const n = points.length;
+  const meanX = points.reduce((s,p)=>s+p.x,0)/n;
+  const meanY = points.reduce((s,p)=>s+p.y,0)/n;
+  let cxx=0,cxy=0,cyy=0;
+  for (const p of points) {
+    const dx=p.x-meanX, dy=p.y-meanY;
+    cxx+=dx*dx; cxy+=dx*dy; cyy+=dy*dy;
+  }
+  cxx/=(n-1); cxy/=(n-1); cyy/=(n-1);
+  const trace=cxx+cyy, det=cxx*cyy - cxy*cxy, disc=trace*trace - 4*det;
+  if (disc<0) return null;
+  const lambda1=(trace+Math.sqrt(disc))/2, lambda2=(trace-Math.sqrt(disc))/2;
+  let v1x, v1y, v2x, v2y;
+  if (Math.abs(cxy)>1e-10) {
+    v1x=cxy; v1y=lambda1-cxx; v2x=cxy; v2y=lambda2-cxx;
+  } else if (Math.abs(cxx-cyy)>1e-10) {
+    if (cxx>cyy){ v1x=1; v1y=0; v2x=0; v2y=1; }
+    else { v1x=0; v1y=1; v2x=1; v2y=0; }
+  } else { v1x=1; v1y=0; v2x=0; v2y=1; }
+  const n1=Math.hypot(v1x,v1y), n2=Math.hypot(v2x,v2y);
+  if (n1>1e-10){ v1x/=n1; v1y/=n1; } if (n2>1e-10){ v2x/=n2; v2y/=n2; }
+  return { pc1:{x:v1x,y:v1y,variance:lambda1}, pc2:{x:v2x,y:v2y,variance:lambda2}, center:{x:meanX,y:meanY} };
+}
+function calculateVarianceRange(points) {
+  let minVar=Infinity, maxVar=-Infinity;
+  for (let deg=0; deg<=180; deg++) {
+    const rad=deg * Math.PI/180;
+    const vals = projectData(points, rad).map(p=>p.value);
+    if (!vals.length) continue;
+    const v = computeVariance(vals);
+    if (Number.isFinite(v)) { minVar = Math.min(minVar, v); maxVar = Math.max(maxVar, v); }
+  }
+  if (!Number.isFinite(minVar) || !Number.isFinite(maxVar)) { minVar=0; maxVar=1; }
+  return {min:minVar, max:maxVar};
+}
+
+/* ---------- PLOTLY ---------- */
+const plotDiv = document.getElementById('plot');
+let dataPoints = generateLinearData(10);
+let angleRad = 45 * Math.PI / 180;
+let projected = projectData(dataPoints, angleRad);
+let varianceRange = calculateVarianceRange(dataPoints);
+
+function createLineTraces(projected) {
+  const connectColor = cssVar('--connect-line');
+  return dataPoints.map((p,i)=>({
+    x:[p.x, projected[i].x],
+    y:[p.y, projected[i].y],
+    mode:'lines',
+    type:'scatter',
+    line:{ color: connectColor, dash:'longdash', width:1 },
+    showlegend:false,
+    hoverinfo:'skip'
+  }));
+}
+
+function baseTraces(angle) {
+  const origColor = cssVar('--point-original');
+  const axisColor = cssVar('--axis-line');
+  const projColor = cssVar('--accent');
+
+  const projectedLocal = projectData(dataPoints, angle);
+  const lineTraces = createLineTraces(projectedLocal);
+
+  const t = [
+    ...lineTraces,
+    { x:dataPoints.map(p=>p.x), y:dataPoints.map(p=>p.y), mode:'markers', type:'scatter', name:'Original',
+      marker:{ size:10, color: origColor } },
+    { x:[-10*Math.cos(angle), 10*Math.cos(angle)], y:[-10*Math.sin(angle), 10*Math.sin(angle)],
+      mode:'lines', type:'scatter', name:'Axis', line:{ color: axisColor, width:2 } },
+    { x:projectedLocal.map(p=>p.x), y:projectedLocal.map(p=>p.y), mode:'markers', type:'scatter', name:'Projected',
+      marker:{ size:8, color: projColor } }
+  ];
+
+  if (document.getElementById('showPCACheckbox').checked) {
+    const pca = calculatePCA(dataPoints);
+    if (pca) {
+      const s = 4;
+      const pcColor = cssVar('--pc-line');
+      t.push({
+        x:[-s*pca.pc1.x, s*pca.pc1.x], y:[-s*pca.pc1.y, s*pca.pc1.y],
+        mode:'lines', type:'scatter', name:'PC1', line:{ color: pcColor, width:2, dash:'dot' }
+      });
+      t.push({
+        x:[-s*pca.pc2.x, s*pca.pc2.x], y:[-s*pca.pc2.y, s*pca.pc2.y],
+        mode:'lines', type:'scatter', name:'PC2', line:{ color: pcColor, width:2, dash:'dot' }
+      });
+    }
+  }
+  return t;
+}
+
+function themeLayout() {
+  return {
+    title: { text:'Interactive 2D → 1D Projection with Variance of Projected Points', font:{ color: cssVar('--text') } },
+    paper_bgcolor: cssVar('--plot-paper'),
+    plot_bgcolor: cssVar('--plot-bg'),
+    font: { color: cssVar('--text') },
+    xaxis: {
+      range:[-10,10], zeroline:true, title:'X', fixedrange:true,
+      gridcolor: cssVar('--grid'), zerolinecolor: cssVar('--grid'), linecolor: cssVar('--grid'),
+      tickfont:{ color: cssVar('--text') }, titlefont:{ color: cssVar('--text') }
+    },
+    yaxis: {
+      range:[-10,10], zeroline:true, title:'Y', scaleanchor:'x', scaleratio:1, fixedrange:true,
+      gridcolor: cssVar('--grid'), zerolinecolor: cssVar('--grid'), linecolor: cssVar('--grid'),
+      tickfont:{ color: cssVar('--text') }, titlefont:{ color: cssVar('--text') }
+    },
+    legend: { bgcolor: cssVar('--legend-bg'), borderwidth: 0 },
+    showlegend:true,
+    margin: { l: 60, r: 20, t: 60, b: 60 }
+  };
+}
+
+function updatePlot() {
+  const angDeg = parseFloat(slider.value);
+  const angRad = angDeg * Math.PI / 180;
+  const traces = baseTraces(angRad);
+  Plotly.react(plotDiv, traces, themeLayout(), {responsive:true});
+  applySliderVisual(slider);
+  updateVarianceUI(angRad);
+}
+
+function updateVarianceUI(angRad) {
+  const projectedVals = projectData(dataPoints, angRad).map(p=>p.value);
+  const variance = computeVariance(projectedVals);
+  varianceIndicator.textContent = variance.toFixed(2);
+  let variancePercent = 0;
+  if (varianceRange.max > varianceRange.min) {
+    variancePercent = ((variance - varianceRange.min) / (varianceRange.max - varianceRange.min)) * 100;
+  }
+  varianceFill.style.width = Math.max(0, Math.min(100, variancePercent)) + '%';
+}
+
+/* ---------- INTERACTION ---------- */
+const varianceIndicator = document.getElementById('varianceValue');
+const varianceFill = document.getElementById('varianceFill');
+const minVarianceSpan = document.getElementById('minVariance');
+const maxVarianceSpan = document.getElementById('maxVariance');
+const slider = document.getElementById('angleSlider');
+const regenerateBtn = document.getElementById('regenerateButton');
+const pcaCheckbox = document.getElementById('showPCACheckbox');
+
+function regenerateData() {
+  dataPoints = generateLinearData(10);
+  varianceRange = calculateVarianceRange(dataPoints);
+  minVarianceSpan.textContent = varianceRange.min.toFixed(2);
+  maxVarianceSpan.textContent = varianceRange.max.toFixed(2);
+  updatePlot();
+}
+
+function updateSliderPosition() {
+  // More efficient restyle during drag by rebuilding minimal traces is complex with theme;
+  // for correctness + theming, reuse full update (fast enough for this size)
+  updatePlot();
+}
+
+/* ---------- INIT ---------- */
+minVarianceSpan.textContent = varianceRange.min.toFixed(2);
+maxVarianceSpan.textContent = varianceRange.max.toFixed(2);
+
+regenerateBtn.addEventListener('click', regenerateData);
+pcaCheckbox.addEventListener('change', updatePlot);
+slider.addEventListener('input', updateSliderPosition);
+
+/* Initial render */
+Plotly.newPlot(plotDiv, baseTraces(angleRad), themeLayout(), {responsive:true});
+applySliderVisual(slider);
+updateVarianceUI(angleRad);
+
+/* ---------- RESPOND TO SYSTEM THEME CHANGES LIVE ---------- */
+const mql = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+if (mql && typeof mql.addEventListener === 'function') {
+  mql.addEventListener('change', () => {
+    // CSS variables will update automatically; we refresh Plotly + UI to pick up new vars.
+    updatePlot();
+  });
+} else if (mql && typeof mql.addListener === 'function') {
+  // Safari < 14 fallback
+  mql.addListener(() => updatePlot());
+}
+</script>
+</body>
+</html>
+

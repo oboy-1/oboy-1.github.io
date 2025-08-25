@@ -2,7 +2,7 @@
 layout: post
 title:  "The Algorithm Behind Ragas in Carnatic Music"
 categories:
-    - 'Music'
+    - 'Learning Interactively'
 tags:
     - Carnatic
     - Ragas
@@ -58,7 +58,7 @@ Therefore, there are $72$ Melakarta ragas.
 
 Click on a raga name and a sidebar will open.  You can click on the buttons to play the notes and also view the graph below to visualize the relative distance between the notes.
 
-<iframe src="{{ site.baseurl }}/assets/files/raga/raga.html" title="Raga Interactive" style="width: 100%; height: 750px;"></iframe>
+<iframe src="{{ site.baseurl }}/assets/files/raga/raga.html" title="Raga Interactive" style="width: 100%; height: 750px;" scrolling="no"></iframe>
 
 ### Melakarta Numbers
 

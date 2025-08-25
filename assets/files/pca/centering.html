@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Centering Visualization</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Plotly.js for plotting -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        /* Light mode (default) */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            color: #374151;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            border-radius: 0;
+        }
+
+        button {
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .theme-button {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .theme-button:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .theme-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .frame-btn {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            backdrop-filter: blur(10px);
+        }
+
+        .frame-btn:hover {
+            background: #e5e7eb;
+            color: #1f2937;
+            border-color: #9ca3af;
+        }
+
+        .frame-btn.selected {
+            background: linear-gradient(135deg, #ff6600, #ff8533) !important;
+            color: white !important;
+            border-color: rgba(255, 102, 0, 0.5) !important;
+            box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3) !important;
+        }
+
+        .description-text {
+            color: #6b7280;
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: rgb(27, 27, 30);
+                color: #e2e8f0;
+            }
+
+            .frame-btn {
+                background: rgba(51, 51, 56, 0.8);
+                color: #94a3b8;
+                border: 1px solid rgba(100, 116, 139, 0.2);
+            }
+
+            .frame-btn:hover {
+                background: rgba(64, 64, 70, 0.8);
+                color: #e2e8f0;
+                border-color: rgba(100, 116, 139, 0.3);
+            }
+
+            .description-text {
+                color: #94a3b8;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container w-full">
+    <div class="text-center mb-6 pt-8">
+        <p class="mt-2 description-text max-w-2xl mx-auto px-4">
+            This animation demonstrates how centering data by subtracting the mean shifts the entire dataset so the new mean is zero, while preserving its shape and spread.
+        </p>
+    </div>
+
+    <!-- Plotly.js plot container -->
+    <div id="plot" class="w-full h-[500px] mb-8"></div>
+
+    <div class="flex flex-col items-center space-y-6 pb-8">
+        <!-- Play/Pause Button -->
+        <button id="playPauseBtn" class="px-8 py-3 font-bold rounded-full shadow-lg theme-button">
+            Play Animation
+        </button>
+
+        <!-- Frame Selector Buttons -->
+        <div id="frameButtons" class="flex space-x-4">
+            <button data-frame="0" class="frame-btn px-6 py-2 font-semibold">
+                Original
+            </button>
+            <button data-frame="1" class="frame-btn px-6 py-2 font-semibold">
+                Transition
+            </button>
+            <button data-frame="2" class="frame-btn px-6 py-2 font-semibold">
+                Centered
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Function to detect if user prefers dark mode
+        const prefersDarkMode = () => {
+            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        };
+
+        // Function to get theme-appropriate colors
+        const getThemeColors = () => {
+            const isDark = prefersDarkMode();
+            return {
+                background: isDark ? 'rgb(27, 27, 30)' : '#ffffff',
+                text: isDark ? '#e2e8f0' : '#374151',
+                textSecondary: isDark ? '#94a3b8' : '#6b7280',
+                originalData: isDark ? '#60a5fa' : 'rgb(59, 130, 246)',
+                centeredData: isDark ? '#10b981' : 'rgb(22, 163, 74)',
+                meanLine: isDark ? '#f87171' : 'rgb(139, 0, 0)',
+                gridColor: isDark ? 'rgba(100, 116, 139, 0.2)' : 'rgba(209, 213, 219, 0.5)',
+                zeroLineColor: isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(107, 114, 128, 0.4)',
+                legendBg: isDark ? 'rgba(51, 51, 56, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                legendBorder: isDark ? 'rgba(100, 116, 139, 0.3)' : 'rgba(209, 213, 219, 0.5)'
+            };
+        };
+        // --- Data Generation ---
+        const originalData = [2, 5, 8, 3, 9, 4, 7, 6, 5, 8, 3, 6, 4, 7, 9];
+        const mean = originalData.reduce((sum, val) => sum + val, 0) / originalData.length;
+        const centeredData = originalData.map(val => val - mean);
+
+        // Function to create frames with theme-appropriate colors
+        const createFrames = () => {
+            const colors = getThemeColors();
+
+            return [
+                // Frame 0: Original Data
+                {
+                    name: 'original',
+                    data: [{
+                        x: Array.from({length: originalData.length}, (_, i) => i + 1),
+                        y: originalData,
+                        mode: 'markers',
+                        marker: { size: 12, color: colors.originalData, opacity: 0.8 },
+                        name: 'Original Data',
+                        type: 'scatter'
+                    }, {
+                        x: [1, originalData.length],
+                        y: [mean, mean],
+                        mode: 'lines',
+                        line: { color: colors.meanLine, width: 4, dash: 'dot' },
+                        name: `Mean = ${mean.toFixed(2)}`,
+                        type: 'scatter'
+                    }]
+                },
+                // Frame 1: Centered Data (for transition with arrows)
+                {
+                    name: 'transition',
+                    data: [{
+                        x: Array.from({length: centeredData.length}, (_, i) => i + 1),
+                        y: centeredData,
+                        mode: 'markers',
+                        marker: { size: 12, color: colors.centeredData, opacity: 0.8 },
+                        name: 'Centered Data',
+                        type: 'scatter'
+                    }, {
+                        x: [1, centeredData.length],
+                        y: [0, 0],
+                        mode: 'lines',
+                        line: { color: colors.meanLine, width: 4, dash: 'dot' },
+                        name: 'New Mean = 0',
+                        type: 'scatter'
+                    }]
+                },
+                // Frame 2: Centered Data
+                {
+                    name: 'centered',
+                    data: [{
+                        x: Array.from({length: centeredData.length}, (_, i) => i + 1),
+                        y: centeredData,
+                        mode: 'markers',
+                        marker: { size: 12, color: colors.centeredData, opacity: 0.8 },
+                        name: 'Centered Data',
+                        type: 'scatter'
+                    }, {
+                        x: [1, centeredData.length],
+                        y: [0, 0],
+                        mode: 'lines',
+                        line: { color: colors.meanLine, width: 4, dash: 'dot' },
+                        name: 'New Mean = 0',
+                        type: 'scatter'
+                    }]
+                }
+            ];
+        };
+
+        // --- State Variables and DOM Elements ---
+        let currentFrame = 0;
+        let isPlaying = false;
+        let intervalId = null;
+
+        const plotDiv = document.getElementById('plot');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const frameBtns = document.querySelectorAll('.frame-btn');
+
+        // --- Plot and Animation Functions ---
+        const updatePlot = (frameIndex) => {
+            currentFrame = frameIndex;
+            const colors = getThemeColors();
+            const frames = createFrames();
+
+            // Theme-appropriate layout
+            const layout = {
+                title: {
+                    font: {
+                        size: 24,
+                        family: 'Inter, sans-serif',
+                        color: colors.text
+                    }
+                },
+                xaxis: {
+                    title: {
+                        text: 'Data Point Index',
+                        font: { color: colors.text }
+                    },
+                    range: [0.5, originalData.length + 0.5],
+                    tickfont: { color: colors.textSecondary },
+                    gridcolor: colors.gridColor,
+                    zerolinecolor: colors.zeroLineColor
+                },
+                yaxis: {
+                    title: {
+                        text: 'Value',
+                        font: { color: colors.text }
+                    },
+                    range: [Math.min(...centeredData) - 1, Math.max(...originalData) + 1],
+                    tickfont: { color: colors.textSecondary },
+                    gridcolor: colors.gridColor,
+                    zerolinecolor: colors.zeroLineColor
+                },
+                showlegend: true,
+                legend: {
+                    x: 0.5,
+                    y: -0.2,
+                    xanchor: 'center',
+                    orientation: 'h',
+                    bgcolor: colors.legendBg,
+                    bordercolor: colors.legendBorder,
+                    borderwidth: 1,
+                    font: { color: colors.text }
+                },
+                annotations: [],
+                hovermode: 'closest',
+                transition: { duration: 1000, easing: 'cubic-in-out' },
+                margin: { b: 120 },
+                plot_bgcolor: colors.background,
+                paper_bgcolor: colors.background,
+                font: { color: colors.text }
+            };
+
+            // Add annotations for the transition frame
+            if (frameIndex === 1) {
+                layout.annotations = originalData.map((val, i) => ({
+                    x: i + 1,
+                    y: centeredData[i],
+                    ax: i + 1,
+                    ay: originalData[i],
+                    xref: 'x',
+                    yref: 'y',
+                    axref: 'x',
+                    ayref: 'y',
+                    showarrow: true,
+                    arrowhead: 2,
+                    arrowsize: 1.5,
+                    arrowcolor: '#ff6600', // Orange arrows
+                    opacity: 0.8,
+                    marker: { opacity: 0 }
+                }));
+                // Show original data points for context in the transition frame
+                frames[1].data.push({
+                    x: Array.from({length: originalData.length}, (_, i) => i + 1),
+                    y: originalData,
+                    mode: 'markers',
+                    marker: { size: 12, color: colors.originalData, opacity: 0.8 },
+                    name: 'Original Data',
+                    type: 'scatter'
+                });
+            } else if (frameIndex === 0) {
+                // Add annotations to show the mean's distance from the x-axis
+                layout.annotations = [{
+                    x: originalData.length + 0.5,
+                    y: mean,
+                    ax: originalData.length + 0.5,
+                    ay: 0,
+                    xref: 'x',
+                    yref: 'y',
+                    axref: 'x',
+                    ayref: 'y',
+                    showarrow: true,
+                    arrowhead: 2,
+                    arrowsize: 1.5,
+                    arrowcolor: '#ff6600', // Orange arrow
+                    opacity: 0.8,
+                },
+                {
+                    x: originalData.length + 0.5,
+                    y: -0.5,
+                    xref: 'x',
+                    yref: 'y',
+                    text: `Mean = ${mean.toFixed(2)}`,
+                    showarrow: false,
+                    xshift: 10,
+                    yanchor: 'middle',
+                    font: {
+                        color: '#ff6600', // Orange text
+                        size: 14
+                    }
+                }];
+            }
+
+            // Update description based on frame
+            layout.annotations.push({
+                xref: 'paper', yref: 'paper',
+                x: 0.5, y: 1.05,
+                text: getFrameDescription(frameIndex),
+                showarrow: false,
+                font: {
+                    size: 16,
+                    color: colors.text
+                },
+                bgcolor: 'rgba(0,0,0,0)',
+                bordercolor: 'rgba(0,0,0,0)',
+                borderwidth: 0
+            });
+
+            Plotly.newPlot(plotDiv, frames[frameIndex].data, layout, {
+                responsive: true,
+                displayModeBar: false
+            });
+
+            // Update button styles
+            frameBtns.forEach(btn => {
+                const isSelected = parseInt(btn.dataset.frame) === currentFrame;
+                if (isSelected) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        };
+
+        const getFrameDescription = (frameIndex) => {
+            switch(frameIndex) {
+                case 0: return `Original data with mean = ${mean.toFixed(2)}`;
+                case 1: return 'Visualizing the shift of each point by subtracting the mean...';
+                case 2: return 'Centered data: new mean = 0, shape is preserved!';
+                default: return '';
+            }
+        };
+
+        const playAnimation = () => {
+            if (intervalId) return;
+            isPlaying = true;
+            playPauseBtn.textContent = 'Pause Animation';
+            intervalId = setInterval(() => {
+                const nextFrame = (currentFrame + 1) % frames.length;
+                updatePlot(nextFrame);
+            }, 2000);
+        };
+
+        const stopAnimation = () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            isPlaying = false;
+            playPauseBtn.textContent = 'Play Animation';
+        };
+
+        // Listen for theme changes and update the plot
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addListener(() => {
+            updatePlot(currentFrame);
+        });
+
+        // --- Event Listeners ---
+        playPauseBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                stopAnimation();
+            } else {
+                playAnimation();
+            }
+        });
+
+        frameBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                stopAnimation();
+                const frameIndex = parseInt(e.target.dataset.frame);
+                updatePlot(frameIndex);
+            });
+        });
+
+        // Initial plot rendering
+        updatePlot(0);
+    });
+</script>
+
+</body>
+</html>

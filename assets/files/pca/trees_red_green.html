@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tree Height vs. Trunk Diameter</title>
+    <!-- Load Plotly.js library -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .graph-container {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 0;
+        }
+        #myDiv {
+            width: 100%;
+            height: 400px;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: none;
+        }
+        h1 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .main-container {
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="graph-container">
+            <!-- This is the div for the single plot -->
+            <div id="myDiv"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for trunk diameter and height with fixed variance
+        const trunk_diameter_cm = [5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0];
+        const height_m = [
+            2.3, // 2.0 + 0.3
+            5.1, // 5.5 - 0.4
+            9.4, // 9.0 + 0.4
+            11.8, // 12.0 - 0.2
+            14.9, // 14.5 + 0.4
+            16.2, // 16.5 - 0.3
+            18.5, // 18.0 + 0.5
+        ];
+
+        // Function to determine the theme colors
+        const getThemeColors = () => {
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (isDarkMode) {
+                return {
+                    bodyBg: 'rgb(27,27,30)',
+                    bodyColor: '#e0e0e0',
+                    plotBg: 'rgb(27,27,30)',
+                    paperBg: 'rgb(27,27,30)',
+                    lineColor: '#444',
+                    fontColor: '#e0e0e0'
+                };
+            } else {
+                return {
+                    bodyBg: '#ffffff',
+                    bodyColor: '#1a1a1a',
+                    plotBg: '#f8f9fa',
+                    paperBg: '#ffffff',
+                    lineColor: '#ddd',
+                    fontColor: '#1a1a1a'
+                };
+            }
+        };
+
+        // Function to render or re-render the plots
+        const renderPlots = () => {
+            const { bodyBg, bodyColor, plotBg, paperBg, lineColor, fontColor } = getThemeColors();
+
+            // Apply body and text colors
+            document.body.style.backgroundColor = bodyBg;
+            document.body.style.color = bodyColor;
+            document.querySelectorAll('h1').forEach(el => el.style.color = fontColor);
+
+            // --- Single Centered Data Plot ---
+
+            // Calculate the mean of the x and y data
+            const mean_x = trunk_diameter_cm.reduce((sum, val) => sum + val, 0) / trunk_diameter_cm.length;
+            const mean_y = height_m.reduce((sum, val) => sum + val, 0) / height_m.length;
+
+            // Create the centered data arrays
+            const centered_diameter = trunk_diameter_cm.map(val => val - mean_x);
+            const centered_height = height_m.map(val => val - mean_y);
+
+            // Get min/max values for defining the quadrants
+            const minX = Math.min(...centered_diameter);
+            const maxX = Math.max(...centered_diameter);
+            const minY = Math.min(...centered_height);
+            const maxY = Math.max(...centered_height);
+
+            // Define the data trace for the centered points
+            const data = [{
+                x: centered_diameter,
+                y: centered_height,
+                mode: 'lines+markers',
+                name: 'Centered Tree Growth Data',
+                line: {
+                    color: '#1f77b4', // Blue
+                    width: 3
+                },
+                marker: {
+                    color: '#ff7f0e', // Orange
+                    size: 10
+                }
+            }];
+
+            // Define the layout with the colored quadrant backgrounds
+            const layout = {
+                title: {
+                    text: 'Centered Data with Quadrants',
+                    font: { color: fontColor }
+                },
+                xaxis: {
+                    title: 'Centered Trunk Diameter (cm)',
+                    zerolinecolor: lineColor,
+                    gridcolor: lineColor,
+                    tickfont: { color: fontColor },
+                    titlefont: { color: fontColor }
+                },
+                yaxis: {
+                    title: 'Centered Height (m)',
+                    zerolinecolor: lineColor,
+                    gridcolor: lineColor,
+                    tickfont: { color: fontColor },
+                    titlefont: { color: fontColor }
+                },
+                plot_bgcolor: plotBg,
+                paper_bgcolor: paperBg,
+                font: { color: fontColor },
+                hovermode: 'closest',
+                // Define the shapes for the colored quadrants
+                shapes: [
+                    // Quadrant I (Positive x, Positive y)
+                    {
+                        type: 'rect',
+                        xref: 'x',
+                        yref: 'y',
+                        x0: 0,
+                        y0: 0,
+                        x1: maxX,
+                        y1: maxY,
+                        fillcolor: '#2ca02c', // Green
+                        opacity: 0.2,
+                        line: { width: 0 },
+                    },
+                    // Quadrant III (Negative x, Negative y)
+                    {
+                        type: 'rect',
+                        xref: 'x',
+                        yref: 'y',
+                        x0: minX,
+                        y0: minY,
+                        x1: 0,
+                        y1: 0,
+                        fillcolor: '#2ca02c', // Green
+                        opacity: 0.2,
+                        line: { width: 0 },
+                    },
+                    // Quadrant II (Negative x, Positive y)
+                    {
+                        type: 'rect',
+                        xref: 'x',
+                        yref: 'y',
+                        x0: minX,
+                        y0: 0,
+                        x1: 0,
+                        y1: maxY,
+                        fillcolor: '#d62728', // Red
+                        opacity: 0.2,
+                        line: { width: 0 },
+                    },
+                    // Quadrant IV (Positive x, Negative y)
+                    {
+                        type: 'rect',
+                        xref: 'x',
+                        yref: 'y',
+                        x0: 0,
+                        y0: minY,
+                        x1: maxX,
+                        y1: 0,
+                        fillcolor: '#d62728', // Red
+                        opacity: 0.2,
+                        line: { width: 0 },
+                    }
+                ]
+            };
+
+            // Render the single plot
+            Plotly.newPlot('myDiv', data, layout);
+        };
+
+        // Initial render on page load
+        window.onload = renderPlots;
+
+        // Add a listener for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderPlots);
+    </script>
+</body>
+</html>
+

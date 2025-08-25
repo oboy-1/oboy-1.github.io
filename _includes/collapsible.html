@@ -1,0 +1,40 @@
+<style>
+details {
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+details summary {
+  cursor: pointer;
+  padding: 10px 0;
+}
+
+.collapsible-content {
+  padding-left: 25px;
+  padding-right: 25px;
+}
+
+@media (prefers-color-scheme: dark) {
+  details {
+    background-color: #333;
+    color: #eee;
+  }
+  details summary {
+    color: #eee;
+  }
+}
+
+.collapsible-heading {
+  font-size: 1.25rem;
+}
+</style>
+
+<details>
+  <summary>{{ include.summary }}</summary>
+
+  <div class="collapsible-content">
+    {{ include.content }}
+  </div>
+</details>

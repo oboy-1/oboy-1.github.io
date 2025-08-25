@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive Covariance Plot</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 0; transition: background-color 0.3s, color 0.3s; }
+        .main-container { padding: 20px; max-width: 800px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        #myDiv { width: 100%; height: 500px; border-radius: 0; overflow: hidden; cursor: crosshair; }
+        .controls { display: flex; flex-direction: row; align-items: center; gap: 10px; margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 16px; font-weight: 600; color: #fff; background-color: #1f77b4; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        button:hover { background-color: #1a6096; }
+        #covariance-result { margin-top: 15px; font-size: 1.1em; font-weight: bold; text-align: center; min-height: 30px; }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <div id="myDiv"></div>
+    <div id="covariance-result"></div>
+    <div class="controls">
+        <button id="getCovarianceBtn">Get Covariance</button>
+        <button id="resetBtn">Reset</button>
+    </div>
+</div>
+<script>
+let x_data = [];
+let y_data = [];
+let plotDiv;
+
+const getMean = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+const getCovariance = (x_arr, y_arr) => {
+    if(x_arr.length < 2 || x_arr.length !== y_arr.length) return null;
+    const meanX = getMean(x_arr), meanY = getMean(y_arr);
+    let sum = 0;
+    for(let i=0;i<x_arr.length;i++) sum += (x_arr[i]-meanX)*(y_arr[i]-meanY);
+    return sum/(x_arr.length-1);
+};
+
+const getThemeColors = () => {
+    const dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return dark ? {bodyBg:'rgb(27,27,30)', bodyColor:'#e0e0e0', plotBg:'rgb(27,27,30)', paperBg:'rgb(27,27,30)', lineColor:'#444', fontColor:'#e0e0e0'}
+                : {bodyBg:'#ffffff', bodyColor:'#1a1a1a', plotBg:'#f8f9fa', paperBg:'#ffffff', lineColor:'#ddd', fontColor:'#1a1a1a'};
+};
+
+const renderPlot = () => {
+    const {bodyBg, bodyColor, plotBg, paperBg, lineColor, fontColor} = getThemeColors();
+    document.body.style.backgroundColor = bodyBg;
+    document.body.style.color = bodyColor;
+
+    const data = [{x:x_data, y:y_data, mode:'markers', marker:{color:'#ff7f0e', size:10}}];
+    const layout = {
+        title:{text:'Click Anywhere to Add Points', font:{color:fontColor}},
+        xaxis:{title:'Centered X', range:[-20,20], zerolinecolor:lineColor, gridcolor:lineColor, tickfont:{color:fontColor}, titlefont:{color:fontColor}},
+        yaxis:{title:'Centered Y', range:[-20,20], zerolinecolor:lineColor, gridcolor:lineColor, tickfont:{color:fontColor}, titlefont:{color:fontColor}},
+        plot_bgcolor:plotBg, paper_bgcolor:paperBg, font:{color:fontColor}, hovermode:'closest',
+        shapes:[
+            {type:'rect', xref:'x', yref:'y', x0:-20, y0:-20, x1:0, y1:0, fillcolor:'green', opacity:0.2, line:{width:0}},
+            {type:'rect', xref:'x', yref:'y', x0:0, y0:0, x1:20, y1:20, fillcolor:'green', opacity:0.2, line:{width:0}},
+            {type:'rect', xref:'x', yref:'y', x0:-20, y0:0, x1:0, y1:20, fillcolor:'red', opacity:0.2, line:{width:0}},
+            {type:'rect', xref:'x', yref:'y', x0:0, y0:-20, x1:20, y1:0, fillcolor:'red', opacity:0.2, line:{width:0}}
+        ]
+    };
+    Plotly.newPlot('myDiv', data, layout);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    plotDiv = document.getElementById('myDiv');
+    const covBtn = document.getElementById('getCovarianceBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const resultDiv = document.getElementById('covariance-result');
+    renderPlot();
+
+    plotDiv.addEventListener('click', function(evt) {
+        const xaxis = plotDiv._fullLayout.xaxis;
+        const yaxis = plotDiv._fullLayout.yaxis;
+        const bbox = plotDiv.getBoundingClientRect();
+
+        const x0 = bbox.left + xaxis._offset;
+        const x1 = bbox.left + xaxis._offset + xaxis._length;
+        const y0 = bbox.top + yaxis._offset + yaxis._length;
+        const y1 = bbox.top + yaxis._offset;
+
+        const xVal = xaxis.range[0] + ((evt.clientX - x0)/(x1 - x0))*(xaxis.range[1]-xaxis.range[0]);
+        const yVal = yaxis.range[0] + ((evt.clientY - y0)/(y1 - y0))*(yaxis.range[1]-yaxis.range[0]);
+
+        x_data.push(xVal);
+        y_data.push(yVal);
+
+        Plotly.restyle(plotDiv, { x:[x_data], y:[y_data] });
+        resultDiv.textContent = '';
+    });
+
+    covBtn.addEventListener('click', () => {
+        const cov = getCovariance(x_data, y_data);
+        resultDiv.textContent = cov===null ? 'Please add at least two points to calculate covariance.' : `Covariance: ${cov.toFixed(4)}`;
+    });
+
+    resetBtn.addEventListener('click', () => {
+        x_data = [];
+        y_data = [];
+        renderPlot();
+        resultDiv.textContent = '';
+    });
+});
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    const {plotBg, paperBg, lineColor, fontColor, bodyBg, bodyColor} = getThemeColors();
+    Plotly.relayout(plotDiv, {
+        plot_bgcolor: plotBg, paper_bgcolor: paperBg,
+        'xaxis.zerolinecolor': lineColor, 'xaxis.gridcolor': lineColor,
+        'yaxis.zerolinecolor': lineColor, 'yaxis.gridcolor': lineColor,
+        'font.color': fontColor, 'title.font.color': fontColor,
+        'xaxis.tickfont.color': fontColor, 'yaxis.tickfont.color': fontColor,
+        'xaxis.titlefont.color': fontColor, 'yaxis.titlefont.color': fontColor
+    });
+    document.body.style.backgroundColor = bodyBg;
+    document.body.style.color = bodyColor;
+    document.querySelector('h1').style.color = fontColor;
+});
+</script>
+</body>
+</html>
+

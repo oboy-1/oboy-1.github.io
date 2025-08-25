@@ -1,301 +1,385 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Perceptron Learning Algorithm - 3D</title>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <style>
-    #status {
-      margin-top: 20px;
-      font-weight: bold;
-      font-family: sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perceptron Learning Algorithm - 3D</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        /* Base styles */
+        body {
+            transition: background-color 0.5s, color 0.5s;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
 
-    .button-5 {
-      align-items: center;
-      background-clip: padding-box;
-      background-color: #fa6400;
-      border: 1px solid transparent;
-      border-radius: .25rem;
-      box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
-      box-sizing: border-box;
-      color: #fff;
-      cursor: pointer;
-      display: inline-flex;
-      font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      justify-content: center;
-      line-height: 1.25;
-      margin: 0;
-      min-height: 3rem;
-      padding: calc(.875rem - 1px) calc(1.5rem - 1px);
-      position: relative;
-      text-decoration: none;
-      transition: all 250ms;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-      vertical-align: baseline;
-      width: auto;
-    }
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #1b1b1e;
+            color: #dcdcdc; /* Lighter text for dark mode */
+        }
 
-    .button-5:hover,
-    .button-5:focus {
-      background-color: #fb8332;
-      box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
-    }
+        /* Adjust graph container size */
+        #graph {
+            width: 100%;
+            height: 80vh; /* Set height to 80% of viewport height */
+        }
 
-    .button-5:hover {
-      transform: translateY(-1px);
-    }
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
 
-    .button-5:active {
-      background-color: #c85000;
-      box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
-      transform: translateY(0);
-    }
-  </style>
+        .button-5 {
+            align-items: center;
+            background-clip: padding-box;
+            background-color: #fa6400;
+            border: 1px solid transparent;
+            border-radius: .25rem;
+            box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+            box-sizing: border-box;
+            color: #fff;
+            cursor: pointer;
+            display: inline-flex;
+            font-family: system-ui, -apple-system, system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            justify-content: center;
+            line-height: 1.25;
+            margin: 0;
+            min-height: 3rem;
+            padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+            position: relative;
+            text-decoration: none;
+            transition: all 250ms;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            vertical-align: baseline;
+            width: auto;
+        }
+
+        .button-5:hover,
+        .button-5:focus {
+            background-color: #fb8332;
+            box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+        }
+
+        .button-5:hover {
+            transform: translateY(-1px);
+        }
+
+        .button-5:active {
+            background-color: #c85000;
+            box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+            transform: translateY(0);
+        }
+    </style>
 </head>
 <body>
-  <div id="graph"></div>
-  <button onclick="trainPerceptron()" class="button-5" role="button">Train Perceptron</button>
-  <button onclick="resetPlot()" class="button-5" role="button">Reset</button>
-  <div id="status"></div>
-  <script>
-    let weights = getRandomWeights()
-    let learningRate = 0.01;
+    <div id="graph"></div>
+    <button onclick="trainPerceptron()" class="button-5" role="button">Train Perceptron</button>
+    <button onclick="resetPlot()" class="button-5" role="button">Reset</button>
+    <div id="status"></div>
+    <script>
+        let weights = getRandomWeights();
+        let learningRate = 0.01;
 
-    /* Preset points */
-    let trace0 = {
-      x: [-1, -0.5, -1.2, -0.8],
-      y: [0.5, 1, -0.5, 0.8],
-      z: [0.2, 0.4, 0.3, 0.1],
-      mode: 'markers',
-      type: 'scatter3d',
-      name: 'Class 0',
-      marker: { color: 'red' }
-    };
+        /* Define Plotly traces with light mode colors */
+        let trace0 = {
+            x: [-1, -0.5, -1.2, -0.8],
+            y: [0.5, 1, -0.5, 0.8],
+            z: [0.2, 0.4, 0.3, 0.1],
+            mode: 'markers',
+            type: 'scatter3d',
+            name: 'Class 0',
+            marker: { color: 'red' }
+        };
 
-    let trace1 = {
-      x: [1, 0.5, 1.2, 0.8],
-      y: [-0.5, -1, 0.5, -0.8],
-      z: [0.1, -0.3, 0.2, -0.2],
-      mode: 'markers',
-      type: 'scatter3d',
-      name: 'Class 1',
-      marker: { color: 'blue' }
-    };
+        let trace1 = {
+            x: [1, 0.5, 1.2, 0.8],
+            y: [-0.5, -1, 0.5, -0.8],
+            z: [0.1, -0.3, 0.2, -0.2],
+            mode: 'markers',
+            type: 'scatter3d',
+            name: 'Class 1',
+            marker: { color: 'blue' }
+        };
 
-    /* Plotly graph setup for 3D plot */
-    let layout = {
-      title: 'Perceptron Training - 3D',
-      scene: {
-        xaxis: { range: [-1.5, 1.5] },
-        yaxis: { range: [-1.5, 1.5] },
-        zaxis: { range: [-1.5, 1.5] }
-      },
-      showlegend: false,
-      autosize: false,
-      scene: {
-        xaxis: { title: 'X' },
-        yaxis: { title: 'Y' },
-        zaxis: { title: 'Z' },
-        aspectratio: {
-          x: 1.5,
-          y: 1.5,
-          z: 1.5
-        }
-      },
-    };
+        let traceBoundary = {
+            x: [],
+            y: [],
+            z: [],
+            mode: 'lines',
+            type: 'scatter3d',
+            name: 'Decision Boundary',
+            line: { color: 'green' }
+        };
 
-    let traceBoundary = {
-      x: [],
-      y: [],
-      z: [],
-      mode: 'lines',
-      type: 'scatter3d',
-      name: 'Decision Boundary',
-      line: { color: 'green' }
-    };
+        let traceHighlight = {
+            x: [],
+            y: [],
+            z: [],
+            mode: 'markers',
+            type: 'scatter3d',
+            name: 'Highlight',
+            showlegend: false,
+            marker: {
+                color: 'yellow',
+                size: 12,
+                line: {
+                    color: 'Black',
+                    width: 2
+                }
+            }
+        };
 
-    let traceHighlight = {
-      x: [],
-      y: [],
-      z: [],
-      mode: 'markers',
-      type: 'scatter3d',
-      name: 'Highlight',
-      showlegend: false,
-      marker: {
-        color: 'yellow',
-        size: 12,
-        line: {
-          color:'Black',
-          width: 2
-        }
-      }
-    };
+        /* Plotly graph layout */
+        let layout = {
+            title: { text: 'Perceptron Training - 3D' },
+            scene: {
+                xaxis: { title: 'X', range: [-1.5, 1.5], color: 'inherit' },
+                yaxis: { title: 'Y', range: [-1.5, 1.5], color: 'inherit' },
+                zaxis: { title: 'Z', range: [-1.5, 1.5], color: 'inherit' },
+                aspectratio: { x: 1, y: 1, z: 1 },
+                bgcolor: 'rgba(0, 0, 0, 0)',
+            },
+            showlegend: false,
+            autosize: true,
+            paper_bgcolor: 'rgba(0, 0, 0, 0)',
+        };
 
-    Plotly.newPlot('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
-    plotDecisionBoundary();
+        Plotly.newPlot('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
+        plotDecisionBoundary();
 
-    async function trainPerceptron() {
-      plotDecisionBoundary();
-      document.getElementById("status").innerText = "Training...";
+        async function trainPerceptron() {
+            plotDecisionBoundary();
+            document.getElementById("status").innerText = "Training...";
 
-      let X0 = [];
-      let X1 = [];
+            let X0 = [];
+            let X1 = [];
 
-      /* Collect data from traces */
-      for (let i = 0; i < trace0.x.length; i++) {
-        X0.push([trace0.x[i], trace0.y[i], trace0.z[i]]);
-      }
-      for (let i = 0; i < trace1.x.length; i++) {
-        X1.push([trace1.x[i], trace1.y[i], trace1.z[i]]);
-      }
+            /* Collect data from traces */
+            for (let i = 0; i < trace0.x.length; i++) {
+                X0.push([trace0.x[i], trace0.y[i], trace0.z[i]]);
+            }
+            for (let i = 0; i < trace1.x.length; i++) {
+                X1.push([trace1.x[i], trace1.y[i], trace1.z[i]]);
+            }
 
-      for (let epoch = 0; epoch < 100; epoch++) {  /* Limiting to 10 epochs for simplicity */
-        let allCorrect = true;
+            for (let epoch = 0; epoch < 100; epoch++) {
+                let allCorrect = true;
 
-        for (let i = 0; i < X0.length; i++) {
-          let xi = X0[i];
-          let prediction = predict(xi);
-          let error = 0 - prediction;
+                for (let i = 0; i < X0.length; i++) {
+                    let xi = X0[i];
+                    let prediction = predict(xi);
+                    let error = 0 - prediction;
 
-          if (error != 0) {
-            allCorrect = false;
-            await highlightPoint(i, 0);
-          }
+                    if (error != 0) {
+                        allCorrect = false;
+                        await highlightPoint(i, 0);
+                    }
 
-          weights[0] += learningRate * error * xi[0];
-          weights[1] += learningRate * error * xi[1];
-          weights[2] += learningRate * error * xi[2];
-          weights[3] += learningRate * error;
+                    weights[0] += learningRate * error * xi[0];
+                    weights[1] += learningRate * error * xi[1];
+                    weights[2] += learningRate * error * xi[2];
+                    weights[3] += learningRate * error;
 
-          await updateDecisionBoundary();
-        }
+                    await updateDecisionBoundary();
+                }
 
-        for (let i = 0; i < X1.length; i++) {
-          let xi = X1[i];
-          let prediction = predict(xi);
-          let error = 1 - prediction;
+                for (let i = 0; i < X1.length; i++) {
+                    let xi = X1[i];
+                    let prediction = predict(xi);
+                    let error = 1 - prediction;
 
-          if (error != 0) {
-            allCorrect = false;
-            await highlightPoint(i, 1);
-          }
+                    if (error != 0) {
+                        allCorrect = false;
+                        await highlightPoint(i, 1);
+                    }
 
-          weights[0] += learningRate * error * xi[0];
-          weights[1] += learningRate * error * xi[1];
-          weights[2] += learningRate * error * xi[2];
-          weights[3] += learningRate * error;
+                    weights[0] += learningRate * error * xi[0];
+                    weights[1] += learningRate * error * xi[1];
+                    weights[2] += learningRate * error * xi[2];
+                    weights[3] += learningRate * error;
 
-          await updateDecisionBoundary();
-        }
+                    await updateDecisionBoundary();
+                }
 
-        if (allCorrect) {
-          break;
-        }
+                if (allCorrect) {
+                    break;
+                }
 
-        document.getElementById("status").innerText = "Training... On epoch " + epoch.toString();
-      }
+                document.getElementById("status").innerText = "Training... On epoch " + epoch.toString();
+            }
 
-      document.getElementById("status").innerText = "Training Finished!";
-    }
-
-    function predict(xi) {
-      let sum = weights[0] * xi[0] + weights[1] * xi[1] + weights[2] * xi[2] + weights[3];
-      return sum >= 0 ? 1 : 0;
-    }
-
-    async function highlightPoint(index, classLabel) {
-      let trace = classLabel == 0 ? trace0 : trace1;
-
-      /* Temporarily remove the highlighted point from the original trace */
-      let highlightedPoint = { x: trace.x[index], y: trace.y[index], z: trace.z[index] };
-      trace.x.splice(index, 1);
-      trace.y.splice(index, 1);
-      trace.z.splice(index, 1);
-      traceHighlight.x = [highlightedPoint.x];
-      traceHighlight.y = [highlightedPoint.y];
-      traceHighlight.z = [highlightedPoint.z];
-
-      /* Update plot */
-      Plotly.react('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
-      await sleep(100);
-
-      /* Move the point back to the original trace */
-      trace.x.splice(index, 0, highlightedPoint.x);
-      trace.y.splice(index, 0, highlightedPoint.y);
-      trace.z.splice(index, 0, highlightedPoint.z);
-      traceHighlight.x = [];
-      traceHighlight.y = [];
-      traceHighlight.z = [];
-
-      /* Update plot again */
-      Plotly.react('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
-    }
-
-    async function updateDecisionBoundary() {
-      plotDecisionBoundary();
-
-      await sleep(10);
-    }
-
-    function plotDecisionBoundary() {
-      let planeX = [];
-      let planeY = [];
-      let planeZ = [];
-
-      for (let x = -1.5; x <= 1.5; x += 0.1) {
-        for (let y = -1.5; y <= 1.5; y += 0.1) {
-          planeX.push(x);
-          planeY.push(y);
-          planeZ.push(-(weights[3] + weights[0] * x + weights[1] * y) / weights[2]);
-        }
-      }
-
-      traceBoundary.x = planeX;
-      traceBoundary.y = planeY;
-      traceBoundary.z = planeZ;
-
-      Plotly.react('graph', [trace0, trace1, traceBoundary], layout);
-    }
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    function getRandomWeights() {
-      while (true) {
-        let weights = [];
-        for (let i = 0; i < 4; i++) {  /* Including the bias term as the fourth weight */
-          /* Generate a random number between -0.5 and 0.5 */
-          let weight = (Math.random() - 0.5);
-          weights.push(weight);
+            document.getElementById("status").innerText = "Training Finished!";
         }
 
-        return weights;
-      }
-    }
+        function predict(xi) {
+            let sum = weights[0] * xi[0] + weights[1] * xi[1] + weights[2] * xi[2] + weights[3];
+            return sum >= 0 ? 1 : 0;
+        }
 
-    function resetPlot() {
-      weights = getRandomWeights();
-      trace0.x = [-1, -0.5, -1.2, -0.8];
-      trace0.y = [0.5, 1, -0.5, 0.8];
-      trace0.z = [0.2, 0.4, 0.3, 0.1];
-      trace1.x = [1, 0.5, 1.2, 0.8];
-      trace1.y = [-0.5, -1, 0.5, -0.8];
-      trace1.z = [0.1, -0.3, 0.2, -0.2];
-      traceHighlight.x = [];
-      traceHighlight.y = [];
-      traceHighlight.z = [];
-      document.getElementById("status").innerText = "";
-      Plotly.newPlot('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
-      plotDecisionBoundary();
-    }
-  </script>
+        async function highlightPoint(index, classLabel) {
+            let trace = classLabel == 0 ? trace0 : trace1;
+
+            /* Temporarily remove the highlighted point from the original trace */
+            let highlightedPoint = { x: trace.x[index], y: trace.y[index], z: trace.z[index] };
+            trace.x.splice(index, 1);
+            trace.y.splice(index, 1);
+            trace.z.splice(index, 1);
+            traceHighlight.x = [highlightedPoint.x];
+            traceHighlight.y = [highlightedPoint.y];
+            traceHighlight.z = [highlightedPoint.z];
+
+            /* Update plot */
+            Plotly.react('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
+            await sleep(100);
+
+            /* Move the point back to the original trace */
+            trace.x.splice(index, 0, highlightedPoint.x);
+            trace.y.splice(index, 0, highlightedPoint.y);
+            trace.z.splice(index, 0, highlightedPoint.z);
+            traceHighlight.x = [];
+            traceHighlight.y = [];
+            traceHighlight.z = [];
+
+            /* Update plot again */
+            Plotly.react('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
+        }
+
+        async function updateDecisionBoundary() {
+            plotDecisionBoundary();
+            await sleep(10);
+        }
+
+        function plotDecisionBoundary() {
+            let planeX = [];
+            let planeY = [];
+            let planeZ = [];
+            const step = 0.1;
+
+            for (let x = -1.5; x <= 1.5; x += step) {
+                for (let y = -1.5; y <= 1.5; y += step) {
+                    planeX.push(x);
+                    planeY.push(y);
+                    planeZ.push(-(weights[3] + weights[0] * x + weights[1] * y) / weights[2]);
+                }
+            }
+
+            traceBoundary.x = planeX;
+            traceBoundary.y = planeY;
+            traceBoundary.z = planeZ;
+
+            Plotly.react('graph', [trace0, trace1, traceBoundary], layout);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function getRandomWeights() {
+            while (true) {
+                let weights = [];
+                for (let i = 0; i < 4; i++) {
+                    let weight = (Math.random() - 0.5);
+                    weights.push(weight);
+                }
+                return weights;
+            }
+        }
+
+        function resetPlot() {
+            weights = getRandomWeights();
+            trace0.x = [-1, -0.5, -1.2, -0.8];
+            trace0.y = [0.5, 1, -0.5, 0.8];
+            trace0.z = [0.2, 0.4, 0.3, 0.1];
+            trace1.x = [1, 0.5, 1.2, 0.8];
+            trace1.y = [-0.5, -1, 0.5, -0.8];
+            trace1.z = [0.1, -0.3, 0.2, -0.2];
+            traceHighlight.x = [];
+            traceHighlight.y = [];
+            traceHighlight.z = [];
+            document.getElementById("status").innerText = "";
+
+            // Re-initialize traces with light mode colors
+            trace0.marker.color = 'red';
+            trace1.marker.color = 'blue';
+            traceBoundary.line.color = 'green';
+            traceHighlight.marker.color = 'yellow';
+
+            // Re-plot to ensure everything is reset
+            Plotly.newPlot('graph', [trace0, trace1, traceBoundary, traceHighlight], layout);
+            plotDecisionBoundary();
+            updatePlotlyTheme();
+        }
+
+        /**
+         * Theming Logic
+         */
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        function updatePlotlyTheme() {
+            const isDark = mediaQuery.matches;
+
+            const themeLayoutUpdate = {
+                'paper_bgcolor': isDark ? '#1b1b1e' : 'white',
+                'scene.bgcolor': isDark ? '#1b1b1e' : 'white',
+                'scene.xaxis.title.font.color': isDark ? '#dcdcdc' : 'black',
+                'scene.yaxis.title.font.color': isDark ? '#dcdcdc' : 'black',
+                'scene.zaxis.title.font.color': isDark ? '#dcdcdc' : 'black',
+                'scene.xaxis.tickfont.color': isDark ? '#dcdcdc' : 'black',
+                'scene.yaxis.tickfont.color': isDark ? '#dcdcdc' : 'black',
+                'scene.zaxis.tickfont.color': isDark ? '#dcdcdc' : 'black',
+                'scene.xaxis.gridcolor': isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                'scene.yaxis.gridcolor': isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                'scene.zaxis.gridcolor': isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                'title.font.color': isDark ? '#dcdcdc' : 'black',
+            };
+
+            const themeTraceUpdate = {
+                'marker.color': isDark ? '#ff7272' : 'red' // For trace0
+            };
+            const themeTrace1Update = {
+                'marker.color': isDark ? '#74a0f7' : 'blue' // For trace1
+            };
+            const themeBoundaryUpdate = {
+                'line.color': isDark ? '#bada55' : 'green' // For traceBoundary
+            };
+            const themeHighlightUpdate = {
+                'marker.color': isDark ? '#fbfb9c' : 'yellow' // For traceHighlight
+            };
+
+            Plotly.relayout('graph', themeLayoutUpdate);
+            Plotly.restyle('graph', themeTraceUpdate, 0); // Update trace 0
+            Plotly.restyle('graph', themeTrace1Update, 1); // Update trace 1
+            Plotly.restyle('graph', themeBoundaryUpdate, 2); // Update trace 2
+            Plotly.restyle('graph', themeHighlightUpdate, 3); // Update trace 3
+        }
+
+        // Listener for theme changes
+        mediaQuery.addEventListener('change', (e) => {
+            if (e.matches) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            updatePlotlyTheme();
+        });
+
+        // Initial setup on page load
+        window.onload = () => {
+            if (mediaQuery.matches) {
+                document.body.classList.add('dark-mode');
+            }
+            updatePlotlyTheme();
+            Plotly.relayout('graph', {
+                'scene.camera.eye': { x: 1.5, y: 1.5, z: 1.5 }, // Set initial camera angle for a better view
+                'scene.camera.center': { x: 0, y: 0, z: 0 }
+            });
+        };
+    </script>
 </body>
 </html>

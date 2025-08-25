@@ -1,298 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Melakarta Raga Wheel</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #fff;
-      height: 100vh;
-      margin: 0;
-    }
-    .wheel-container {
-      position: relative;
-      width: 90%;  /* Increased size */
-      height: 90%; /* Increased size */
-      border-radius: 50%;
-      background: radial-gradient(circle, #ffffff, #d9e3f0);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .sector {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      clip-path: polygon(50% 50%, 100% 0, 100% 100%);
-      transform-origin: center;
-    }
-    .chakra-label {
-      position: absolute;
-      color: #fff;
-      width: 120px;  /* Adjusted width */
-      height: 20px;
-      font-weight: bold;
-      font-size: 16px;
-      text-align: center;
-      background: #880055;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
-    .raga-label {
-      position: absolute;
-      text-align: center;
-      font-size: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      color: #333;
-      transform-origin: 50% 50%;
-      transition: transform 0.3s;
-      width: 120px; /* Adjust width to avoid overlap */
-    }
-    .raga-label:hover {
-      transform: scale(1.2);
-    }
-    .side-panel {
-      position: fixed;
-      right: -300px;
-      top: 0;
-      width: 300px;
-      height: 100%;
-      background: #ffffff;
-      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      transition: right 0.3s ease;
-    }
-    .side-panel.visible {
-      right: 0;
-    }
-    .close-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      cursor: pointer;
-      background: #ff5c5c;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-size: 16px;
-      text-align: center;
-      line-height: 30px;
-    }
-    .audio-controls {
-      margin-top: 10px;
-    }
-    .audio-controls button {
-      margin-right: 10px;
-      padding: 5px 10px;
-      border: none;
-      background: #007bff;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .audio-controls button:hover {
-      background: #0056b3;
-    }
-  </style>
-</head>
-<body>
-  <div class="wheel-container" id="wheel"></div>
-  <div class="side-panel" id="sidePanel">
-    <button class="close-button" onclick="closeSidePanel()">×</button>
-    <h3 id="ragaName"></h3>
-    <p id="ragaDetails"></p>
-    <div class="audio-controls">
-      <button id="playArohanam">Play Arohanam</button>
-      <button id="playAvarohanam">Play Avarohanam</button>
-    </div>
-    <h3>Note Frequencies Graph</h3>
-    <div id="note-graph" style="width: 100%; height: 300px;"></div>
-  </div>
-  <script type="module" src="https://unpkg.com/tone"></script>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-  <script>
-    const chakraNames = [
-      "Indu", "Netra", "Agni", "Veda", "Bana", "Ritu",
-      "Rishi", "Vasu", "Brahma", "Disi", "Rudra", "Adi"
-    ];
-
-    const chakraColors = [
-      "#FF5733", "#FFBD33", "#BBDD33", "#55DD33", "#11BF07", "#11DDBD",
-      "#33DBFF", "#3375FF", "#5733FF", "#BD33FF", "#FF33DB", "#FF3375"
-    ];
-
-    const getSimplifiedRagaNotes = (ragaNumber) => {
-      const riGaPairs = ["R1 G1", "R1 G2", "R1 G3", "R2 G2", "R2 G3", "R3 G3"];
-      const daNiPairs = ["D1 N1", "D1 N2", "D1 N3", "D2 N2", "D2 N3", "D3 N3"];
-      const maNotes = ["M1", "M2"];
-
-      const chakra = Math.ceil(ragaNumber > 36 ? (ragaNumber - 36) / 6 :  ragaNumber / 6);
-      const subNumber = (ragaNumber - 1) % 6;
-
-      const riGa = riGaPairs[chakra - 1];
-      const ma = maNotes[ragaNumber <= 36 ? 0 : 1];
-      const daNi = daNiPairs[subNumber];
-
-      const arohana = `S ${riGa} ${ma} P ${daNi} SA`;
-      const avarohana = `SA ${daNi.split(" ").reverse().join(" ")} P ${ma} ${riGa.split(" ").reverse().join(" ")} S`;
-
-      return { arohana, avarohana };
-    };
-
-    const wheel = document.getElementById("wheel");
-    const sidePanel = document.getElementById("sidePanel");
-    const ragaNameElem = document.getElementById("ragaName");
-    const ragaDetailsElem = document.getElementById("ragaDetails");
-    const playArohanamButton = document.getElementById("playArohanam");
-    const playAvarohanamButton = document.getElementById("playAvarohanam");
-
-    const totalRagas = 72;
-    const chakras = 12;
-    const ragaPerChakra = 6;
-    const chakraAngle = 360 / chakras;
-    const ragaAngle = chakraAngle / ragaPerChakra;
-
-    var ragaSelected = null;
-
-    const noteFrequencies = {
-      S: 261.63, SA: 523.26,
-      R1: 277.18, R2: 293.66, R3: 311.13,
-      G1: 293.66, G2: 311.13, G3: 329.63,
-      M1: 349.23, M2: 370.00,
-      P: 392.00,
-      D1: 415.30, D2: 440.00, D3: 466.16,
-      N1: 440.00, N2: 466.16, N3: 493.88,
-    };
-
-    const generateToneSequence = (notes) => {
-      const synth = new Tone.Synth().toDestination();
-      const now = Tone.now();
-      notes.split(" ").forEach((note, index) => {
-        const freq = noteFrequencies[note];
-        if (freq) {
-          synth.triggerAttackRelease(freq, "8n", now + index * 0.5);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melakarta Raga Wheel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+            color: #000;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.5s, color 0.5s;
         }
-      });
-    };
 
-    const playRaga = (isArohana) => {
-      const { arohana, avarohana } = getSimplifiedRagaNotes(ragaSelected);
-      const sequence = isArohana ? arohana : avarohana;
-      generateToneSequence(sequence);
-    };
+        .wheel-container {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff, #d9e3f0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.5s;
+        }
 
+        .sector {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 100% 0, 100% 100%);
+            transform-origin: center;
+        }
 
-    const generateGraph = () => {
-      const { arohana, avarohana } = getSimplifiedRagaNotes(ragaSelected);
-      const notes = arohana;
-      const frequencies = notes.split(" ").map(note => noteFrequencies[note]);
-      const noteLabels = notes.split(" ");
+        .chakra-label {
+            position: absolute;
+            color: #fff;
+            width: 120px;
+            height: 20px;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            background: #880055;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
 
-      const data = [{
-        x: noteLabels,
-        y: frequencies,
-        type: 'scatter',
-        mode: 'lines+markers',
-        marker: { color: 'blue' }
-      }];
+        .raga-label {
+            position: absolute;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+            transform-origin: 50% 50%;
+            transition: transform 0.3s;
+            width: 120px;
+        }
 
-      const layout = {
-        title: "Notes Progression",
-        xaxis: { title: 'Notes' },
-        yaxis: { title: 'Frequency (Hz)' },
-        margin: { t: 40, l: 50, r: 30, b: 50 }
-      };
+        .raga-label:hover {
+            transform: scale(1.2);
+        }
 
-      Plotly.newPlot('note-graph', data, layout);
-    };
+        .side-panel {
+            position: fixed;
+            right: -300px;
+            top: 0;
+            width: 300px;
+            height: 100%;
+            background: #ffffff;
+            color: #000;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: right 0.3s ease, background 0.5s, color 0.5s;
+        }
 
-    // Fetch Raga Names
-    fetch('raga.txt')
-      .then(response => response.text())
-      .then(data => {
-        const ragaNames = data.split('\n').map(line => line.split(' ').slice(1).join(' '));
+        .side-panel.visible {
+            right: 0;
+        }
 
-        for (let chakraIndex = 0; chakraIndex < chakras; chakraIndex++) {
-          const chakraName = chakraNames[chakraIndex];
-          const chakraColor = chakraColors[chakraIndex];
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            background: #ff5c5c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            text-align: center;
+            line-height: 30px;
+        }
 
-          // // Chakra Label at the Edge
-          // const chakraLabel = document.createElement("div");
-          // chakraLabel.classList.add("chakra-label");
-          // chakraLabel.textContent = chakraName;
-          // chakraLabel.style.transform = `rotate(${
-          //   chakraAngle * chakraIndex + chakraAngle / 2
-          // }deg) translate(-50%, -350px)`;  // Pushed to the edge
+        .audio-controls {
+            margin-top: 10px;
+        }
 
-          // Chakra Label
-          const chakraLabel = document.createElement("div");
-          chakraLabel.classList.add("chakra-label");
-          chakraLabel.textContent = chakraName;
+        .audio-controls button {
+            margin-right: 10px;
+            padding: 5px 10px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-          const angle = chakraAngle * chakraIndex + chakraAngle / 2;
-          const rotationAdjustment = angle > 90 && angle < 270 ? 180 : 0;
+        .audio-controls button:hover {
+            background: #0056b3;
+        }
 
-          chakraLabel.style.transform = `rotate(${angle}deg) translate(-50%, -350px) rotate(${rotationAdjustment}deg)`;
-          wheel.appendChild(chakraLabel);
-
-          for (let ragaIndex = 0; ragaIndex < ragaPerChakra; ragaIndex++) {
-            const ragaNumber = chakraIndex * ragaPerChakra + ragaIndex + 1;
-            const { arohana, avarohana } = getSimplifiedRagaNotes(ragaNumber);
-            const ragaName = ragaNames[ragaNumber - 1];
-
-            const ragaLabel = document.createElement("div");
-            ragaLabel.classList.add("raga-label");
-            ragaLabel.textContent = ragaName;
-            ragaLabel.dataset.details = `Arohana: ${arohana}\nAvarohana: ${avarohana}`;
-            const angle = ragaAngle * ragaIndex + chakraAngle * chakraIndex;
-            ragaLabel.style.transform = `rotate(${angle}deg) translate(250px)`;
-            ragaLabel.style.color = chakraColor;
-
-            // Keep raga names upright
-            if (angle > 90 && angle < 270) {
-              ragaLabel.style.transform += ' rotate(180deg)';
+        /* --- Dark Mode Styles --- */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: rgb(27, 27, 30);
+                color: #e0e0e0;
             }
 
-            ragaLabel.addEventListener("click", () => {
-              ragaNameElem.textContent = `${ragaName} -- ${ragaNumber}`;
-              ragaDetailsElem.textContent = `Arohana: ${arohana}\nAvarohana: ${avarohana}`;
-              sidePanel.classList.add("visible");
-              ragaSelected = ragaNumber;
+            .wheel-container {
+                background: radial-gradient(circle, #333, #1e1e1e);
+            }
 
-              // Generate graph for default Arohana when a raga is selected
-              generateGraph();
+            .raga-label {
+                color: #ddd;
+            }
+
+            .side-panel {
+                background: #1e1e1e;
+                color: #e0e0e0;
+                box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+            }
+
+            .close-button {
+                background: #cc4d4d;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wheel-container" id="wheel"></div>
+    <div class="side-panel" id="sidePanel">
+        <button class="close-button" onclick="closeSidePanel()">×</button>
+        <h3 id="ragaName"></h3>
+        <p id="ragaDetails"></p>
+        <div class="audio-controls">
+            <button id="playArohanam">Play Arohanam</button>
+            <button id="playAvarohanam">Play Avarohanam</button>
+        </div>
+        <h3>Note Frequencies Graph</h3>
+        <div id="note-graph" style="width: 100%; height: 300px;"></div>
+    </div>
+    <script type="module" src="https://unpkg.com/tone"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script>
+        const chakraNames = [
+            "Indu", "Netra", "Agni", "Veda", "Bana", "Ritu",
+            "Rishi", "Vasu", "Brahma", "Disi", "Rudra", "Adi"
+        ];
+
+        const chakraColors = [
+            "#FF5733", "#FFBD33", "#BBDD33", "#55DD33", "#11BF07", "#11DDBD",
+            "#33DBFF", "#3375FF", "#5733FF", "#BD33FF", "#FF33DB", "#FF3375"
+        ];
+
+        const getSimplifiedRagaNotes = (ragaNumber) => {
+            const riGaPairs = ["R1 G1", "R1 G2", "R1 G3", "R2 G2", "R2 G3", "R3 G3"];
+            const daNiPairs = ["D1 N1", "D1 N2", "D1 N3", "D2 N2", "D2 N3", "D3 N3"];
+            const maNotes = ["M1", "M2"];
+
+            const chakra = Math.ceil(ragaNumber > 36 ? (ragaNumber - 36) / 6 : ragaNumber / 6);
+            const subNumber = (ragaNumber - 1) % 6;
+
+            const riGa = riGaPairs[chakra - 1];
+            const ma = maNotes[ragaNumber <= 36 ? 0 : 1];
+            const daNi = daNiPairs[subNumber];
+
+            const arohana = `S ${riGa} ${ma} P ${daNi} SA`;
+            const avarohana = `SA ${daNi.split(" ").reverse().join(" ")} P ${ma} ${riGa.split(" ").reverse().join(" ")} S`;
+
+            return { arohana, avarohana };
+        };
+
+        const wheel = document.getElementById("wheel");
+        const sidePanel = document.getElementById("sidePanel");
+        const ragaNameElem = document.getElementById("ragaName");
+        const ragaDetailsElem = document.getElementById("ragaDetails");
+        const playArohanamButton = document.getElementById("playArohanam");
+        const playAvarohanamButton = document.getElementById("playAvarohanam");
+
+        const totalRagas = 72;
+        const chakras = 12;
+        const ragaPerChakra = 6;
+        const chakraAngle = 360 / chakras;
+        const ragaAngle = chakraAngle / ragaPerChakra;
+
+        var ragaSelected = null;
+
+        const noteFrequencies = {
+            S: 261.63, SA: 523.26,
+            R1: 277.18, R2: 293.66, R3: 311.13,
+            G1: 293.66, G2: 311.13, G3: 329.63,
+            M1: 349.23, M2: 370.00,
+            P: 392.00,
+            D1: 415.30, D2: 440.00, D3: 466.16,
+            N1: 440.00, N2: 466.16, N3: 493.88,
+        };
+
+        const generateToneSequence = (notes) => {
+            const synth = new Tone.Synth().toDestination();
+            const now = Tone.now();
+            notes.split(" ").forEach((note, index) => {
+                const freq = noteFrequencies[note];
+                if (freq) {
+                    synth.triggerAttackRelease(freq, "8n", now + index * 0.5);
+                }
+            });
+        };
+
+        const playRaga = (isArohana) => {
+            const { arohana, avarohana } = getSimplifiedRagaNotes(ragaSelected);
+            const sequence = isArohana ? arohana : avarohana;
+            generateToneSequence(sequence);
+        };
+
+        const generateGraph = () => {
+            const { arohana, avarohana } = getSimplifiedRagaNotes(ragaSelected);
+            const notes = arohana;
+            const frequencies = notes.split(" ").map(note => noteFrequencies[note]);
+            const noteLabels = notes.split(" ");
+
+            const data = [{
+                x: noteLabels,
+                y: frequencies,
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: { color: 'blue' }
+            }];
+
+            // Adjust graph layout for dark mode
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const layout = {
+                title: "Notes Progression",
+                xaxis: { title: 'Notes', color: isDarkMode ? '#e0e0e0' : '#000' },
+                yaxis: { title: 'Frequency (Hz)', color: isDarkMode ? '#e0e0e0' : '#000' },
+                paper_bgcolor: isDarkMode ? '#1e1e1e' : '#ffffff',
+                plot_bgcolor: isDarkMode ? '#1e1e1e' : '#ffffff',
+                font: { color: isDarkMode ? '#e0e0e0' : '#000' },
+                margin: { t: 40, l: 50, r: 30, b: 50 }
+            };
+
+            Plotly.newPlot('note-graph', data, layout);
+        };
+
+        // Fetch Raga Names
+        fetch('raga.txt')
+            .then(response => response.text())
+            .then(data => {
+                const ragaNames = data.split('\n').map(line => line.split(' ').slice(1).join(' '));
+
+                for (let chakraIndex = 0; chakraIndex < chakras; chakraIndex++) {
+                    const chakraName = chakraNames[chakraIndex];
+                    const chakraColor = chakraColors[chakraIndex];
+
+                    const chakraLabel = document.createElement("div");
+                    chakraLabel.classList.add("chakra-label");
+                    chakraLabel.textContent = chakraName;
+
+                    const angle = chakraAngle * chakraIndex + chakraAngle / 2;
+                    const rotationAdjustment = angle > 90 && angle < 270 ? 180 : 0;
+
+                    chakraLabel.style.transform = `rotate(${angle}deg) translate(-50%, -350px) rotate(${rotationAdjustment}deg)`;
+                    wheel.appendChild(chakraLabel);
+
+                    for (let ragaIndex = 0; ragaIndex < ragaPerChakra; ragaIndex++) {
+                        const ragaNumber = chakraIndex * ragaPerChakra + ragaIndex + 1;
+                        const { arohana, avarohana } = getSimplifiedRagaNotes(ragaNumber);
+                        const ragaName = ragaNames[ragaNumber - 1];
+
+                        const ragaLabel = document.createElement("div");
+                        ragaLabel.classList.add("raga-label");
+                        ragaLabel.textContent = ragaName;
+                        ragaLabel.dataset.details = `Arohana: ${arohana}\nAvarohana: ${avarohana}`;
+                        const angle = ragaAngle * ragaIndex + chakraAngle * chakraIndex;
+                        ragaLabel.style.transform = `rotate(${angle}deg) translate(250px)`;
+                        ragaLabel.style.color = chakraColor;
+
+                        if (angle > 90 && angle < 270) {
+                            ragaLabel.style.transform += ' rotate(180deg)';
+                        }
+
+                        ragaLabel.addEventListener("click", () => {
+                            ragaNameElem.textContent = `${ragaName} -- ${ragaNumber}`;
+                            ragaDetailsElem.textContent = `Arohana: ${arohana}\nAvarohana: ${avarohana}`;
+                            sidePanel.classList.add("visible");
+                            ragaSelected = ragaNumber;
+
+                            generateGraph();
+                        });
+
+                        wheel.appendChild(ragaLabel);
+
+                        playArohanamButton.onclick = () => playRaga(true);
+                        playAvarohanamButton.onclick = () => playRaga(false);
+                    }
+                }
             });
 
-            wheel.appendChild(ragaLabel);
+        const playAudio = (file) => {
+            const audio = new Audio(file);
+            audio.play();
+        };
 
-            playArohanamButton.onclick = () => playRaga(true);
-            playAvarohanamButton.onclick = () => playRaga(false);
-
-          }
-        }
-      });
-
-    const playAudio = (file) => {
-      const audio = new Audio(file);
-      audio.play();
-    };
-
-    const closeSidePanel = () => {
-      sidePanel.classList.remove("visible");
-    };
-  </script>
+        const closeSidePanel = () => {
+            sidePanel.classList.remove("visible");
+        };
+    </script>
 </body>
 </html>

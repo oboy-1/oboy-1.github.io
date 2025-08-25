@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Eigenvector Explorer</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: white;
+  color: black;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+.container{max-width:1200px;margin:0 auto}
+h2{text-align:center;margin-bottom:15px;font-size:2em;font-weight:600}
+.alert{padding:10px;margin-bottom:10px;border-radius:6px;background:#fffae6;color:#333;font-weight:600;text-align:center;font-size:1.1em;border:1px solid #ddd}
+
+/* Controls + vector info layout */
+.controls-wrapper{display:flex;flex-wrap:wrap;gap:15px;margin-bottom:15px;align-items:flex-start}
+.controls{padding:10px;border:1px solid #ddd;border-radius:8px;background:#f9f9f9;flex:1;min-width:250px}
+.matrix-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.matrix-input{display:flex;flex-direction:column;align-items:center}
+.matrix-input input{width:60px;padding:5px;text-align:center;border:1px solid #ccc;border-radius:3px}
+.preset-buttons{display:flex;gap:5px;flex-wrap:wrap;margin-left:10px}
+button{padding:5px 10px;border:1px solid #ccc;border-radius:5px;background:#f9f9f9;color:black;cursor:pointer;transition:background 0.2s}
+button:hover{background:#eaeaea}
+
+.vector-info-wrapper{flex:0 0 200px;display:flex;flex-direction:column;gap:8px}
+.info-box{background:#fafafa;padding:8px;border-radius:6px;border:1px solid #ddd;text-align:center}
+
+.visualization-container{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:15px}
+.canvas-container{flex:1;min-width:250px;text-align:center}
+canvas{border:1px solid #ccc;border-radius:6px;background:white;cursor:crosshair}
+
+.eigenvalue-display{background:#fafafa;padding:8px;border-radius:6px;border:1px solid #ddd;min-width:200px;text-align:center}
+.legend{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-color{width:18px;height:3px;border-radius:2px}
+.explanation{padding:15px;border:1px solid #ddd;border-radius:8px;background:#f9f9f9}
+.explanation h3{margin-bottom:8px}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: rgb(27, 27, 30);
+    color: #e0e0e0;
+  }
+  canvas {
+    background: rgb(27, 27, 30) !important;
+    border-color: #555 !important;
+  }
+  .controls {
+    background: #2a2a2a !important;
+    color: #e0e0e0;
+    border-color: #2a2a2a !important;
+  }
+  .explanation {
+    background: #2a2a2a !important;
+    color: #e0e0e0;
+    border-color: #2a2a2a !important;
+  }
+  .matrix-input input, button {
+    background: #333 !important;
+    color: #e0e0e0 !important;
+    border-color: #333 !important;
+  }
+  .matrix-input input:focus, button:hover {
+    background: #444 !important;
+    border-color: #444 !important;
+  }
+  button:hover {
+    background: #444 !important;
+    color: #e0e0e0 !important;
+  }
+  .info-box {
+    background: #2b2b3a !important;
+    color: #e0e0e0;
+    border-color: #2b2b3a !important;
+  }
+  .eigenvalue-display {
+    background: #2b2b3a !important;
+    color: #e0e0e0;
+    border-color: #2b2b3a !important;
+  }
+  .alert {
+    background: #2a2a2a !important;
+    color: #ffeb3b !important;
+    border-color: #2a2a2a !important;
+  }
+  h2, h3 {
+    color: #e0e0e0;
+  }
+  .legend-item {
+    color: #e0e0e0;
+  }
+}
+
+@media(max-width:768px){.visualization-container{flex-direction:column}.matrix-controls{flex-direction:column;align-items:center}.controls-wrapper{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h2>Interactive Eigenvector Explorer</h2>
+
+<div class="explanation">
+<h3>Understanding Eigenvectors</h3>
+<p><strong>Eigenvectors</strong> keep direction under transformation; only scaled by eigenvalues.</p>
+<ul>
+<li>Red & Cyan lines show eigenvector directions</li>
+<li>Drag orange vector on the <b> left side </b> to see how the transformation works.</li>
+<li>Drag orange vector along the eigenvector directions, and <b> observe how the vector doesn't change direction once transformed -- it just scales</b>
+<li>Try different matrices to see changes</li>
+<li>Eigenvalues & matrix determine scaling, flipping, rotation</li>
+</ul>
+<p>💡 Use preset buttons to explore classic examples!</p>
+</div>
+
+<div class="alert" id="alignedMsg">Move the orange vector to see alignment!</div>
+
+<!-- Controls + Vector Info Side by Side -->
+<div class="controls-wrapper">
+
+<div class="controls">
+<h3>🎛️ Transformation Matrix</h3>
+<div class="matrix-controls">
+<div class="matrix-input"><label>a</label><input type="number" id="a" step="0.1" value="2"></div>
+<div class="matrix-input"><label>b</label><input type="number" id="b" step="0.1" value="1"></div>
+<div class="matrix-input"><label>c</label><input type="number" id="c" step="0.1" value="1"></div>
+<div class="matrix-input"><label>d</label><input type="number" id="d" step="0.1" value="2"></div>
+</div>
+<div class="preset-buttons">
+<button onclick="setMatrix(2,1,1,2)">🔄 Shear</button>
+<button onclick="setMatrix(2,0,0,1)">📏 ScaleX</button>
+<button onclick="setMatrix(0,-1,1,0)">↻ 90°</button>
+<button onclick="setMatrix(1.5,0.5,0.5,1.5)">💫 Mixed</button>
+<button onclick="setMatrix(3,0,0,0.5)">⚡ Strong</button>
+</div>
+</div>
+
+<div class="vector-info-wrapper">
+<div class="info-box">📍 Original: <span id="originalVector">v=(0,0)</span></div>
+<div class="info-box">🔄 Transformed: <span id="transformedVector">Av=(0,0)</span></div>
+<div class="info-box eigenvalue-display" id="eigenInfo">Eigenvalues & eigenvectors appear here</div>
+</div>
+
+</div>
+
+<!-- Graphs -->
+<div class="visualization-container">
+<div class="canvas-container">
+<h3>📍 Original</h3>
+<canvas id="originalCanvas" width="350" height="350"></canvas>
+<p style="opacity:0.7;margin:5px 0;">Drag the orange vector!</p>
+</div>
+<div class="canvas-container">
+<h3>🔄 Transformed</h3>
+<canvas id="transformedCanvas" width="350" height="350"></canvas>
+<p style="opacity:0.7;margin:5px 0;">See transformed vector</p>
+</div>
+</div>
+
+<div class="legend">
+<div class="legend-item"><div class="legend-color" style="background:#ff6600"></div><span>Your Vector</span></div>
+<div class="legend-item"><div class="legend-color" style="background:#ff6b6b"></div><span>Eigenvector 1</span></div>
+<div class="legend-item"><div class="legend-color" style="background:#4ecdc4"></div><span>Eigenvector 2</span></div>
+<div class="legend-item"><div class="legend-color" style="background:#ffd93d"></div><span>Grid</span></div>
+</div>
+
+<script>
+class EigenvectorVisualizer {
+  constructor() {
+    this.originalCanvas = document.getElementById('originalCanvas');
+    this.transformedCanvas = document.getElementById('transformedCanvas');
+    this.originalCtx = this.originalCanvas.getContext('2d');
+    this.transformedCtx = this.transformedCanvas.getContext('2d');
+    this.vector = { x: 1, y: 1 };
+    this.isDragging = false;
+    this.matrix = { a: 2, b: 1, c: 1, d: 2 };
+    this.alignedMsg = document.getElementById('alignedMsg');
+
+    this.setupEvents();
+    this.setupInputs();
+    this.animate();
+  }
+
+  setupEvents() {
+    const oC = this.originalCanvas;
+    oC.addEventListener('mousedown', e => this.onMouseDown(e));
+    oC.addEventListener('mousemove', e => this.onMouseMove(e));
+    oC.addEventListener('mouseup', () => this.onMouseUp());
+    oC.addEventListener('mouseleave', () => this.onMouseUp());
+
+    oC.addEventListener('touchstart', e => this.onTouchStart(e));
+    oC.addEventListener('touchmove', e => this.onTouchMove(e));
+    oC.addEventListener('touchend', () => this.onMouseUp());
+  }
+
+  setupInputs() {
+    ['a','b','c','d'].forEach(k => {
+      document.getElementById(k).addEventListener('input', e => {
+        this.matrix[k] = parseFloat(e.target.value) || 0;
+        this.updateEigenInfo();
+      });
+    });
+  }
+
+  getMousePos(canvas,e){const r=canvas.getBoundingClientRect(),cx=canvas.width/2,cy=canvas.height/2,s=50;return{x:(e.clientX-r.left-cx)/s,y:(cy-(e.clientY-r.top))/s}}
+  getTouchPos(canvas,e){const r=canvas.getBoundingClientRect(),cx=canvas.width/2,cy=canvas.height/2,s=50;return{x:(e.touches[0].clientX-r.left-cx)/s,y:(cy-(e.touches[0].clientY-r.top))/s}}
+
+  onMouseDown(e){const p=this.getMousePos(this.originalCanvas,e);if(Math.hypot(p.x-this.vector.x,p.y-this.vector.y)<0.3){this.isDragging=true;this.originalCanvas.style.cursor='grabbing'}}
+  onTouchStart(e){e.preventDefault();const p=this.getTouchPos(this.originalCanvas,e);if(Math.hypot(p.x-this.vector.x,p.y-this.vector.y)<0.3)this.isDragging=true}
+  onMouseMove(e){if(this.isDragging){const p=this.getMousePos(this.originalCanvas,e);this.vector.x=Math.max(-3.5,Math.min(3.5,p.x));this.vector.y=Math.max(-3.5,Math.min(3.5,p.y));this.updateVectorInfo()}else{const p=this.getMousePos(this.originalCanvas,e);this.originalCanvas.style.cursor=Math.hypot(p.x-this.vector.x,p.y-this.vector.y)<0.3?'grab':'crosshair'}}
+  onTouchMove(e){e.preventDefault();if(this.isDragging){const p=this.getTouchPos(this.originalCanvas,e);this.vector.x=Math.max(-3.5,Math.min(3.5,p.x));this.vector.y=Math.max(-3.5,Math.min(3.5,p.y));this.updateVectorInfo()}}
+  onMouseUp(){this.isDragging=false;this.originalCanvas.style.cursor='crosshair'}
+
+  transformVector(v){const{a,b,c,d}=this.matrix;return{x:a*v.x+b*v.y,y:c*v.x+d*v.y}}
+  calculateEigenvalues(){const{a,b,c,d}=this.matrix;const t=a+d,deter=a*d-b*c;const disc=t*t-4*deter;if(disc<0)return{real:false};const l1=(t+Math.sqrt(disc))/2,l2=(t-Math.sqrt(disc))/2;return{real:true,lambda1:l1,lambda2:l2}}
+  calculateEigenvectors(lambda){const{a,b,c,d}=this.matrix,m11=a-lambda,m12=b,m21=c,m22=d-lambda;if(Math.abs(m12)>1e-10)return{x:-m12,y:m11};else if(Math.abs(m21)>1e-10)return{x:-m22,y:m21};return{x:1,y:0}}
+
+  drawGrid(ctx,canvas,isTransformed=false){
+    const cx=canvas.width/2,cy=canvas.height/2,s=50;
+    ctx.strokeStyle='rgba(150,150,150,0.3)';ctx.lineWidth=1;
+
+    if(!isTransformed){
+      // Original grid - standard orthogonal lines
+      for(let i=-4;i<=4;i++){
+        ctx.beginPath();ctx.moveTo(cx+i*s,0);ctx.lineTo(cx+i*s,canvas.height);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(0,cy-i*s);ctx.lineTo(canvas.width,cy-i*s);ctx.stroke();
+      }
+    } else {
+      // Transformed grid - draw transformed unit vectors to show grid lines
+      for(let i=-4;i<=4;i++){
+        // Vertical grid lines (transform i,y)
+        const startV = this.transformVector({x:i,y:-4});
+        const endV = this.transformVector({x:i,y:4});
+        ctx.beginPath();
+        ctx.moveTo(cx+startV.x*s,cy-startV.y*s);
+        ctx.lineTo(cx+endV.x*s,cy-endV.y*s);
+        ctx.stroke();
+
+        // Horizontal grid lines (transform x,i)
+        const startH = this.transformVector({x:-4,y:i});
+        const endH = this.transformVector({x:4,y:i});
+        ctx.beginPath();
+        ctx.moveTo(cx+startH.x*s,cy-startH.y*s);
+        ctx.lineTo(cx+endH.x*s,cy-endH.y*s);
+        ctx.stroke();
+      }
+    }
+
+    // Draw axes (transformed or original)
+    ctx.strokeStyle='rgba(255,217,61,0.8)';ctx.lineWidth=2;
+    if(!isTransformed){
+      ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(canvas.width,cy);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,canvas.height);ctx.stroke();
+    } else {
+      // Transform the axes
+      const xAxis = this.transformVector({x:5,y:0});
+      const yAxis = this.transformVector({x:0,y:5});
+      const negXAxis = this.transformVector({x:-5,y:0});
+      const negYAxis = this.transformVector({x:0,y:-5});
+
+      ctx.beginPath();
+      ctx.moveTo(cx+negXAxis.x*s,cy-negXAxis.y*s);
+      ctx.lineTo(cx+xAxis.x*s,cy-xAxis.y*s);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(cx+negYAxis.x*s,cy-negYAxis.y*s);
+      ctx.lineTo(cx+yAxis.x*s,cy-yAxis.y*s);
+      ctx.stroke();
+    }
+  }
+
+  drawVector(ctx,canvas,v,color,s=50,w=4,isDraggable=false){
+    const cx=canvas.width/2,cy=canvas.height/2,endX=cx+v.x*s,endY=cy-v.y*s;
+    ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=w;
+
+    // main arrow shaft
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(endX,endY);ctx.stroke();
+
+    // arrow head
+    const a=Math.atan2(v.y,v.x),hl=15;
+    ctx.beginPath();
+    ctx.moveTo(endX,endY);
+    ctx.lineTo(endX-hl*Math.cos(a-Math.PI/6),endY+hl*Math.sin(a-Math.PI/6));
+    ctx.lineTo(endX-hl*Math.cos(a+Math.PI/6),endY+hl*Math.sin(a+Math.PI/6));
+    ctx.closePath();ctx.fill();
+
+    // draggable circle "handle"
+    if(isDraggable){
+      ctx.beginPath();
+      ctx.arc(endX,endY,10,0,2*Math.PI);
+      ctx.fillStyle="rgba(255,102,0,0.3)"; // semi-transparent orange
+      ctx.fill();
+      ctx.lineWidth=2;
+      ctx.strokeStyle="rgba(255,102,0,0.7)";
+      ctx.stroke();
+    }
+  }
+
+
+  drawEigenLine(ctx,canvas,v,color){
+    if(!v)return;
+    const cx=canvas.width/2,cy=canvas.height/2,s=50,l=Math.sqrt(v.x*v.x+v.y*v.y),ux=v.x/l,uy=v.y/l,ext=5;
+    ctx.strokeStyle=color;ctx.lineWidth=2;ctx.setLineDash([10,5]);
+    ctx.beginPath();ctx.moveTo(cx-ux*ext*s,cy+uy*ext*s);ctx.lineTo(cx+ux*ext*s,cy-uy*ext*s);ctx.stroke();ctx.setLineDash([]);
+  }
+
+  updateVectorInfo(){
+    const t=this.transformVector(this.vector);
+    document.getElementById('originalVector').textContent=`(${this.vector.x.toFixed(2)},${this.vector.y.toFixed(2)})`;
+    document.getElementById('transformedVector').textContent=`(${t.x.toFixed(2)},${t.y.toFixed(2)})`;
+  }
+
+  updateEigenInfo(){
+    const evs=this.calculateEigenvalues();let info='',msg='';
+    if(!evs.real){info='🌀 Complex eigenvalues – no real eigenvectors';msg=''}
+    else{
+      const l1=evs.lambda1,l2=evs.lambda2,ev1=this.calculateEigenvectors(l1),ev2=this.calculateEigenvectors(l2);
+      info=`λ₁=${l1.toFixed(3)} | λ₂=${l2.toFixed(3)}`;
+      const norm=v=>{const len=Math.hypot(v.x,v.y);return{x:v.x/len,y:v.y/len}};const nv=norm(this.vector),ne1=norm(ev1),ne2=norm(ev2);
+      const d1=Math.abs(nv.x*ne1.x+nv.y*ne1.y),d2=Math.abs(nv.x*ne2.x+nv.y*ne2.y);
+      if(d1>0.95){msg=`Orange vector aligned with eigenvector 1! Scales by ${l1.toFixed(2)}x`}else if(d2>0.95){msg=`Orange vector aligned with eigenvector 2! Scales by ${l2.toFixed(2)}x`}else msg='';
+    }
+    document.getElementById('eigenInfo').innerHTML=info;
+    this.alignedMsg.textContent=msg||'Move the orange vector to see alignment!';
+  }
+
+  draw(){
+    this.originalCtx.clearRect(0,0,this.originalCanvas.width,this.originalCanvas.height);
+    this.transformedCtx.clearRect(0,0,this.transformedCanvas.width,this.transformedCanvas.height);
+    this.drawGrid(this.originalCtx,this.originalCanvas,false);
+    this.drawGrid(this.transformedCtx,this.transformedCanvas,true);
+    const evs=this.calculateEigenvalues();
+    if(evs.real){const ev1=this.calculateEigenvectors(evs.lambda1),ev2=this.calculateEigenvectors(evs.lambda2);
+      this.drawEigenLine(this.originalCtx,this.originalCanvas,ev1,'#ff6b6b');this.drawEigenLine(this.originalCtx,this.originalCanvas,ev2,'#4ecdc4');
+      this.drawEigenLine(this.transformedCtx,this.transformedCanvas,ev1,'#ff6b6b');this.drawEigenLine(this.transformedCtx,this.transformedCanvas,ev2,'#4ecdc4');}
+    this.drawVector(this.originalCtx,this.originalCanvas,this.vector,'#ff6600',50,4,true);
+    this.drawVector(this.transformedCtx,this.transformedCanvas,this.transformVector(this.vector),'#ff6600');
+    this.updateVectorInfo();this.updateEigenInfo();
+  }
+
+  animate(){this.draw();requestAnimationFrame(()=>this.animate())}
+}
+
+function setMatrix(a,b,c,d){
+  ['a','b','c','d'].forEach((k,i)=>document.getElementById(k).value=[a,b,c,d][i]);
+  visualizer.matrix={a,b,c,d};
+  visualizer.updateEigenInfo();
+}
+
+const visualizer=new EigenvectorVisualizer();
+</script>
+
+</body>
+</html>

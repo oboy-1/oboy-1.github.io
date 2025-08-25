@@ -7,15 +7,12 @@ authors: [ksv, ik]
 layout: post
 guid: 'http://karthikvedula.com/?p=152'
 permalink: /2024/01/05/visualizing-the-perceptron-learning-algorithm/
-footnotes:
-    - ''
 categories:
-    - 'Coding with Karthik'
+    - 'Learning Interactively'
     
 tags:
-    
     - 'Perceptron Learning'
-    - Programming
+    - 'Programming'
 math: true
 pin: true
 ---
@@ -158,7 +155,7 @@ Click on different locations on the graph to generate datapoints.  Click on the 
 
 The yellow highlighted point during training represents the current point from which the coefficients of the line are being updated by.  Click "Reset" or reload the page to reset to get a new initial plane.
 
-<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis.html" title="Demo of the Perceptron Learning Algorithm" style="width: 100%; height: 750px;"></iframe>
+<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis.html" title="Demo of the Perceptron Learning Algorithm" style="width: 100%; height: 650px;" scrolling="no"></iframe>
 
 ### "Neuron" Representation of the Perceptron
 
@@ -174,7 +171,7 @@ where on one side $Ax + By + Cz + D > 0$ and on the other $Ax + By + Cz + D < 0$
 
 Click and drag the mouse around to view the data from different angles and scroll to zoom.  Click on the "Train Perceptron" button to view the animation.  Click "Reset" or reload the page to reset to get a new initial plane.
 
-<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis3D.html" title="Demo of the Perceptron Learning Algorithm in 3D" style="width: 100%; height: 550px;"></iframe>
+<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis3D.html" title="Demo of the Perceptron Learning Algorithm in 3D" style="width: 100%; height: 650px;" scrolling="no"></iframe>
 
 ##### Vectors for beyond 3D
 
@@ -221,7 +218,7 @@ One caveat with the perceptron learning algorithm is that it cannot separate any
 > Find a proof that the algorithm converges on linearly separable data [here](http://www.cs.columbia.edu/~mcollins/courses/6998-2012/notes/perc.converge.pdf).
 {:.prompt-info}
 
-<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis_circle.html" title="Demo of the Perceptron Learning Algorithm (circle data)" style="width: 100%; height: 550px;"></iframe>
+<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis_circle.html" title="Demo of the Perceptron Learning Algorithm (circle data)" style="width: 100%; height: 550px;" scrolling="no"></iframe>
 
 ### Extending from Perceptrons
 
@@ -229,7 +226,7 @@ One caveat with the perceptron learning algorithm is that it cannot separate any
 
 You can use activation functions other than the $\text{sgn}$ function.  Check out the examples below:
 
-<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyActivations.html" title="Graphs of different activation functions" style="width: 100%; height: 620px;"></iframe>
+<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyActivations.html" title="Graphs of different activation functions" style="width: 100%; height: 620px;" scrolling="no"></iframe>
 
 These different activation functions can allow prediction to not just be a discrete value (e.g. $1$ or $-1$) but rather be a specifically scaled, continuous set of numbers that could be the output.
 
