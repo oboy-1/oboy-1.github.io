@@ -34,10 +34,12 @@ Let's focus on an example of converting 2-dimensional data to 1 dimension.  Real
 
 Now I want you to think, **what line angle preserved the most information**?  If you are having trouble answering that, then here's a clue: when two orange points overlap/cover each other on the projection, we consider that as *information lost* (since two points in different 2D space deceivingly appear as the same on 1D).
 
-> There's actually more to this.  For example, projected points can be completely seperated but equally spaced when the original data is not equally spaced.  This also counts as a loss of information.
+> There’s more to consider. For instance, after projection, points can appear completely separated and evenly spaced, even if the original data wasn’t equally spaced. This change in relative distances also represents a loss of information.
 {: .prompt-warning }
 
 One could reasonably say that the more the projected points are spread out, the more information is retained.  We essentially want to be able to maximize the **variance** between the projected points. Take a look at the variance indicator in the interactive above and see how it changes as the line rotates. 
+
+We are going to call the unit vector (magnitude of 1) that points in the same direction of the line $\mathbf{u}$.  We will denote each point as a vector $\mathbf{x_i}$, where elements in the vector are its coordinates.
 
 
 ![Image]({{ site.baseurl }}/assets/images/2025/08/projection.svg){:.light width="600"}
@@ -48,7 +50,7 @@ A projected point is (since we assume $\mathbf{u}$ is a unit vector)
 
 $$
 \begin{align*}
-y_{\text{proj},i} &= \operatorname{proj}_{\mathbf{u}}(\mathbf{x}_i) \\
+\mathbf{x_{\text{proj},i}} &= \operatorname{proj}_{\mathbf{u}}(\mathbf{x}_i) \\
                  &= \mathbf{x_i} \cdot \mathbf{u} \\
                  &= \mathbf{x_i}^{T}\mathbf{u}
 \end{align*}
@@ -56,11 +58,11 @@ $$
 
 Variance (or spread) on these points is defined as the average squared distance from the mean of each point
 
-$$ \operatorname{Var}(y_{proj}) = \frac{1}{n-1} \sum_{i=1}^{n} \left(y_{\text{proj}, i} - \bar{y}\right)^2 $$
+$$ \operatorname{Var}(\mathbf{x'_{proj}}) = \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x_{\text{proj}, i}} - \mathbf{\bar{x}_{\text{proj}}}\right)^2 $$
 
 $$
-y'_{\text{proj},i} = y_{\text{proj},i} - \bar{y}_{\text{proj}}, \quad
-\text{where } \bar{y}_{\text{proj}} = \frac{1}{n} \sum_{i=1}^{n} y_{\text{proj},i}
+\mathbf{x}'_{\text{proj},i} = \mathbf{x}_{\text{proj},i} - \mathbf{\bar{x}}_{\text{proj}}, \quad
+\text{where } \mathbf{\bar{x}}_{\text{proj}} = \frac{1}{n} \sum_{i=1}^{n} \mathbf{x}_{\text{proj},i}
 $$
 
 > Why divide by $n-1$ and not $n$?  This is because this is variance of the sample data, not the entire population.  Dividing by $n$ on the sample data always underestimates the variance. Watch [this video from StatQuest](https://www.youtube.com/watch?v=sHRBg6BhKjI) to learn more.
@@ -70,35 +72,35 @@ $$
 
 Now since the data is now centered, we can say that $\bar{y}_{\text{proj}} = 0$.  This means that 
 
-$$ 
 \begin{align*}
-\operatorname{Var}(y_{proj}) &= \frac{1}{n-1} \sum_{i=1}^{n} \left(y_{\text{proj}, i} - \bar{y}_{\text{proj}}\right)^2 \\
-                             &= \frac{1}{n-1} \sum_{i=1}^{n} \left(y_{\text{proj}, i}\right)^2 \\
-                             &= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x_i}^{T}\mathbf{u}\right)^2.
+\operatorname{Var}(\mathbf{x}'_{\text{proj}}) &= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x}'_{\text{proj},i} - \mathbf{\bar{x}}'_{\text{proj}}\right)^2 \\
+&= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x}'_{\text{proj},i}\right)^2 \\
+&= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x_i}^{T}\mathbf{u}\right)^2.
+\end{align*}
 \end{align*}
 $$
 
 We can now rewrite this as
 
-$$ 
+$$
 \begin{align*}
-\operatorname{Var}(y_{proj}) &= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x_i}^{T}\mathbf{u}\right)^2 \\
-                             &=  \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{u}^{T}\mathbf{x_i}\right)\left(\mathbf{x_i}^{T}\mathbf{u}\right) \\
-                             &=  \frac{1}{n-1} \sum_{i=1}^{n} \mathbf{u}^{T}\left(\mathbf{x_i}\mathbf{x_i}^{T}\right)\mathbf{u} \\
-                             &=  \mathbf{u}^{T} \left(\frac{1}{n-1} \sum_{i=1}^{n}\mathbf{x_i}\mathbf{x_i}^{T}\right) \mathbf{u}.
+\operatorname{Var}(\mathbf{x}'_{\text{proj}}) &= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x_i}^{T}\mathbf{u}\right)^2 \\
+&= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{u}^{T}\mathbf{x_i}\right)\left(\mathbf{x_i}^{T}\mathbf{u}\right) \\
+&= \frac{1}{n-1} \sum_{i=1}^{n} \mathbf{u}^{T}\left(\mathbf{x_i}\mathbf{x_i}^{T}\right)\mathbf{u} \\
+&= \mathbf{u}^{T} \left(\frac{1}{n-1} \sum_{i=1}^{n}\mathbf{x_i}\mathbf{x_i}^{T}\right) \mathbf{u}.
 \end{align*}
 $$
 
-Now  $\sum_{i=1}^{n}\mathbf{x_i}\mathbf{x_i}^{T}$ is just $XX^{T}$, where $\mathbf{X}$ is the overall matrix $x_i$ is from.  This means that
+Now $\sum_{i=1}^{n}\mathbf{x_i}\mathbf{x_i}^{T}$ is just $\mathbf{X}\mathbf{X}^{T}$, where $\mathbf{X}$ is the overall matrix. This means that
 
-$$ 
+$$
 \begin{align*}
-\operatorname{Var}(y_{proj}) &= \mathbf{u}^{T} \left(\frac{1}{n-1} \sum_{i=1}^{n}\mathbf{x_i}\mathbf{x_i}^{T}\right) \mathbf{u} \\
-                             &= \mathbf{u}^{T} \left(\frac{1}{n-1} \mathbf{X}\mathbf{X}^{T} \right) \mathbf{u}.
+\operatorname{Var}(\mathbf{x}'_{\text{proj}}) &= \mathbf{u}^{T} \left(\frac{1}{n-1} \sum_{i=1}^{n}\mathbf{x_i}\mathbf{x_i}^{T}\right) \mathbf{u} \\
+&= \mathbf{u}^{T} \left(\frac{1}{n-1} \mathbf{X}\mathbf{X}^{T} \right) \mathbf{u}.
 \end{align*}
 $$
 
-> **Key Point:**<br> $\operatorname{Var}(y_{proj}) = \mathbf{u}^{T} \left(\frac{1}{n-1} \mathbf{X}\mathbf{X}^{T} \right) \mathbf{u}.$
+> **Key Point:**<br> $\operatorname{Var}(\mathbf{x}'_{\text{proj}}) = \mathbf{u}^{T} \left(\frac{1}{n-1} \mathbf{X}\mathbf{X}^{T} \right) \mathbf{u}.$
 {: .prompt-tip }
 
 ### Covariance Matrix
@@ -269,7 +271,7 @@ $$
 So far we have found the following
 
 $$
-\operatorname{Var}(y_{proj}) = \mathbf{u}^{T} \left(\frac{1}{n-1} \mathbf{XX}^{T} \right) \mathbf{u},
+\operatorname{Var}(\mathbf{x}'_{\text{proj}}) = \mathbf{u}^{T} \left(\frac{1}{n-1} \mathbf{XX}^{T} \right) \mathbf{u},
 $$
 
 $$
@@ -282,7 +284,7 @@ $$
 We can put these two equations together to get 
 
 $$
-\operatorname{Var}(y_{proj}) = \mathbf{u}^{T} \mathbf{C} \mathbf{u}.
+\operatorname{Var}(\mathbf{x}'_{\text{proj}}) = \mathbf{u}^{T} \mathbf{C} \mathbf{u}.
 $$
 
 Now, the entire point of PCA is to maximize this variance.  Also remember that $\mathbf{u}$ is defined to have a magnitude of 1.  To attack this, we can use Calculus --- specifically Lagrange Multipliers.
@@ -290,13 +292,13 @@ Now, the entire point of PCA is to maximize this variance.  Also remember that $
 > If you aren't familiar with Lagrange Multipliers, watch this [awesome video](https://www.youtube.com/watch?v=8mjcnxGMwFo) by Dr. Trefor Bazett that explains it very beautifully.
 {: .prompt-info }
 
-Our objective function that we want to maximize is $\operatorname{Var}(y_{proj})$.  We know that
+Our objective function that we want to maximize is $\operatorname{Var}(\mathbf{x}'_{\text{proj}})$.  We know that
 
 $$
 
 \begin{align*}
 
-\frac{\partial}{\partial \mathbf{u}}\left(\operatorname{Var}(y_{proj})\right)
+\frac{\partial}{\partial \mathbf{u}}\left(\operatorname{Var}(\mathbf{x}'_{\text{proj}})\right)
 &= \frac{\partial}{\partial \mathbf{u}}\left(\mathbf{u}^{T} \mathbf{C} \mathbf{u}\right) \\
 &= 2\mathbf{C}\mathbf{u}.
 
@@ -437,11 +439,11 @@ $$\mathbf{u}_2 = \begin{bmatrix} 1 \\ 1 \end{bmatrix}$$
 
 Well... there is one caveat.  We most often get **two** eigenvectors as solutions for $\mathbf{u}$ --- so which one it it?  When we were maximizing variance, we forgot to account that the derivative being 0 can also mean that the value at that point is a minimum.  So one eigenvector gives us the maximum variance, and the other the miniumum.  With multiple eigenvalue components for dimensions greater than 2, the magnitude of the eignenvalue corresponds to how much variance projecting along that vector line yields.
 
-But why?  Remember that 
+But why does eigenvalue correspond to the amount of variance projecting along that eigenvector yields?  Remember that 
 
 $$
 
-\operatorname{Var}(y_{proj}) = \mathbf{u}^{T} \mathbf{C} \mathbf{u}.
+\operatorname{Var}(\mathbf{x}'_{\text{proj}}) = \mathbf{u}^{T} \mathbf{C} \mathbf{u}.
 
 $$
 
@@ -449,7 +451,7 @@ And since $\mathbf{C}\mathbf{u} = \lambda \mathbf{u},$
 
 $$
 
-\operatorname{Var}(y_{proj}) = \mathbf{u}^{T} \lambda \mathbf{u}.
+\operatorname{Var}(\mathbf{x}'_{\text{proj}}) = \mathbf{u}^{T} \lambda \mathbf{u}.
 
 $$
 
@@ -472,7 +474,7 @@ x_{N1} & x_{N2} & \cdots & x_{NM}
 \end{bmatrix}
 $$
 
-We then calculate the corresponding covariance matrix (note that we are both centering the data by subtracting the mean and multiplying the matrix by its transpose here):
+Next, we compute the covariance matrix. Here, we both center the data by subtracting the mean and capture the relationships between variables by multiplying the matrix by its transpose.
 
 $$
 \begin{align*}
@@ -494,7 +496,7 @@ $$
 
 This is can be solved through setting $\det(A - \lambda I) = 0$ and solving for $\lambda$ for eigenvalues.  Then we just, for each $\lambda$ solution, solve for $\mathbf{u}$ in the equation $\left(\mathbf{C} - \lambda \mathbf{I}\right)\mathbf{u} = 0$. (Check out the grey box dropdown in the section above for an example on this)
 
-The options for the vector $u$ with the highest eigenvalues are the ones you should project your data on to.  Depending on the number of dimensions you want to decrease your data to, you will choose that nymber of eigenvectors to use for projection.  These eigenvectors you just chose for projection are called your **principal components**.
+The options for the vector $\mathbf{u}$ with the highest eigenvalues are the ones you should project your data on to.  Depending on the number of dimensions you want to decrease your data to, you will choose that nymber of eigenvectors to use for projection.  These eigenvectors you just chose for projection are called your **principal components**.
 
 > **Key Point:** <br> The eigenvectors of the covariance matrix are the principal components of the data.
 {: .prompt-tip }
@@ -506,3 +508,9 @@ Checkout the 3D to 2D example below!
 And that's really it!  Hope you got a deeper understanding of PCA!
 
 Thanks for reading!
+
+### Sources
+
+- *Why Machines Learn* by Anil Ananthaswamy [(link)](https://www.amazon.com/Why-Machines-Learn-Elegant-Behind/dp/0593185749)
+- Statquest Covariance video [(link)](https://www.youtube.com/watch?v=qtaqvPAeEJY)
+- Setosa.io on Eigenvectors [(link)](https://setosa.io/ev/eigenvectors-and-eigenvalues/)
