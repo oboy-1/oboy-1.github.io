@@ -30,6 +30,10 @@ With these foundations, you’ll be ready to explore how PCA works under the hoo
 
 Let's focus on an example of converting 2-dimensional data to 1 dimension.  Realize that we essentially have to project the 2D points onto a 1D line.  Try the interactive below to visualize the process.  (Use the orange slider to rotate the line.  Orange points on the graph are the projected points)
 
+> Most (but not all) interactives work on mobile.  This article is best viewed on a laptop.
+{: .prompt-warning }
+
+
 <iframe src="{{ site.baseurl }}/assets/files/pca/projection.html" title="Interactive Projection Visualization" style="width: 100%; height: 1000px;" scrolling="no"></iframe>
 
 Now I want you to think, **what line angle preserved the most information**?  If you are having trouble answering that, then here's a clue: when two orange points overlap/cover each other on the projection, we consider that as *information lost* (since two points in different 2D space deceivingly appear as the same on 1D).
@@ -72,12 +76,14 @@ $$
 
 Now since the data is now centered, we can say that $\bar{y}_{\text{proj}} = 0$.  This means that 
 
+$$
+
 \begin{align*}
 \operatorname{Var}(\mathbf{x}'_{\text{proj}}) &= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x}'_{\text{proj},i} - \mathbf{\bar{x}}'_{\text{proj}}\right)^2 \\
 &= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x}'_{\text{proj},i}\right)^2 \\
 &= \frac{1}{n-1} \sum_{i=1}^{n} \left(\mathbf{x_i}^{T}\mathbf{u}\right)^2.
 \end{align*}
-\end{align*}
+
 $$
 
 We can now rewrite this as
@@ -345,7 +351,7 @@ By definition, we call $\lambda$ as an **eigenvalue**.  From linear algbra, you 
 
 Try out the interactive below to further understand this!
 
-<iframe src="{{ site.baseurl }}/assets/files/pca/eigen.html" title="Interactive Projection Visualization" style="width: 100%; height: 1150px;" scrolling="no"></iframe>
+<iframe src="{{ site.baseurl }}/assets/files/pca/eigen.html" title="Interactive Projection Visualization" style="width: 100%; height: 1200px;" scrolling="no"></iframe>
 
 Now you probably can see that the equation $\mathbf{C}\mathbf{u} = \lambda \mathbf{u}$ also is an eigenvector problem: $\mathbf{u}$ is the eigenvector, and $\lambda$ is the eigenvalue.
 
