@@ -515,7 +515,7 @@ $$
 \end{bmatrix}
 $$
 
-Note that $\mathbf{W}$ is actually a $M \times 2$ dimensional matrix, since $\mathbf{u}$ have $M$ entries for the $M$ features in the dataset. And since $\mathbf{X}$ is a $N \times M$ matrix, we can multiply
+Note that $\mathbf{W}$ is actually a $M \times 2$ dimensional matrix, since $\mathbf{u}$ has $M$ entries for the $M$ features in the dataset. And since $\mathbf{X}$ is a $N \times M$ matrix, we can multiply
 
 $$
 \mathbf{X_{\text{proj}}} = \mathbf{X}\mathbf{W}.
