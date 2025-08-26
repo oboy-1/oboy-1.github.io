@@ -34,7 +34,7 @@ Let's focus on an example of converting 2-dimensional data to 1 dimension.  Real
 {: .prompt-warning }
 
 
-<iframe src="{{ site.baseurl }}/assets/files/pca/projection.html" title="Interactive Projection Visualization" style="width: 100%; height: 1000px;" scrolling="no"></iframe>
+<iframe src="{{ site.baseurl }}/assets/files/pca/projection.html" title="Interactive Projection Visualization" style="width: 100%; height: 800px;" scrolling="no"></iframe>
 
 Now I want you to think, **what line angle preserved the most information**?  If you are having trouble answering that, then here's a clue: when two orange points overlap/cover each other on the projection, we consider that as *information lost* (since two points in different 2D space deceivingly appear as the same on 1D).
 

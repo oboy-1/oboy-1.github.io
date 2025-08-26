@@ -104,7 +104,7 @@
     </div>
 
     <!-- Plotly.js plot container -->
-    <div id="plot" class="w-full h-[500px] mb-8"></div>
+    <div id="plot" class="w-full h-[500px] mb-4"></div> <!-- was mb-8 -->
 
     <div class="flex flex-col items-center space-y-6 pb-8">
         <!-- Play/Pause Button -->
@@ -151,9 +151,11 @@
             };
         };
         // --- Data Generation ---
+
         const originalData = [2, 5, 8, 3, 9, 4, 7, 6, 5, 8, 3, 6, 4, 7, 9];
         const mean = originalData.reduce((sum, val) => sum + val, 0) / originalData.length;
         const centeredData = originalData.map(val => val - mean);
+
 
         // Function to create frames with theme-appropriate colors
         const createFrames = () => {
@@ -220,6 +222,9 @@
             ];
         };
 
+        // Make frames globally available
+        const frames = createFrames();
+
         // --- State Variables and DOM Elements ---
         let currentFrame = 0;
         let isPlaying = false;
@@ -233,7 +238,6 @@
         const updatePlot = (frameIndex) => {
             currentFrame = frameIndex;
             const colors = getThemeColors();
-            const frames = createFrames();
 
             // Theme-appropriate layout
             const layout = {

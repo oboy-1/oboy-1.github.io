@@ -228,8 +228,30 @@ class EigenvectorVisualizer {
     });
   }
 
-  getMousePos(canvas,e){const r=canvas.getBoundingClientRect(),cx=canvas.width/2,cy=canvas.height/2,s=50;return{x:(e.clientX-r.left-cx)/s,y:(cy-(e.clientY-r.top))/s}}
-  getTouchPos(canvas,e){const r=canvas.getBoundingClientRect(),cx=canvas.width/2,cy=canvas.height/2,s=50;return{x:(e.touches[0].clientX-r.left-cx)/s,y:(cy-(e.touches[0].clientY-r.top))/s}}
+getMousePos(canvas, e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;   // ratio of internal px to CSS px
+  const scaleY = canvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const s = 50;
+  return { x: (x - cx) / s, y: (cy - y) / s };
+}
+
+getTouchPos(canvas, e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const x = (e.touches[0].clientX - rect.left) * scaleX;
+  const y = (e.touches[0].clientY - rect.top) * scaleY;
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const s = 50;
+  return { x: (x - cx) / s, y: (cy - y) / s };
+}
+
 
   onMouseDown(e){const p=this.getMousePos(this.originalCanvas,e);if(Math.hypot(p.x-this.vector.x,p.y-this.vector.y)<0.3){this.isDragging=true;this.originalCanvas.style.cursor='grabbing'}}
   onTouchStart(e){e.preventDefault();const p=this.getTouchPos(this.originalCanvas,e);if(Math.hypot(p.x-this.vector.x,p.y-this.vector.y)<0.3)this.isDragging=true}
