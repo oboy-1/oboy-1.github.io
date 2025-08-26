@@ -467,7 +467,7 @@ This indicates that the greater the eigenvalue $\lambda$, the greater the varian
 
 ### In Practice
 
-That's it for the theory.  But before we call it off, let me summarize the process of PCA --- and showcase how this looks like beyond 2-dimensions.
+That's it for the theory.  But before we call it off, let me summarize the process of PCA --- and showcase how this looks like with our original data being beyond 2-dimensions.
 
 We started with a dataset.  Let's say this dataset has $N$ entries, each with $M$ features.  We represent this as 
 
