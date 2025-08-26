@@ -72,7 +72,7 @@ $$
 > Why divide by $n-1$ and not $n$?  This is because this is variance of the sample data, not the entire population.  Dividing by $n$ on the sample data always underestimates the variance. Watch [this video from StatQuest](https://www.youtube.com/watch?v=sHRBg6BhKjI) to learn more.
 {: .prompt-info }
 
-<iframe src="{{ site.baseurl }}/assets/files/pca/centering.html" title="Interactive Projection Visualization" style="width: 100%; height: 800px;" scrolling="no"></iframe>
+<iframe src="{{ site.baseurl }}/assets/files/pca/centering.html" title="Interactive Centering Visualization" style="width: 100%; height: 800px;" scrolling="no"></iframe>
 
 Now since the data is now centered, we can say that $\bar{y}_{\text{proj}} = 0$.  This means that 
 
@@ -351,7 +351,7 @@ By definition, we call $\lambda$ as an **eigenvalue**.  From linear algbra, you 
 
 Try out the interactive below to further understand this!
 
-<iframe src="{{ site.baseurl }}/assets/files/pca/eigen.html" title="Interactive Projection Visualization" style="width: 100%; height: 1200px;" scrolling="no"></iframe>
+<iframe src="{{ site.baseurl }}/assets/files/pca/eigen.html" title="Interactive Eigenvector Visualization" style="width: 100%; height: 1200px;" scrolling="no"></iframe>
 
 Now you probably can see that the equation $\mathbf{C}\mathbf{u} = \lambda \mathbf{u}$ also is an eigenvector problem: $\mathbf{u}$ is the eigenvector, and $\lambda$ is the eigenvalue.
 
@@ -463,7 +463,7 @@ $$
 
 This indicates that the greater the eigenvalue $\lambda$, the greater the variance.  Now try the projection interactive again, as shown below, and align the line towards either of the principal components shown in red.  Notice how one maximizes and the other minimizes the variance.
 
-<iframe src="{{ site.baseurl }}/assets/files/pca/projection_pca_always_show.html" title="Interactive Projection Visualization" style="width: 100%; height: 1000px;" scrolling="no"></iframe>
+<iframe src="{{ site.baseurl }}/assets/files/pca/projection_pca_always_show.html" title="Interactive Projection Visualization" style="width: 100%; height: 800px;" scrolling="no"></iframe>
 
 ### In Practice
 
