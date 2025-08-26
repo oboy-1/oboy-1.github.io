@@ -510,8 +510,10 @@ The options for the vector $\mathbf{u}$ with the highest eigenvalues are the one
 We'll project our data to 2 dimensions, so we pick the top 2 eigenvectors.  We can store them in a matrix
 
 $$
-\mathbf{W} = \begin{bmatrix}
-\mathbf{u_1} \quad \mathbf{u_2} \\
+\mathbf{W} = \begin{bmatrix} 
+| & | \\
+\mathbf{u}_1 & \mathbf{u}_2 \\
+| & |
 \end{bmatrix}
 $$
 
@@ -522,6 +524,70 @@ $$
 $$
 
 The dimensions of $\mathbf{X_{\text{proj}}}$ is $N \times 2$, meaning we have converted all the datapoints in the dataset into two-dimensional points --- reducing the dimensionality of the dataset!
+
+{% capture example_content2 %}
+Let's break it down: 
+
+<br>
+$\mathbf{X}$ is an $N \times M$ matrix. Each row $\mathbf{x}_i$ represents a data point with $M$ features:
+
+$$\mathbf{X} = \begin{bmatrix} 
+\mathbf{x}_1 \\
+\mathbf{x}_2 \\
+\vdots \\
+\mathbf{x}_N
+\end{bmatrix} = \begin{bmatrix}
+x_{11} & x_{12} & \cdots & x_{1M} \\
+x_{21} & x_{22} & \cdots & x_{2M} \\
+\vdots & \vdots & \ddots & \vdots \\
+x_{N1} & x_{N2} & \cdots & x_{NM}
+\end{bmatrix}$$
+
+$\mathbf{W}$ is an $M \times 2$ matrix of the top 2 eigenvectors $\mathbf{u}_1$ and $\mathbf{u}_2$:
+
+$$\mathbf{W} = \begin{bmatrix} 
+| & | \\
+\mathbf{u}_1 & \mathbf{u}_2 \\
+| & |
+\end{bmatrix} = \begin{bmatrix}
+u_{11} & u_{12} \\
+u_{21} & u_{22} \\
+\vdots & \vdots \\
+u_{M1} & u_{M2}
+\end{bmatrix}$$
+
+When we multiply $\mathbf{XW}$, each row of $\mathbf{X}$ gets projected onto the eigenvectors:
+
+$$\mathbf{X}_{\text{proj}} = \mathbf{XW} = \begin{bmatrix}
+\mathbf{x}_1 \cdot \mathbf{u}_1 & \mathbf{x}_1 \cdot \mathbf{u}_2 \\
+\mathbf{x}_2 \cdot \mathbf{u}_1 & \mathbf{x}_2 \cdot \mathbf{u}_2 \\
+\vdots & \vdots \\
+\mathbf{x}_N \cdot \mathbf{u}_1 & \mathbf{x}_N \cdot \mathbf{u}_2
+\end{bmatrix}$$
+
+So for each data point $\mathbf{x}_i$:
+
+<ol>
+<li> The first entry in the projected row is $\mathbf{x}_i \cdot \mathbf{u}_1$ (dot product of $\mathbf{x}_i$ with the first eigenvector).</li>
+<li> The second entry is $\mathbf{x}_i \cdot \mathbf{u}_2$.</li>
+</ol>
+
+<h5 class="collapsible-heading">Example:</h5>
+
+Suppose $\mathbf{x}_i = [x_1, x_2, x_3]$ and
+
+$\mathbf{u}_1 = [u_{11}, u_{21}, u_{31}]$, $\mathbf{u}_2 = [u_{12}, u_{22}, u_{32}]$.
+
+Then
+
+$$\mathbf{x}_i \mathbf{W} = [x_1 u_{11} + x_2 u_{21} + x_3 u_{31}, \quad x_1 u_{12} + x_2 u_{22} + x_3 u_{32}]$$
+
+Each data point turns from a 3D vector into a 2D vector using the eigenvectors.
+
+{% endcapture %}
+
+{% include collapsible.html summary="Click here to see what happens under the hood regarding $\mathbf{XW}$" content=example_content2 %}
+
 
 Checkout the 3D to 2D example below!
 
