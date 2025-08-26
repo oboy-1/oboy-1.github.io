@@ -511,7 +511,7 @@ We'll project our data to 2 dimensions, so we pick the top 2 eigenvectors.  We c
 
 $$
 \mathbf{W} = \begin{bmatrix}
-\mathbf{u_1} \mathbf{u_2} \\
+\mathbf{u_1} \quad \mathbf{u_2} \\
 \end{bmatrix}
 $$
 
