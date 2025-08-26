@@ -507,6 +507,22 @@ The options for the vector $\mathbf{u}$ with the highest eigenvalues are the one
 > **Key Point:** <br> The eigenvectors of the covariance matrix are the principal components of the data.
 {: .prompt-tip }
 
+We'll project our data to 2 dimensions, so we pick the top 2 eigenvectors.  We can store them in a matrix
+
+$$
+\mathbf{W} = \begin{bmatrix}
+\mathbf{u_1} \mathbf{u_2} \\
+\end{bmatrix}
+$$
+
+Note that $\mathbf{W}$ is actually a $M \times 2$ dimensional matrix, since $\mathbf{u}$ have $M$ entries for the $M$ features in the dataset. And since $\mathbf{X}$ is a $N \times M$ matrix, we can multiply
+
+$$
+\mathbf{X_{\text{proj}}} = \mathbf{X}\mathbf{W}.
+$$
+
+The dimensions of $\mathbf{X_{\text{proj}}}$ is $N \times 2$, meaning we have converted all the datapoints in the dataset into two-dimensional points --- reducing the dimensionality of the dataset!
+
 Checkout the 3D to 2D example below!
 
 <iframe src="{{ site.baseurl }}/assets/files/pca/projection_3d.html" title="Interactive 3D Projection Visualization" style="width: 100%; height: 900px;" scrolling="no"></iframe>
