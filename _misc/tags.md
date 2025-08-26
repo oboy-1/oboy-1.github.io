@@ -1,6 +1,5 @@
 ---
 layout: page
-permalink: /tags
 ---
 
 <div id="tags" class="d-flex flex-wrap mx-xl-2">

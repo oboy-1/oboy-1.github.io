@@ -1,7 +1,6 @@
 ---
 layout: page
 title: All News
-permalink: /news
 ---
 
 <div class="news-timeline">
