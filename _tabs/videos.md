@@ -13,6 +13,9 @@ The prerequisite to these videos are just a basic understanding of algebra and a
 
 Hope you enjoy!
 
+> Note: access the slides used for the lectures [here](https://drive.google.com/drive/u/2/folders/1EifKQiED647eTgG2eh7SpTU7YuTSxb0h) (super important for those wanting to teach these concepts to others).  Please be sure to give credit --- thanks! <br><br> *If Google Drive link doesn't work, download it [here]({{ site.baseurl }}/assets/files/ML_CLUB_SLIDES.zip).*
+{:.prompt-tip}
+
 ## Machine Learning Fundamentals
 
 ### K-Nearest Neighbors (2024-25)
@@ -120,7 +123,8 @@ My high school senior research project presentation.
 
 ## Additional Resources
 
-- **[Visualizing the Perceptron Learning Algorithm]({{ site.baseurl }}/2024/01/05/visualizing-the-perceptron-learning-algorithm/)** - Interactive visualization and deep dive into the perceptron learning algorithm
-- **[Coding with Karthik: Perceptron Learning Algorithm in C]({{ site.baseurl }}/2024/05/25/coding-with-karthik-perceptron-learning-algorithm-in-c/)** - Implementation of the perceptron algorithm in C programming language
-- **[StatQuest YouTube Channel]({{ site.baseurl }}/2024/02/21/statquest-an-amazing-youtube-channel/)** - Excellent machine learning tutorials from Dr. Josh Starmer
-- **[NumPy Tutorials]({{ site.baseurl }}/2023/11/21/numpy-tutorials/)** - Essential Python library for numerical computing 
+- **[Visualizing the Perceptron Learning Algorithm]({{ site.baseurl }}/2024/01/05/visualizing-the-perceptron-learning-algorithm/)** --- Interactive visualization and deep dive into the perceptron learning algorithm
+- **[Deep Dive into PCA]({{ site.baseurl }}/posts/how-pca-works/)** --- Interactive visualization and deep dive into the perceptron learning algorithm
+- **[Coding with Karthik: Perceptron Learning Algorithm in C]({{ site.baseurl }}/2024/05/25/coding-with-karthik-perceptron-learning-algorithm-in-c/)** --- Implementation of the perceptron algorithm in C programming language
+- **[StatQuest YouTube Channel]({{ site.baseurl }}/2024/02/21/statquest-an-amazing-youtube-channel/)** - Excellent machine learning videos from Dr. Josh Starmer
+- **[NumPy Tutorials]({{ site.baseurl }}/2023/11/21/numpy-tutorials/)** --- some introductory tutorials on Numpy (a Python library for numerical computing)

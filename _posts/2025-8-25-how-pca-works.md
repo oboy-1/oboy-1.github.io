@@ -11,7 +11,7 @@ math: true
 pin: true
 ---
 
-In the age of data, making sense of high-dimensional datasets is a common challenge. Principal Component Analysis (PCA) is one of the most powerful tools in the data scientist’s toolkit for reducing dimensionality while preserving the essence of the data. By identifying directions—called principal components—along which the data varies the most, PCA allows us to simplify complex datasets, visualize patterns, and even improve the performance of machine learning models.
+In the age of big data, making sense of high-dimensional datasets is a common challenge. Principal Component Analysis (PCA) is one of the most powerful tools in the data scientist’s toolkit for reducing dimensionality while preserving the essence of the data. By identifying directions—called principal components—along which the data varies the most, PCA allows us to simplify complex datasets, visualize patterns, and even improve the performance of machine learning models.
 
 > First time hearing about PCA?  Don't worry --- I have an awesome ML Club lecture video on it.  [Access it here]({{ site.baseurl }}/posts/ml-club-video-24-25-dimensionality-reduction/)!
 {: .prompt-info }
