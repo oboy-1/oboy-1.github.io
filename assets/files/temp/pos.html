@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinusoidal Positional Encoding Explainer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'media'
+        }
+    </script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']]
+            }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        #pe-vector-output {
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        #word-vectors-output {
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            #pe-vector-output, #word-vectors-output {
+                background-color: rgba(30, 41, 59, 0.8);
+                border: 1px solid rgba(100, 116, 139, 0.5);
+            }
+        }
+        
+        /* Light mode styles */
+        @media (prefers-color-scheme: light) {
+            #pe-vector-output, #word-vectors-output {
+                background-color: rgba(241, 245, 249, 0.9);
+                border: 1px solid rgba(203, 213, 225, 0.5);
+            }
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px #3b82f6;
+        }
+        
+        .word-vector-item {
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        
+        .word-vector-item:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* Dark mode word items */
+        @media (prefers-color-scheme: dark) {
+            .word-vector-item {
+                background-color: #374151;
+            }
+            .word-vector-item:hover {
+                background-color: rgba(100, 116, 139, 0.6);
+            }
+            .word-vector-item.active {
+                background-color: rgba(60, 100, 150, 0.4);
+                border-left: 3px solid #60a5fa;
+            }
+        }
+        
+        /* Light mode word items */
+        @media (prefers-color-scheme: light) {
+            .word-vector-item {
+                background-color: #f3f4f6;
+            }
+            .word-vector-item:hover {
+                background-color: #e5e7eb;
+            }
+            .word-vector-item.active {
+                background-color: rgba(147, 197, 253, 0.5);
+                border-left: 3px solid #3b82f6;
+            }
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen p-4 md:p-8 transition-colors">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        <header class="text-center space-y-2">
+            <h1 class="text-4xl font-extrabold text-blue-600 dark:text-blue-400">Sinusoidal Positional Encoding Visualizer</h1>
+            <p class="text-gray-600 dark:text-gray-400">Giving Transformers a sense of order.</p>
+        </header>
+
+      <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 mb-8">
+          <h2 class="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-300">2D Vector Rotation View</h2>
+          <p class="text-gray-700 dark:text-gray-300 mb-4">
+              This visualization shows how adding positional encodings causes word embeddings to "rotate" in 2D space. Each word starts with a base embedding (shown in gray), and when we add its positional encoding, the resulting vector (shown in color) points in a slightly different direction. Words at different positions get different rotations, giving the model a geometric way to understand word order.
+          </p>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                  <label for="rotation-sentence-input" class="block text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Enter a sentence:</label>
+                  <input type="text" id="rotation-sentence-input" placeholder="Transformers are amazing" class="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500">
+                  <p class="text-gray-600 dark:text-gray-400 text-sm mt-2">Watch how each word's vector rotates based on its position in the sentence.</p>
+              </div>
+              
+              <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Legend:</h4>
+                  <div class="space-y-1 text-sm">
+                      <div class="flex items-center space-x-2">
+                          <div class="w-4 h-0.5 bg-gray-400"></div>
+                          <span class="text-gray-600 dark:text-gray-400">Original word embedding</span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                          <div class="w-4 h-0.5 bg-blue-500"></div>
+                          <span class="text-gray-600 dark:text-gray-400">After adding positional encoding</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          
+          <canvas id="rotation-canvas" class="w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mt-4"></canvas>
+      </div>
+
+        <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
+            <h2 class="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-300">How it works: The Sinusoidal Method</h2>
+            <p class="text-gray-700 dark:text-gray-300 mb-4">
+                Transformer models use a fixed mathematical function to generate a unique vector for every position ($pos$) in a sequence. This vector is then added to the word's embedding. The encoding uses sine and cosine functions with drastically varying frequencies across the embedding dimensions ($i$):
+            </p>
+            <div class="text-center text-lg font-mono bg-white dark:bg-gray-900 p-4 rounded-lg overflow-x-auto border border-gray-200 dark:border-gray-700">
+                $$PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
+                $$PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)$$
+            </div>
+            <p class="text-gray-700 dark:text-gray-300 mt-4 text-sm">
+                *The visualization below shows each of the **4 dimensions (2 pairs of sine/cosine waves)** on its own stacked line. We have manually set their periods for clear illustration: The first pair (D0, D1) completes 2 full periods, and the second pair (D2, D3) completes 1 full period over the position range (0-100).*
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 space-y-6">
+                <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-300">Position Visualizer</h3>
+                <div class="flex flex-col md:flex-row md:items-center md:space-x-4">
+                    <label for="position-slider" class="text-xl font-semibold whitespace-nowrap">
+                        Position (<span class="text-blue-600 dark:text-blue-400">pos</span>): <span id="current-pos" class="font-mono text-blue-600 dark:text-blue-400">0</span>
+                    </label>
+                    <input type="range" id="position-slider" min="0" max="100" value="0" class="w-full h-2 bg-gray-300 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <canvas id="pe-canvas" class="w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"></canvas>
+
+                <h3 class="text-xl font-semibold mt-6 text-blue-600 dark:text-blue-300">Current Positional Vector (First 4 Dimensions):</h3>
+                <div id="pe-vector-output" class="text-sm font-mono grid grid-cols-2 gap-2 text-gray-900 dark:text-gray-200">
+                </div>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 space-y-6">
+                <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-300">Sentence Positional Embeddings</h3>
+
+                <div>
+                    <label for="sentence-input" class="block text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Enter a sentence:</label>
+                    <input type="text" id="sentence-input" placeholder="The quick brown fox jumps over the lazy dog" class="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Click on a word below to see its positional encoding in the graph.</p>
+
+                <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-300">Word Embeddings (Click to Visualize):</h3>
+                <div id="word-vectors-output" class="space-y-2">
+                    <p class="text-gray-500 dark:text-gray-500 text-center py-4">Enter a sentence above to see word positional embeddings.</p>
+                </div>
+            </div>
+        </div>
+
+      <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 mb-8">
+    <h2 class="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-300">Why Different Frequencies?</h2>
+    <p class="text-gray-700 dark:text-gray-300 mb-4">
+        Sinusoidal positional encodings use multiple frequencies (fast and slow oscillations) to create a unique "fingerprint" for each position. This is similar to how binary numbers work, but in continuous space!
+    </p>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h4 class="text-sm font-bold text-blue-600 dark:text-blue-300 mb-2">🔢 Binary-like Encoding</h4>
+            <p class="text-xs text-gray-600 dark:text-gray-400">Fast frequencies (high dims) = ones place. Slow frequencies (low dims) = hundreds place. Together they create unique position IDs.</p>
+        </div>
+        <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h4 class="text-sm font-bold text-green-600 dark:text-green-300 mb-2">🎯 Uniqueness</h4>
+            <p class="text-xs text-gray-600 dark:text-gray-400">Each position gets a unique pattern across all dimensions. No two positions have the same encoding.</p>
+        </div>
+        <div class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h4 class="text-sm font-bold text-purple-600 dark:text-purple-300 mb-2">📏 Local & Global</h4>
+            <p class="text-xs text-gray-600 dark:text-gray-400">High frequencies distinguish nearby positions. Low frequencies distinguish far-apart positions.</p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div>
+            <h3 class="text-lg font-semibold text-blue-600 dark:text-blue-300 mb-2">1. Binary-like Pattern</h3>
+        <p class="text-gray-600 dark:text-gray-300 text-center">
+            This demonstrates the **"binary" idea**: each dimension is a step function, creating a unique on/off sequence (a positional fingerprint) across all four dimensions.
+        </p>
+        
+        <!-- Position Slider -->
+        <div class="flex flex-col md:flex-row md:items-center md:space-x-4 pt-4">
+            <label for="BE_position-slider" class="text-xl font-semibold whitespace-nowrap">
+                Position (<span class="text-blue-600 dark:text-blue-400">pos</span>): <span id="BE_current-pos" class="font-mono text-blue-600 dark:text-blue-400">0</span>
+            </label>
+            <input type="range" id="BE_position-slider" min="0" max="100" value="0" class="w-full h-2 bg-gray-300 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer">
+        </div>
+
+        <!-- Canvas and Vector Output -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
+            <div class="lg:col-span-3">
+                <h3 class="text-xl font-semibold mb-3 text-blue-600 dark:text-blue-400">Positional Encoding Steps (D0-D3)</h3>
+                <canvas id="binary-canvas" class="w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700 shadow-lg"></canvas>
+            </div>
+            
+            <div class="lg:col-span-1 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner">
+                <h3 class="text-xl font-semibold mb-3 text-green-600 dark:text-green-400">Current PE Vector</h3>
+                <div id="BE_pe-vector-output" class="space-y-2">
+                    <!-- Vector items will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div>
+            <h3 class="text-lg font-semibold text-green-600 dark:text-green-300 mb-2">2. Position Uniqueness Heatmap</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Darker colors = more similar encodings. Each position has a unique pattern. Notice positions far apart are very different (light colored).</p>
+            <canvas id="uniqueness-canvas" class="w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"></canvas>
+        </div>
+
+          <div>
+    <h3 class="text-lg font-semibold text-purple-600 dark:text-purple-300 mb-2">3. Local vs Global: Different Frequencies Measure Different Distances</h3>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Each frequency acts like a "measuring stick" for word distances. High frequencies (fast oscillation) measure short distances well but can't distinguish far positions. Low frequencies (slow oscillation) measure long distances well but can't distinguish nearby positions.</p>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+            <h4 class="text-sm font-bold text-orange-600 dark:text-orange-400 mb-2">High Frequency (Fast Oscillation)</h4>
+            <p class="text-xs text-gray-500 dark:text-gray-500 mb-2">Good for nearby positions (1-10 apart), useless for far positions (50+ apart)</p>
+            <canvas id="high-freq-canvas" class="w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"></canvas>
+        </div>
+        
+        <div>
+            <h4 class="text-sm font-bold text-blue-600 dark:text-blue-400 mb-2">Low Frequency (Slow Oscillation)</h4>
+            <p class="text-xs text-gray-500 dark:text-gray-500 mb-2">Good for far positions (50+ apart), but nearby positions look too similar</p>
+            <canvas id="low-freq-canvas" class="w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"></canvas>
+        </div>
+    </div>
+    
+    <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <p class="text-sm text-gray-700 dark:text-gray-300">
+            <strong>💡 Key Insight:</strong> By using BOTH high and low frequencies (many dimensions), the model gets multiple "measuring sticks" that work at different scales. This is why transformers typically use 512 dimensions - to have enough frequencies to accurately measure all possible word distances!
+        </p>
+    </div>
+</div>
+
+    </div>
+</div>
+    </div>
+
+    <script type="module">
+        const D_MODEL = 512;
+        const NUM_DIMENSIONS_TO_SHOW = 4;
+        const MAX_SEQUENCE_LENGTH = 100;
+        const BASE = 10000;
+        const BOTTOM_RESERVE = 40;
+
+        const PI2 = 2 * Math.PI;
+        const PERIOD_0 = MAX_SEQUENCE_LENGTH / 2;
+        const PERIOD_1 = MAX_SEQUENCE_LENGTH / 1;
+        const customRates = [PERIOD_0 / PI2, PERIOD_1 / PI2]; 
+
+        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+
+        const canvas = document.getElementById('pe-canvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('position-slider');
+        const currentPosSpan = document.getElementById('current-pos');
+        const peVectorOutputDiv = document.getElementById('pe-vector-output');
+        const sentenceInput = document.getElementById('sentence-input');
+        const wordVectorsOutputDiv = document.getElementById('word-vectors-output');
+
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = 400 + BOTTOM_RESERVE;
+            drawVisualization(parseInt(slider.value));
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        slider.addEventListener('input', (e) => {
+            const newPos = parseInt(e.target.value);
+            currentPosSpan.textContent = newPos;
+            drawVisualization(newPos);
+            document.querySelectorAll('.word-vector-item').forEach(item => item.classList.remove('active'));
+        });
+
+        sentenceInput.addEventListener('input', () => {
+            displayWordPositionalEncodings(sentenceInput.value);
+            drawVisualization(parseInt(slider.value));
+        });
+
+        function calculatePositionalEncoding(pos) {
+            const peVector = new Array(NUM_DIMENSIONS_TO_SHOW);
+            for (let i = 0; i < NUM_DIMENSIONS_TO_SHOW / 2; i++) {
+                const rate = customRates[i];
+                const pe_sin = Math.sin(pos / rate);
+                peVector[2 * i] = pe_sin;
+                const pe_cos = Math.cos(pos / rate);
+                peVector[2 * i + 1] = pe_cos;
+            }
+            return peVector;
+        }
+
+        function drawVisualization(pos) {
+            const W = canvas.width;
+            const H = canvas.height;
+            const PADDING_X = 20;
+            const PADDING_Y_TOP = 30;
+            const PLOT_AREA_HEIGHT = H - PADDING_Y_TOP - BOTTOM_RESERVE;
+            const SUBPLOT_HEIGHT = PLOT_AREA_HEIGHT / NUM_DIMENSIONS_TO_SHOW;
+            const SUBPLOT_INNER_PADDING = 10;
+
+            ctx.clearRect(0, 0, W, H);
+
+            const scaleX = (W - 2 * PADDING_X) / MAX_SEQUENCE_LENGTH;
+            const scaleY_individual = (SUBPLOT_HEIGHT - 2 * SUBPLOT_INNER_PADDING) / 2;
+
+            const peVector = calculatePositionalEncoding(pos);
+            peVectorOutputDiv.innerHTML = '';
+
+            for (let k = 0; k < NUM_DIMENSIONS_TO_SHOW; k++) {
+                const color = colors[k];
+                const waveType = k % 2 === 0 ? 'Sine' : 'Cosine';
+                const i_val = Math.floor(k / 2);
+                const rate = customRates[i_val];
+
+                const subplotTop = PADDING_Y_TOP / 2 + k * SUBPLOT_HEIGHT;
+                const subplotCenterY = subplotTop + SUBPLOT_HEIGHT / 2;
+
+                ctx.strokeStyle = '#374151';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(PADDING_X, subplotCenterY);
+                ctx.lineTo(W - PADDING_X, subplotCenterY);
+                ctx.stroke();
+
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                const initialY = waveType === 'Sine' ? Math.sin(0 / rate) : Math.cos(0 / rate);
+                ctx.moveTo(PADDING_X, subplotCenterY - initialY * scaleY_individual);
+                
+                const numPoints = 200;
+                for (let j = 0; j <= numPoints; j++) {
+                    const x_val = (j / numPoints) * MAX_SEQUENCE_LENGTH;
+                    const y_raw = waveType === 'Sine' ? Math.sin(x_val / rate) : Math.cos(x_val / rate);
+                    const y = subplotCenterY - y_raw * scaleY_individual;
+                    ctx.lineTo(PADDING_X + x_val * scaleX, y);
+                }
+                ctx.stroke();
+
+                const value = peVector[k];
+                const xPos = PADDING_X + pos * scaleX;
+                const yValue = subplotCenterY - value * scaleY_individual;
+
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(xPos, yValue, 6, 0, 2 * Math.PI);
+                ctx.fill();
+
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(xPos, yValue);
+                ctx.lineTo(xPos, subplotCenterY);
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center space-x-2 p-1 rounded-md transition-colors';
+                item.style.backgroundColor = k % 2 === 0 ? 'rgba(55, 65, 81, 0.4)' : 'rgba(75, 85, 99, 0.4)';
+                item.innerHTML = `
+                    <span class="text-xs font-bold" style="color:${color};">D${k} (${waveType})</span>
+                    <span class="font-bold text-right">${value.toFixed(4)}</span>
+                `;
+                peVectorOutputDiv.appendChild(item);
+            }
+
+            const xPos = PADDING_X + pos * scaleX;
+            ctx.strokeStyle = '#60a5fa';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(xPos, PADDING_Y_TOP / 2);
+            ctx.lineTo(xPos, H - BOTTOM_RESERVE);
+            ctx.stroke();
+
+            const sentence = sentenceInput.value;
+            const words = sentence.trim().split(/\s+/).filter(word => word.length > 0);
+
+            ctx.font = '11px Inter, sans-serif';
+
+            if (words.length > 0) {
+                const availableWidth = W - 2 * PADDING_X;
+                const wordSpacing = words.length > 1 ? availableWidth / (words.length - 1) : 0;
+
+                words.forEach((word, index) => {
+                    const xPos = PADDING_X + (words.length > 1 ? index * wordSpacing : availableWidth / 2);
+                    const actualPos = ((xPos - PADDING_X) / scaleX);
+
+                    ctx.strokeStyle = 'rgba(107, 114, 128, 0.4)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 3]);
+                    ctx.beginPath();
+                    ctx.moveTo(xPos, PADDING_Y_TOP / 2);
+                    ctx.lineTo(xPos, H - BOTTOM_RESERVE);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    for (let k = 0; k < NUM_DIMENSIONS_TO_SHOW; k++) {
+                        const color = colors[k];
+                        const waveType = k % 2 === 0 ? 'Sine' : 'Cosine';
+                        const i_val = Math.floor(k / 2);
+                        const rate = customRates[i_val];
+
+                        const subplotTop = PADDING_Y_TOP / 2 + k * SUBPLOT_HEIGHT;
+                        const subplotCenterY = subplotTop + SUBPLOT_HEIGHT / 2;
+
+                        const y_raw = waveType === 'Sine' ? Math.sin(actualPos / rate) : Math.cos(actualPos / rate);
+                        const yValue = subplotCenterY - y_raw * scaleY_individual;
+
+                        ctx.fillStyle = color;
+                        ctx.beginPath();
+                        ctx.arc(xPos, yValue, 4, 0, 2 * Math.PI);
+                        ctx.fill();
+                        
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+
+                    ctx.fillStyle = '#9ca3af';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(word, xPos, H - 10);
+                });
+            }
+        }
+
+        function displayWordPositionalEncodings(sentence) {
+            wordVectorsOutputDiv.innerHTML = '';
+            const words = sentence.trim().split(/\s+/).filter(word => word.length > 0);
+
+            if (words.length === 0) {
+                wordVectorsOutputDiv.innerHTML = '<p class="text-gray-500 dark:text-gray-500 text-center py-4">Enter a sentence above to see word positional embeddings.</p>';
+                return;
+            }
+
+            const availableWidth = canvas.width - 2 * 20;
+            const scaleX = availableWidth / MAX_SEQUENCE_LENGTH;
+            const wordSpacing = words.length > 1 ? availableWidth / (words.length - 1) : 0;
+
+            words.forEach((word, index) => {
+                const xPos = 20 + (words.length > 1 ? index * wordSpacing : availableWidth / 2);
+                const actualPos = (xPos - 20) / scaleX;
+                
+                const peVector = calculatePositionalEncoding(actualPos);
+                const wordItem = document.createElement('div');
+                wordItem.className = 'word-vector-item p-3 rounded-lg flex flex-col md:flex-row md:items-center justify-between text-gray-900 dark:text-gray-200';
+                wordItem.dataset.position = actualPos;
+
+                let vectorDisplay = peVector.map(val => val.toFixed(3)).join(', ');
+
+                wordItem.innerHTML = `
+                    <span class="font-semibold text-lg text-blue-600 dark:text-blue-300 md:w-1/4">#${index}: "${word}"</span>
+                    <span class="font-mono text-sm md:w-3/4 text-right overflow-hidden text-ellipsis whitespace-nowrap">PE = [${vectorDisplay}]</span>
+                `;
+
+                wordItem.addEventListener('click', () => {
+                    slider.value = Math.round(actualPos);
+                    currentPosSpan.textContent = Math.round(actualPos);
+                    drawVisualization(Math.round(actualPos));
+
+                    document.querySelectorAll('.word-vector-item').forEach(item => item.classList.remove('active'));
+                    wordItem.classList.add('active');
+                });
+                wordVectorsOutputDiv.appendChild(wordItem);
+            });
+        }
+
+        sentenceInput.value = "The quick brown fox jumps over the lazy dog";
+        displayWordPositionalEncodings(sentenceInput.value);
+
+// 2D Rotation Visualization
+const rotationCanvas = document.getElementById('rotation-canvas');
+const rotationCtx = rotationCanvas.getContext('2d');
+const rotationSentenceInput = document.getElementById('rotation-sentence-input');
+
+// Generate random but consistent base embeddings for each word
+const wordEmbeddings = new Map();
+
+function getBaseEmbedding(word) {
+    if (!wordEmbeddings.has(word)) {
+        // Generate a consistent random embedding for this word
+        const hash = word.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const angle = (hash % 100) / 100 * Math.PI * 2;
+        const magnitude = 0.6 + (hash % 40) / 100;
+        wordEmbeddings.set(word, {
+            x: Math.cos(angle) * magnitude,
+            y: Math.sin(angle) * magnitude
+        });
+    }
+    return wordEmbeddings.get(word);
+}
+
+function resizeRotationCanvas() {
+    rotationCanvas.width = rotationCanvas.clientWidth;
+    rotationCanvas.height = 400;
+    drawRotationVisualization(rotationSentenceInput.value);
+}
+window.addEventListener('resize', resizeRotationCanvas);
+resizeRotationCanvas();
+
+rotationSentenceInput.addEventListener('input', () => {
+    drawRotationVisualization(rotationSentenceInput.value);
+});
+
+function drawRotationVisualization(sentence) {
+    const W = rotationCanvas.width;
+    const H = rotationCanvas.height;
+    rotationCtx.clearRect(0, 0, W, H);
+
+    const words = sentence.trim().split(/\s+/).filter(word => word.length > 0);
+    if (words.length === 0) {
+        rotationCtx.fillStyle = '#9ca3af';
+        rotationCtx.font = '14px Inter, sans-serif';
+        rotationCtx.textAlign = 'center';
+        rotationCtx.fillText('Enter a sentence to see vector rotations', W / 2, H / 2);
+        return;
+    }
+
+    const PADDING = 60;
+    const numCols = Math.min(words.length, 4);
+    const numRows = Math.ceil(words.length / numCols);
+    const cellWidth = (W - 2 * PADDING) / numCols;
+    const cellHeight = (H - 2 * PADDING) / numRows;
+
+    words.forEach((word, index) => {
+        const col = index % numCols;
+        const row = Math.floor(index / numCols);
+        const centerX = PADDING + col * cellWidth + cellWidth / 2;
+        const centerY = PADDING + row * cellHeight + cellHeight / 2;
+
+        const position = (index / Math.max(words.length - 1, 1)) * MAX_SEQUENCE_LENGTH;
+        
+        // Get unique base embedding for this word
+        const baseEmbed = getBaseEmbedding(word.toLowerCase());
+        const baseX = baseEmbed.x;
+        const baseY = baseEmbed.y;
+        
+        // Calculate positional encoding (using first 2 dimensions)
+        const rate0 = customRates[0];
+        const pe_0 = Math.sin(position / rate0) * 0.4;
+        const pe_1 = Math.cos(position / rate0) * 0.4;
+        
+        // Add positional encoding to base embedding
+        const finalX = baseX + pe_0;
+        const finalY = baseY + pe_1;
+        
+        const scale = Math.min(cellWidth, cellHeight) * 0.35;
+        
+        // Draw axes
+        rotationCtx.strokeStyle = '#d1d5db';
+        rotationCtx.lineWidth = 1;
+        rotationCtx.beginPath();
+        rotationCtx.moveTo(centerX - scale, centerY);
+        rotationCtx.lineTo(centerX + scale, centerY);
+        rotationCtx.moveTo(centerX, centerY - scale);
+        rotationCtx.lineTo(centerX, centerY + scale);
+        rotationCtx.stroke();
+        
+        // Draw base embedding vector (gray)
+        rotationCtx.strokeStyle = '#9ca3af';
+        rotationCtx.lineWidth = 2;
+        rotationCtx.beginPath();
+        rotationCtx.moveTo(centerX, centerY);
+        rotationCtx.lineTo(centerX + baseX * scale, centerY - baseY * scale);
+        rotationCtx.stroke();
+        
+        // Arrow head for base vector
+        const baseAngle = Math.atan2(-baseY, baseX);
+        const baseEndX = centerX + baseX * scale;
+        const baseEndY = centerY - baseY * scale;
+        rotationCtx.beginPath();
+        rotationCtx.moveTo(baseEndX, baseEndY);
+        rotationCtx.lineTo(
+            baseEndX - 8 * Math.cos(baseAngle - Math.PI / 6),
+            baseEndY - 8 * Math.sin(baseAngle - Math.PI / 6)
+        );
+        rotationCtx.moveTo(baseEndX, baseEndY);
+        rotationCtx.lineTo(
+            baseEndX - 8 * Math.cos(baseAngle + Math.PI / 6),
+            baseEndY - 8 * Math.sin(baseAngle + Math.PI / 6)
+        );
+        rotationCtx.stroke();
+        
+        // Draw final vector (colored) - now with varying length
+        const wordColor = colors[index % colors.length];
+        rotationCtx.strokeStyle = wordColor;
+        rotationCtx.lineWidth = 3;
+        rotationCtx.beginPath();
+        rotationCtx.moveTo(centerX, centerY);
+        rotationCtx.lineTo(centerX + finalX * scale, centerY - finalY * scale);
+        rotationCtx.stroke();
+        
+        // Arrow head for final vector
+        const finalAngle = Math.atan2(-finalY, finalX);
+        const finalEndX = centerX + finalX * scale;
+        const finalEndY = centerY - finalY * scale;
+        rotationCtx.beginPath();
+        rotationCtx.moveTo(finalEndX, finalEndY);
+        rotationCtx.lineTo(
+            finalEndX - 10 * Math.cos(finalAngle - Math.PI / 6),
+            finalEndY - 10 * Math.sin(finalAngle - Math.PI / 6)
+        );
+        rotationCtx.moveTo(finalEndX, finalEndY);
+        rotationCtx.lineTo(
+            finalEndX - 10 * Math.cos(finalAngle + Math.PI / 6),
+            finalEndY - 10 * Math.sin(finalAngle + Math.PI / 6)
+        );
+        rotationCtx.stroke();
+        
+        // Draw rotation arc
+        rotationCtx.strokeStyle = wordColor;
+        rotationCtx.lineWidth = 1;
+        rotationCtx.setLineDash([3, 3]);
+        rotationCtx.beginPath();
+        const arcRadius = scale * 0.3;
+        const startAngle = -Math.atan2(baseY, baseX);
+        const endAngle = -Math.atan2(finalY, finalX);
+        rotationCtx.arc(
+            centerX, 
+            centerY, 
+            arcRadius,
+            startAngle,
+            endAngle,
+            false
+        );
+        rotationCtx.stroke();
+        rotationCtx.setLineDash([]);
+        
+        // Draw word label
+        rotationCtx.fillStyle = wordColor;
+        rotationCtx.font = 'bold 13px Inter, sans-serif';
+        rotationCtx.textAlign = 'center';
+        rotationCtx.fillText(`"${word}"`, centerX, centerY + scale + 20);
+        
+        // Draw position label
+        rotationCtx.fillStyle = '#6b7280';
+        rotationCtx.font = '11px Inter, sans-serif';
+        rotationCtx.fillText(`pos: ${index}`, centerX, centerY + scale + 35);
+    });
+}
+
+rotationSentenceInput.value = "Transformers are amazing";
+drawRotationVisualization(rotationSentenceInput.value);
+
+
+
+
+// Uniqueness Heatmap
+const uniquenessCanvas = document.getElementById('uniqueness-canvas');
+const uniquenessCtx = uniquenessCanvas.getContext('2d');
+
+function resizeUniquenessCanvas() {
+    uniquenessCanvas.width = uniquenessCanvas.clientWidth;
+    uniquenessCanvas.height = Math.min(uniquenessCanvas.clientWidth, 400);
+    drawUniquenessHeatmap();
+}
+window.addEventListener('resize', resizeUniquenessCanvas);
+resizeUniquenessCanvas();
+
+function cosineSimilarity(vec1, vec2) {
+    let dot = 0, mag1 = 0, mag2 = 0;
+    for (let i = 0; i < vec1.length; i++) {
+        dot += vec1[i] * vec2[i];
+        mag1 += vec1[i] * vec1[i];
+        mag2 += vec2[i] * vec2[i];
+    }
+    return dot / (Math.sqrt(mag1) * Math.sqrt(mag2));
+}
+
+function getPEVector(pos, numDims = 16) {
+    const vec = [];
+    for (let i = 0; i < numDims / 2; i++) {
+        const rate = 10000 ** (2 * i / D_MODEL);
+        vec.push(Math.sin(pos / rate));
+        vec.push(Math.cos(pos / rate));
+    }
+    return vec;
+}
+
+function drawUniquenessHeatmap() {
+    const W = uniquenessCanvas.width;
+    const H = uniquenessCanvas.height;
+    uniquenessCtx.clearRect(0, 0, W, H);
+    
+    const numPositions = 50;
+    const cellSize = Math.min(W, H) / numPositions;
+    const offsetX = (W - cellSize * numPositions) / 2;
+    const offsetY = (H - cellSize * numPositions) / 2;
+    
+    for (let i = 0; i < numPositions; i++) {
+        for (let j = 0; j < numPositions; j++) {
+            const vec1 = getPEVector(i * 2);
+            const vec2 = getPEVector(j * 2);
+            const similarity = cosineSimilarity(vec1, vec2);
+            
+            const hue = 220;
+            const saturation = 70;
+            const lightness = 20 + (similarity + 1) / 2 * 60;
+            
+            uniquenessCtx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            uniquenessCtx.fillRect(
+                offsetX + j * cellSize,
+                offsetY + i * cellSize,
+                cellSize,
+                cellSize
+            );
+        }
+    }
+    
+    uniquenessCtx.strokeStyle = '#ef4444';
+    uniquenessCtx.lineWidth = 2;
+    uniquenessCtx.beginPath();
+    for (let i = 0; i < numPositions; i++) {
+        uniquenessCtx.rect(
+            offsetX + i * cellSize,
+            offsetY + i * cellSize,
+            cellSize,
+            cellSize
+        );
+    }
+    uniquenessCtx.stroke();
+    
+    uniquenessCtx.fillStyle = '#6b7280';
+    uniquenessCtx.font = '11px Inter, sans-serif';
+    uniquenessCtx.textAlign = 'center';
+    uniquenessCtx.fillText('Position A →', W / 2, offsetY - 10);
+    uniquenessCtx.save();
+    uniquenessCtx.translate(offsetX - 10, H / 2);
+    uniquenessCtx.rotate(-Math.PI / 2);
+    uniquenessCtx.fillText('Position B →', 0, 0);
+    uniquenessCtx.restore();
+}
+
+    // High and Low Frequency Comparison
+const highFreqCanvas = document.getElementById('high-freq-canvas');
+const highFreqCtx = highFreqCanvas.getContext('2d');
+const lowFreqCanvas = document.getElementById('low-freq-canvas');
+const lowFreqCtx = lowFreqCanvas.getContext('2d');
+
+function resizeFreqCanvases() {
+    highFreqCanvas.width = highFreqCanvas.clientWidth;
+    highFreqCanvas.height = 280;
+    lowFreqCanvas.width = lowFreqCanvas.clientWidth;
+    lowFreqCanvas.height = 280;
+    drawFrequencyComparison();
+}
+window.addEventListener('resize', resizeFreqCanvases);
+resizeFreqCanvases();
+
+    function drawSingleFreqComparison(ctx, isHighFreq) {
+    const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    
+    const maxPos = 100;
+    const padding = 50;
+    const topPadding = 60;
+    
+    const scaleX = (W - 2 * padding) / maxPos;
+    const waveHeight = (H - topPadding - padding) / 3;
+    const waveY = topPadding + waveHeight;
+    const simY = topPadding + waveHeight * 2.5;
+    
+    // Choose frequency - make low freq MUCH slower
+    const rate = isHighFreq ? 3 : 50; // Increased from 30 to 50 for more dramatic effect
+    
+    // Draw the wave pattern
+    ctx.strokeStyle = isHighFreq ? '#f97316' : '#3b82f6';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    
+    for (let pos = 0; pos <= maxPos; pos += 0.5) {
+        const value = Math.sin(pos / rate);
+        const x = padding + pos * scaleX;
+        const y = waveY - value * (waveHeight * 0.8);
+        
+        if (pos === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    }
+    ctx.stroke();
+    
+    // Draw center line for wave
+    ctx.strokeStyle = '#d1d5db';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(padding, waveY);
+    ctx.lineTo(W - padding, waveY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Mark reference position (position 0)
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.arc(padding, waveY, 6, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Label
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Wave Pattern', W / 2, topPadding - 35);
+    ctx.fillText('(one dimension)', W / 2, topPadding - 23);
+    
+    // Draw similarity to position 0
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    
+    const refValue = Math.sin(0 / rate);
+    
+    for (let pos = 0; pos <= maxPos; pos++) {
+        const value = Math.sin(pos / rate);
+        // Similarity based on how close the values are (normalized)
+        const similarity = 1 - Math.abs(value - refValue) / 2;
+        
+        const x = padding + pos * scaleX;
+        const y = simY - similarity * waveHeight * 0.8;
+        
+        if (pos === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    }
+    ctx.stroke();
+    
+    // Draw axes for similarity
+    ctx.strokeStyle = '#d1d5db';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding, simY);
+    ctx.lineTo(W - padding, simY);
+    ctx.moveTo(padding, topPadding + waveHeight * 1.8);
+    ctx.lineTo(padding, simY);
+    ctx.stroke();
+    
+    // Similarity label
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Similarity to Position 0', W / 2, simY - waveHeight * 0.9);
+    
+    // Y-axis labels
+    ctx.textAlign = 'right';
+    ctx.fillText('High', padding - 5, topPadding + waveHeight * 1.8 + 5);
+    ctx.fillText('Low', padding - 5, simY + 5);
+    
+    // X-axis labels
+    ctx.textAlign = 'center';
+    ctx.fillText('0', padding, H - 10);
+    ctx.fillText('50', padding + (W - 2 * padding) / 2, H - 10);
+    ctx.fillText('100', W - padding, H - 10);
+    ctx.fillText('Position Distance →', W / 2, H - 25);
+    
+    // Add annotations
+    if (isHighFreq) {
+        // Show that nearby positions are distinguishable
+        const pos1X = padding + 5 * scaleX;
+        const pos2X = padding + 10 * scaleX;
+        
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.beginPath();
+        ctx.moveTo(pos1X, topPadding);
+        ctx.lineTo(pos1X, simY + 10);
+        ctx.moveTo(pos2X, topPadding);
+        ctx.lineTo(pos2X, simY + 10);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.fillStyle = '#22c55e';
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✓ Clearly Different', (pos1X + pos2X) / 2, topPadding + 15);
+        ctx.font = '9px Inter, sans-serif';
+        ctx.fillText('(pos 5 vs 10)', (pos1X + pos2X) / 2, topPadding + 27);
+        
+        // Show that far positions look similar (bad)
+        const pos3X = padding + 50 * scaleX;
+        const pos4X = padding + 80 * scaleX;
+        
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.beginPath();
+        ctx.moveTo(pos3X, topPadding);
+        ctx.lineTo(pos3X, simY + 10);
+        ctx.moveTo(pos4X, topPadding);
+        ctx.lineTo(pos4X, simY + 10);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.fillText('✗ Look Similar', (pos3X + pos4X) / 2, topPadding + 15);
+        ctx.font = '9px Inter, sans-serif';
+        ctx.fillText('(pos 50 vs 80)', (pos3X + pos4X) / 2, topPadding + 27);
+    } else {
+        // Show that nearby positions look too similar (bad) - make this more dramatic
+        const pos1X = padding + 3 * scaleX;
+        const pos2X = padding + 20 * scaleX;
+        
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.beginPath();
+        ctx.moveTo(pos1X, topPadding);
+        ctx.lineTo(pos1X, simY + 10);
+        ctx.moveTo(pos2X, topPadding);
+        ctx.lineTo(pos2X, simY + 10);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✗ Almost Identical!', (pos1X + pos2X) / 2, topPadding + 15);
+        ctx.font = '9px Inter, sans-serif';
+        ctx.fillText('(pos 3 vs 20)', (pos1X + pos2X) / 2, topPadding + 27);
+        
+        // Add visual indicator showing the wave barely moved
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([2, 2]);
+        const y1 = waveY - Math.sin(3 / rate) * (waveHeight * 0.8);
+        const y2 = waveY - Math.sin(20 / rate) * (waveHeight * 0.8);
+        ctx.beginPath();
+        ctx.moveTo(pos1X, y1);
+        ctx.lineTo(pos2X, y1);
+        ctx.lineTo(pos2X, y2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '8px Inter, sans-serif';
+        ctx.fillText('tiny difference', (pos1X + pos2X) / 2, Math.min(y1, y2) - 5);
+        
+        // Show that far positions are distinguishable (good)
+        const pos3X = padding + 20 * scaleX;
+        const pos4X = padding + 90 * scaleX;
+        
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.beginPath();
+        ctx.moveTo(pos3X, topPadding);
+        ctx.lineTo(pos3X, simY + 10);
+        ctx.moveTo(pos4X, topPadding);
+        ctx.lineTo(pos4X, simY + 10);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.fillStyle = '#22c55e';
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.fillText('✓ Clearly Different', (pos3X + pos4X) / 2, topPadding + 15);
+        ctx.font = '9px Inter, sans-serif';
+        ctx.fillText('(pos 20 vs 90)', (pos3X + pos4X) / 2, topPadding + 27);
+    }
+    
+    // Add a clear explanation box at the bottom
+    if (isHighFreq) {
+        ctx.fillStyle = 'rgba(249, 115, 22, 0.1)';
+        ctx.fillRect(padding - 10, H - 40, W - 2 * padding + 20, 20);
+        ctx.fillStyle = '#f97316';
+        ctx.font = 'bold 9px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Fast wave = good "ruler" for SHORT distances (like measuring in inches)', W / 2, H - 27);
+    } else {
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
+        ctx.fillRect(padding - 10, H - 40, W - 2 * padding + 20, 20);
+        ctx.fillStyle = '#3b82f6';
+        ctx.font = 'bold 9px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Slow wave = good "ruler" for LONG distances (like measuring in miles)', W / 2, H - 27);
+    }
+}
+
+function drawFrequencyComparison() {
+    drawSingleFreqComparison(highFreqCtx, true);
+    drawSingleFreqComparison(lowFreqCtx, false);
+}
+
+    // --- Configuration Constants ---
+        const BE_MAX_SEQUENCE_LENGTH = 100;
+        const BE_NUM_DIMENSIONS = 4;
+        const BE_PI2 = 2 * Math.PI;
+
+        // Custom periods: D0 (fastest) to D3 (slowest)
+        const BE_periods = [4, 8, 16, 32]; 
+        const BE_rates = BE_periods.map(p => p / BE_PI2); // Rates are now only used for reference, not sine math
+
+        // Colors for the 4 dimensions
+        const BE_colors = ['#ef4444', '#f97316', '#eab308', '#22c55e']; 
+
+        // --- DOM Elements ---
+        const BE_canvas = document.getElementById('binary-canvas');
+        const BE_ctx = BE_canvas.getContext('2d');
+        const BE_slider = document.getElementById('BE_position-slider');
+        const BE_currentPosSpan = document.getElementById('BE_current-pos');
+        const BE_peVectorOutputDiv = document.getElementById('BE_pe-vector-output');
+
+        // --- Core PE Calculation (Rectangular Wave) ---
+        /**
+         * Calculates the rectangular wave value (1.0 or 0.0) for a given position.
+         * @param {number} pos - The current position.
+         * @returns {number[]} A 4-element array of 1.0 or 0.0 values.
+         */
+        function BE_calculateBinaryPE(pos) {
+            const BE_peVector = new Array(BE_NUM_DIMENSIONS);
+            for (let k = 0; k < BE_NUM_DIMENSIONS; k++) {
+                const BE_period = BE_periods[k];
+                // If the position modulo period is less than half the period, value is 1 (ON).
+                // Otherwise, value is 0 (OFF).
+                if ((pos % BE_period) < (BE_period / 2)) {
+                    BE_peVector[k] = 1.0;
+                } else {
+                    BE_peVector[k] = 0.0;
+                }
+            }
+            return BE_peVector;
+        }
+
+        // --- Visualization Function ---
+        function BE_drawBinaryPattern(pos) {
+            const BE_W = BE_canvas.width;
+            const BE_H = BE_canvas.height;
+            const BE_PADDING_X = 20;
+            const BE_PADDING_Y = 20;
+            const BE_PLOT_AREA_HEIGHT = BE_H - 2 * BE_PADDING_Y;
+            const BE_SUBPLOT_HEIGHT = BE_PLOT_AREA_HEIGHT / BE_NUM_DIMENSIONS;
+            const BE_SUBPLOT_INNER_PADDING = 5;
+            const BE_isDarkMode = document.body.classList.contains('dark');
+            const BE_axisColor = BE_isDarkMode ? '#4b5563' : '#d1d5db';
+            
+            BE_ctx.clearRect(0, 0, BE_W, BE_H);
+
+            const BE_scaleX = (BE_W - 2 * BE_PADDING_X) / BE_MAX_SEQUENCE_LENGTH;
+            const BE_peVector = BE_calculateBinaryPE(pos);
+            BE_peVectorOutputDiv.innerHTML = '';
+
+            // Helper functions for mapping 0/1 to screen Y coordinates
+            const BE_getSubplotY = (k) => BE_PADDING_Y + k * BE_SUBPLOT_HEIGHT;
+            const BE_y_map_1 = (k) => BE_getSubplotY(k) + BE_SUBPLOT_INNER_PADDING; // Top (Value 1)
+            const BE_y_map_0 = (k) => BE_getSubplotY(k) + BE_SUBPLOT_HEIGHT - BE_SUBPLOT_INNER_PADDING; // Bottom (Value 0)
+            const BE_x_map = (x) => BE_PADDING_X + x * BE_scaleX;
+            const BE_y_for_val = (k, val) => val === 1.0 ? BE_y_map_1(k) : BE_y_map_0(k);
+
+
+            for (let k = 0; k < BE_NUM_DIMENSIONS; k++) {
+                const BE_color = BE_colors[k];
+                const BE_period = BE_periods[k];
+                const BE_currentPEValue = BE_peVector[k];
+
+                // 1. Draw baseline (Value 0 level)
+                BE_ctx.strokeStyle = BE_axisColor;
+                BE_ctx.lineWidth = 1;
+                BE_ctx.beginPath();
+                BE_ctx.moveTo(BE_PADDING_X, BE_y_map_0(k));
+                BE_ctx.lineTo(BE_W - BE_PADDING_X, BE_y_map_0(k));
+                BE_ctx.stroke();
+
+                // 2. Draw Rectangular wave
+                BE_ctx.strokeStyle = BE_color;
+                BE_ctx.lineWidth = 2;
+                BE_ctx.beginPath();
+                
+                const BE_stepResolution = 0.5; // Controls smoothness of the drawn steps
+
+                for (let x = 0; x <= BE_MAX_SEQUENCE_LENGTH; x += BE_stepResolution) {
+                    const BE_nextX = x + BE_stepResolution;
+
+                    // Get values for current and next position
+                    const BE_current_val = BE_calculateBinaryPE(x)[k];
+                    const BE_next_val = BE_calculateBinaryPE(BE_nextX)[k];
+
+                    const BE_currentY = BE_y_for_val(k, BE_current_val);
+                    const BE_drawX = BE_x_map(x);
+
+                    if (x === 0) {
+                        BE_ctx.moveTo(BE_drawX, BE_currentY);
+                    } else {
+                        if (BE_current_val !== BE_next_val && BE_nextX <= BE_MAX_SEQUENCE_LENGTH) {
+                            // Vertical transition line (the step)
+                            BE_ctx.lineTo(BE_drawX, BE_y_for_val(k, BE_next_val)); // Draw vertical line to the new level
+                        }
+                        // Horizontal line
+                        BE_ctx.lineTo(BE_drawX, BE_currentY);
+                    }
+                }
+                BE_ctx.stroke();
+
+                // 3. Draw current position point
+                const BE_xPos = BE_PADDING_X + pos * BE_scaleX;
+                const BE_yValue = BE_y_for_val(k, BE_currentPEValue);
+
+                BE_ctx.fillStyle = BE_color;
+                BE_ctx.beginPath();
+                BE_ctx.arc(BE_xPos, BE_yValue, 6, 0, BE_PI2);
+                BE_ctx.fill();
+
+                // 4. Draw vertical value line (from baseline/BE_y_map_0 to point)
+                BE_ctx.strokeStyle = BE_color;
+                BE_ctx.lineWidth = 1;
+                BE_ctx.beginPath();
+                BE_ctx.moveTo(BE_xPos, BE_yValue);
+                BE_ctx.lineTo(BE_xPos, BE_y_map_0(k));
+                BE_ctx.setLineDash([5, 5]);
+                BE_ctx.stroke();
+                BE_ctx.setLineDash([]); // Reset line dash
+
+                // 5. Update vector output
+                const BE_item = document.createElement('div');
+                BE_item.className = 'flex justify-between items-center space-x-2 p-2 rounded-md transition-colors shadow-sm';
+                const BE_bgColor = BE_isDarkMode ? 'rgba(55, 65, 81, 0.4)' : 'rgba(229, 231, 235, 0.6)';
+                BE_item.style.backgroundColor = BE_bgColor;
+                BE_item.innerHTML = `
+                    <span class="text-xs font-bold" style="color:${BE_color};">D${k} (P=${BE_periods[k]})</span>
+                    <span class="font-bold text-right font-mono">${BE_currentPEValue.toFixed(1)}</span>
+                `;
+                BE_peVectorOutputDiv.appendChild(BE_item);
+            }
+
+            // 6. Draw global position line (the cursor)
+            const BE_xPos = BE_PADDING_X + pos * BE_scaleX;
+            BE_ctx.strokeStyle = '#60a5fa';
+            BE_ctx.lineWidth = 3;
+            BE_ctx.beginPath();
+            BE_ctx.moveTo(BE_xPos, BE_PADDING_Y);
+            BE_ctx.lineTo(BE_xPos, BE_H - BE_PADDING_Y);
+            BE_ctx.stroke();
+        }
+
+        // --- Initialization and Resize Handlers ---
+
+        function BE_resizeCanvas() {
+            BE_canvas.width = BE_canvas.clientWidth;
+            // Set a fixed height that provides enough space for 4 waves
+            BE_canvas.height = 300; 
+            BE_drawBinaryPattern(parseInt(BE_slider.value));
+        }
+
+        window.addEventListener('resize', BE_resizeCanvas);
+        
+        // Initial setup on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Event listener for the slider
+            BE_slider.addEventListener('input', (e) => {
+                const BE_newPos = parseInt(e.target.value);
+                BE_currentPosSpan.textContent = BE_newPos;
+                BE_drawBinaryPattern(BE_newPos);
+            });
+            
+            // Initial draw
+            BE_resizeCanvas();
+        });
+
+    </script>
+
+</body>
+</html>
