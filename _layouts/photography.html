@@ -587,10 +587,33 @@
   const tabs = document.querySelectorAll('.tab-btn');
   const sections = document.querySelectorAll('.collection');
 
+  function setActiveTab(key) {
+    tabs.forEach(t => t.classList.remove('active'));
+    const match = document.querySelector(`.tab-btn[data-filter="${key}"]`);
+    if (match) {
+      match.classList.add('active');
+      match.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+    }
+  }
+
+  // Scroll spy via IntersectionObserver
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) setActiveTab(entry.target.dataset.collection);
+    });
+    // If scrolled back to top, activate "all"
+    if (window.scrollY < 100) setActiveTab('all');
+  }, { rootMargin: '-30% 0px -60% 0px' });
+
+  sections.forEach(sec => observer.observe(sec));
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY < 100) setActiveTab('all');
+  }, { passive: true });
+
   tabs.forEach(btn => {
     btn.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
+      setActiveTab(btn.dataset.filter);
       const filter = btn.dataset.filter;
       if (filter === 'all') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
