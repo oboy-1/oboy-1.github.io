@@ -592,18 +592,11 @@
       tabs.forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
       const filter = btn.dataset.filter;
-      sections.forEach(sec => {
-        if (filter === 'all' || sec.dataset.collection === filter) {
-          sec.classList.remove('hidden');
-        } else {
-          sec.classList.add('hidden');
-        }
-      });
-      if (filter !== 'all') {
+      if (filter === 'all') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
         const target = document.getElementById(filter);
         if (target) target.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });
   });
