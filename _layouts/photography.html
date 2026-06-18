@@ -599,6 +599,12 @@
           sec.classList.add('hidden');
         }
       });
+      if (filter !== 'all') {
+        const target = document.getElementById(filter);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     });
   });
 
