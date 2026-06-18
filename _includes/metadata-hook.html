@@ -13,4 +13,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 });
+
+window.addEventListener('pageshow', function (e) {
+  if (e.persisted) {
+    var sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      sidebar.style.transition = 'none';
+      sidebar.style.transform = '';
+    }
+  }
+});
 </script>
