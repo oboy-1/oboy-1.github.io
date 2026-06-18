@@ -27,12 +27,6 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  #sidebar {
-    background-color: #333;
-  }
-}
-
 .nav-link, .site-title {
   --site-title-color: #FFF;
   color: white !important;
@@ -86,5 +80,19 @@ figcaption {
   color: var(--text-muted-color);
   font-size: 0.9em;
   text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  #sidebar {
+    background-color: #333;
+  }
+
+  hr {
+    border-top: 5px dotted #fb923c;
+  }
+
+  .panel-heading {
+    color: #fb923c !important;
+  }
 }
 

@@ -1,0 +1,106 @@
+base_url: "https://pub-be0fe0afc99d4fbdb8b2623ff0bab784.r2.dev/photography"
+
+collections:
+  norway:
+    label: "Norway"
+    folder: "norway"
+    photos:
+      - DSC_0071.JPG
+      - DSC_0119.png
+      - DSC_0139.JPG
+      - DSC_0146.JPG
+      - DSC_0152.png
+      - DSC_0171.JPG
+      - DSC_0216.JPG
+      - DSC_0243.JPG
+      - DSC_0251.JPG
+      - DSC_0312.JPG
+      - DSC_0327.JPG
+      - DSC_0335.JPG
+      - DSC_0341.JPG
+      - IMG_2088.png
+      - IMG_2095.png
+      - IMG_2099.png
+
+  england:
+    label: "England, Scotland & Ireland"
+    folder: "englandETC"
+    photos:
+      - DSC_0043.png
+      - DSC_0088.png
+      - DSC_0093.JPG
+      - "DSC_0111 copy.png"
+      - DSC_0116.JPG
+      - DSC_0138.JPG
+      - DSC_0197.JPG
+      - DSC_0206.JPG
+      - DSC_0337.png
+      - DSC_0362.png
+      - DSC_0368.JPG
+      - DSC_0406.png
+      - DSC_0442.png
+      - DSC_0454.JPG
+      - DSC_0474.png
+      - DSC_0499.png
+
+  california:
+    label: "California Bay Area"
+    folder: "california"
+    photos:
+      - "DSC_0016 copy.JPG"
+      - DSC_0111.JPG
+      - DSC_0127.JPG
+      - DSC_0160.JPG
+      - DSC_0218.JPG
+      - DSC_0270.JPG
+      - DSC_0286.png
+      - DSC_0300.JPG
+
+  washington:
+    label: "Washington State"
+    folder: "seattle"
+    photos:
+      - DSC_1567.JPG
+      - DSC_1683.JPG
+      - DSC_1758.JPG
+      - DSC_1824.JPG
+      - edited_rainier.jpg
+
+  belize:
+    label: "Belize"
+    folder: "belize"
+    photos:
+      - DSC_0033.JPG
+      - DSC_0040.JPG
+      - DSC_0042.JPG
+      - DSC_0044.JPG
+      - DSC_0057.JPG
+      - DSC_0060.JPG
+
+  big_sur:
+    label: "Big Sur"
+    folder: "big_sur"
+    photos:
+      - IMG_2827.png
+      - IMG_2830.png
+      - IMG_2840.png
+      - IMG_2848.png
+      - IMG_2852.png
+      - IMG_2860.png
+
+  tahoe:
+    label: "Lake Tahoe"
+    folder: "tahoe"
+    photos:
+      - IMG_3429.png
+      - IMG_3439.png
+      - IMG_3443.png
+      - IMG_3456.png
+      - IMG_3459.png
+
+  lunar:
+    label: "Lunar Eclipse"
+    folder: "lunar"
+    caption: "Taken on Nov. 8, 2022 in Maryland"
+    photos:
+      - lunarEclipse.jpg

@@ -1,0 +1,764 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photography — Karthik Vedula</title>
+  <meta name="description" content="Photography by Karthik Vedula — travels and moments captured along the way.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&family=Source+Sans+Pro:wght@400;600;700;900&display=swap">
+  <!-- Load Bootstrap + Chirpy so the sidebar is styled identically to the blog -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ '/assets/css/jekyll-theme-chirpy.css' | relative_url }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css">
+  <style>
+    :root {
+      --accent:        #FF6600;
+      --accent-dim:    rgba(255, 102, 0, 0.14);
+      --bg:            #ffffff;
+      --surface:       #f5f5f5;
+      --surface2:      #eeeeee;
+      --border:        #e0e0e0;
+      --text:          #1a1a1a;
+      --text-muted:    #666666;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --accent:      #fb923c;
+        --accent-dim:  rgba(251, 146, 60, 0.18);
+        --bg:          rgb(27, 27, 30);
+        --surface:     #1e1e1e;
+        --surface2:    #242424;
+        --border:      #333333;
+        --text:        #e6e6e6;
+        --text-muted:  #999999;
+      }
+      body {
+        background: rgb(27, 27, 30) !important;
+        color: #e6e6e6 !important;
+      }
+      .site-header {
+        background: rgba(27, 27, 30, 0.95) !important;
+        border-bottom-color: #333333 !important;
+      }
+      .back-link   { color: #999999 !important; }
+      .tab-btn {
+        background: transparent !important;
+        border-color: #333333 !important;
+        color: #999999 !important;
+      }
+      .tab-btn:hover {
+        color: #e6e6e6 !important;
+        border-color: #999999 !important;
+      }
+      .tab-btn.active {
+        background: #fb923c !important;
+        border-color: #fb923c !important;
+        color: #fff !important;
+      }
+      .header-divider { background: #333333 !important; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Lato, "Microsoft Yahei", sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 0.65rem 2rem;
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      white-space: nowrap;
+      transition: color 0.2s;
+      flex-shrink: 0;
+    }
+    .back-link:hover { color: var(--accent); }
+    .back-link svg { width: 13px; height: 13px; stroke-width: 2.2; }
+
+    .header-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .header-divider {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .collection-tabs {
+      display: flex;
+      gap: 0.3rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex: 1;
+    }
+    .collection-tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.3rem 0.85rem;
+      border-radius: 100px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 3.5rem 2rem 2.5rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .hero h1 {
+      font-family: "Source Sans Pro", "Microsoft Yahei", sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 0.9rem;
+    }
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      max-width: 560px;
+      margin-bottom: 2rem;
+    }
+    .hero-photos {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: nowrap;
+      margin-bottom: 2.5rem;
+    }
+    .hero-photos img {
+      border-radius: 8px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+      height: auto;
+      display: block;
+      max-height: 320px;
+      width: auto;
+      flex-shrink: 1;
+    }
+    /* ── Hero featured photo ── */
+    .hero-featured {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-left: 2.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .hero-featured-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      white-space: nowrap;
+    }
+    .hero-featured-photo {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .hero-featured-photo img {
+      border-radius: 8px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.18);
+      max-height: 520px;
+      width: auto;
+      max-width: 100%;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hero-featured-photo img:hover {
+      transform: scale(1.015);
+      box-shadow: 0 10px 36px rgba(0,0,0,0.26);
+    }
+    .hero-random-caption {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+    }
+    @media (max-width: 640px) {
+      .hero-photos img { max-height: 180px; }
+      .hero-featured { margin-left: 0; flex-direction: column; align-items: flex-start; }
+      .hero-featured-label { writing-mode: horizontal-tb; transform: none; }
+      .hero-featured-photo img { max-height: 220px; max-width: 100%; }
+    }
+
+    /* ── Gallery wrapper ── */
+    .gallery-wrap {
+      padding: 0 1.5rem 6rem;
+    }
+
+    /* ── Collection section ── */
+    .collection {
+      max-width: 1440px;
+      margin: 0 auto 5rem;
+      scroll-margin-top: 70px;
+    }
+    .collection.hidden { display: none; }
+
+    .collection-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .accent-bar {
+      width: 3px;
+      height: 1.3rem;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .collection-header h2 {
+      font-family: "Source Sans Pro", "Microsoft Yahei", sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .photo-count {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--surface);
+      padding: 0.15rem 0.55rem;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── Masonry grid ── */
+    .masonry {
+      columns: 4;
+      column-gap: 6px;
+    }
+    @media (max-width: 1100px) { .masonry { columns: 3; } }
+    @media (max-width: 700px)  { .masonry { columns: 2; } }
+    @media (max-width: 420px)  { .masonry { columns: 1; } }
+
+    .photo-card {
+      break-inside: avoid;
+      margin-bottom: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      border-radius: 3px;
+      background: var(--surface);
+    }
+    .photo-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.4s ease, brightness 0.4s ease;
+    }
+    .photo-card:hover img {
+      transform: scale(1.04);
+      filter: brightness(1.08);
+    }
+    .photo-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,102,0,0);
+      transition: background 0.3s;
+      pointer-events: none;
+    }
+    .photo-card:hover::after {
+      background: rgba(255,102,0,0.04);
+    }
+
+    /* ── Single-photo layout (Lunar Eclipse) ── */
+    .single-photo {
+      max-width: 640px;
+    }
+    .single-photo .photo-card { border-radius: 6px; }
+    .photo-caption {
+      margin-top: 0.6rem;
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ── Lightbox ── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.96);
+      align-items: center;
+      justify-content: center;
+    }
+    .lightbox.open { display: flex; }
+
+    .lb-img-wrap {
+      position: relative;
+      max-width: 92vw;
+      max-height: 92vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lb-img {
+      max-width: 92vw;
+      max-height: 88vh;
+      object-fit: contain;
+      border-radius: 2px;
+      box-shadow: 0 8px 60px rgba(0,0,0,0.8);
+      display: block;
+    }
+
+    .lb-close {
+      position: absolute;
+      top: 1rem;
+      right: 1.25rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.25rem;
+      transition: color 0.2s;
+      z-index: 10;
+    }
+    .lb-close:hover { color: var(--accent); }
+
+    .lb-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 10;
+    }
+    .lb-arrow:hover { background: rgba(255, 102, 0, 0.35); }
+    .lb-arrow svg { width: 18px; height: 18px; stroke-width: 2; }
+    .lb-prev { left: 1.25rem; }
+    .lb-next { right: 1.25rem; }
+
+    .lb-counter {
+      position: absolute;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    /* ── Sidebar: start off-screen, animate in ── */
+    #sidebar {
+      transform: translateX(-260px);
+      transition: transform 0.34s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+      z-index: 500;
+    }
+    @media all and (min-width: 1650px) {
+      #sidebar { transform: translateX(-300px); }
+    }
+    #sidebar.open { transform: translateX(0) !important; }
+
+    .sidebar-edge-trigger {
+      position: fixed;
+      left: 0; top: 0;
+      width: 22px; height: 100%;
+      z-index: 501;
+      cursor: e-resize;
+    }
+
+    .sidebar-tab {
+      position: fixed;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 6px; height: 48px;
+      background: #FF6600;
+      border-radius: 0 4px 4px 0;
+      z-index: 502;
+      transition: opacity 0.3s;
+      cursor: e-resize;
+    }
+
+    /* ── Guard: stop chirpy's global h2 rule from hitting photo page ── */
+    .gallery-wrap h2, .hero h1 {
+      border-bottom: none !important;
+      padding-bottom: 0 !important;
+      margin-bottom: 0 !important;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="site-header">
+  <a href="{{ '/' | relative_url }}" class="back-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to blog
+  </a>
+  <div class="header-divider"></div>
+  <span class="header-title">Photography</span>
+  <div class="header-divider"></div>
+  <nav class="collection-tabs">
+    <button class="tab-btn active" data-filter="all">All</button>
+    {% for entry in site.data.photography.collections %}
+    <button class="tab-btn" data-filter="{{ entry[0] }}">{{ entry[1].label }}</button>
+    {% endfor %}
+  </nav>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-featured" id="hero-random" style="display:none">
+    <span class="hero-featured-label">Featured photo</span>
+    <div class="hero-featured-photo">
+      <img id="hero-random-img" src="" alt="">
+      <span class="hero-random-caption" id="hero-random-caption"></span>
+    </div>
+  </div>
+  <p class="hero-eyebrow">Karthik Vedula</p>
+  <h1>Latent Space</h1>
+  <p class="hero-desc">Travels and moments captured along the way. Most photos are unedited — just trying to get the best shot with what I had at the time. Click any photo to view it fullscreen.</p>
+  <div class="hero-photos">
+    <img src="{{ site.data.photography.base_url }}/thumbnails/main/young.webp" alt="Young Karthik with a camera">
+    <img src="{{ site.data.photography.base_url }}/thumbnails/main/today.webp" alt="Karthik today">
+  </div>
+</section>
+
+<script>
+(function () {
+  var data = {{ site.data.photography | jsonify }};
+  var base = data.base_url;
+  var cols = data.collections;
+  var keys = Object.keys(cols).filter(function(k) { return k !== 'main' && k !== 'lunar'; });
+  if (!keys.length) return;
+  var key  = keys[Math.floor(Math.random() * keys.length)];
+  var col  = cols[key];
+  var photo = col.photos[Math.floor(Math.random() * col.photos.length)];
+  var thumbName = photo.replace(/\.[^.]+$/, '.webp');
+  var thumbUrl  = base + '/thumbnails/' + col.folder + '/' + thumbName;
+  var fullUrl   = base + '/' + col.folder + '/' + photo;
+
+  var wrap    = document.getElementById('hero-random');
+  var img     = document.getElementById('hero-random-img');
+  var caption = document.getElementById('hero-random-caption');
+
+  img.alt = col.label;
+  caption.textContent = col.label;
+  img.onload  = function () { wrap.style.display = ''; };
+  img.onerror = function () { wrap.style.display = 'none'; };
+  img.src = thumbUrl;
+
+  img.addEventListener('click', function () {
+    var card = document.querySelector('.photo-card[data-src="' + fullUrl + '"]');
+    if (card) card.click();
+  });
+})();
+</script>
+
+<!-- ── Gallery ── -->
+<div class="gallery-wrap">
+
+  {% assign photo_data = site.data.photography %}
+  {% for entry in photo_data.collections %}
+    {% assign key = entry[0] %}
+    {% assign col = entry[1] %}
+    {% assign base = photo_data.base_url | append: "/" | append: col.folder %}
+  <section class="collection" id="{{ key }}" data-collection="{{ key }}">
+    <div class="collection-header">
+      <div class="accent-bar"></div>
+      <h2>{{ col.label }}</h2>
+      <span class="photo-count">{{ col.photos.size }} photo{% if col.photos.size != 1 %}s{% endif %}</span>
+    </div>
+    {% assign thumb_base = photo_data.base_url | append: "/thumbnails/" | append: col.folder %}
+    {% if col.caption %}
+    <div class="single-photo">
+      {% for photo in col.photos %}
+      {% assign thumb_name = photo | split: '.' | first | append: '.webp' %}
+      <div class="photo-card" data-collection="{{ key }}" data-src="{{ base }}/{{ photo }}">
+        <img src="{{ thumb_base }}/{{ thumb_name }}" alt="{{ col.label }}" loading="lazy">
+      </div>
+      {% endfor %}
+      <p class="photo-caption">{{ col.caption }}</p>
+    </div>
+    {% else %}
+    <div class="masonry">
+      {% for photo in col.photos %}
+      {% assign thumb_name = photo | split: '.' | first | append: '.webp' %}
+      <div class="photo-card" data-collection="{{ key }}" data-src="{{ base }}/{{ photo }}">
+        <img src="{{ thumb_base }}/{{ thumb_name }}" alt="{{ col.label }}" loading="lazy">
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+  {% endfor %}
+
+</div><!-- /gallery-wrap -->
+
+<!-- ── Lightbox ── -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <button class="lb-close" id="lb-close" aria-label="Close">&times;</button>
+  <button class="lb-arrow lb-prev" id="lb-prev" aria-label="Previous photo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <div class="lb-img-wrap">
+    <img class="lb-img" id="lb-img" src="" alt="">
+  </div>
+  <button class="lb-arrow lb-next" id="lb-next" aria-label="Next photo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+  <div class="lb-counter" id="lb-counter"></div>
+</div>
+
+<script>
+(function () {
+  // ── Collection filter ──
+  const tabs = document.querySelectorAll('.tab-btn');
+  const sections = document.querySelectorAll('.collection');
+
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      sections.forEach(sec => {
+        if (filter === 'all' || sec.dataset.collection === filter) {
+          sec.classList.remove('hidden');
+        } else {
+          sec.classList.add('hidden');
+        }
+      });
+    });
+  });
+
+  // ── Lightbox ──
+  const lightbox  = document.getElementById('lightbox');
+  const lbImg     = document.getElementById('lb-img');
+  const lbCounter = document.getElementById('lb-counter');
+  let currentCollection = [];
+  let currentIndex = 0;
+
+  function openLightbox(card) {
+    const collection = card.dataset.collection;
+    const src = card.dataset.src;
+    // collect all visible cards in same collection, maintaining DOM order
+    currentCollection = Array.from(
+      document.querySelectorAll(`.photo-card[data-collection="${collection}"]`)
+    );
+    currentIndex = currentCollection.indexOf(card);
+    showImage();
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    lbImg.focus();
+  }
+
+  function showImage() {
+    const card = currentCollection[currentIndex];
+    lbImg.src = card.dataset.src;
+    lbImg.alt = card.querySelector('img').alt;
+    lbCounter.textContent = (currentIndex + 1) + ' / ' + currentCollection.length;
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+
+  function prev() {
+    currentIndex = (currentIndex - 1 + currentCollection.length) % currentCollection.length;
+    showImage();
+  }
+  function next() {
+    currentIndex = (currentIndex + 1) % currentCollection.length;
+    showImage();
+  }
+
+  document.querySelectorAll('.photo-card').forEach(card => {
+    card.addEventListener('click', () => openLightbox(card));
+  });
+
+  document.getElementById('lb-close').addEventListener('click', closeLightbox);
+  document.getElementById('lb-prev').addEventListener('click', prev);
+  document.getElementById('lb-next').addEventListener('click', next);
+
+  lightbox.addEventListener('click', e => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')  prev();
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'Escape')     closeLightbox();
+  });
+})();
+</script>
+
+<!-- ── Slide-in sidebar: exact same HTML as the blog ── -->
+<div class="sidebar-tab" id="sidebar-tab"></div>
+<aside aria-label="Sidebar" id="sidebar" class="d-flex flex-column align-items-end">
+  <header class="profile-wrapper">
+    <a href="{{ '/' | relative_url }}" id="avatar" class="rounded-circle">
+      <img src="{{ site.baseurl }}/assets/images/profile.jpg" width="112" height="112" alt="avatar" onerror="this.style.display='none'">
+    </a>
+    <a class="site-title d-block" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    <p class="site-subtitle fst-italic mb-0">{{ site.tagline }}</p>
+  </header>
+  <nav class="flex-column flex-grow-1 w-100 ps-0">
+    <ul class="nav">
+      <li class="nav-item">
+        <a href="{{ '/' | relative_url }}" class="nav-link">
+          <i class="fa-fw fas fa-home"></i><span>HOME</span>
+        </a>
+      </li>
+      <li class="nav-item active">
+        <a href="{{ '/photography/' | relative_url }}" class="nav-link">
+          <i class="fa-fw fas fa-camera"></i><span>PHOTOGRAPHY</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ '/videos/' | relative_url }}" class="nav-link">
+          <i class="fa-fw fas fa-video"></i><span>VIDEOS</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ '/categories/' | relative_url }}" class="nav-link">
+          <i class="fa-fw fas fa-stream"></i><span>CATEGORIES</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{{ '/archives/' | relative_url }}" class="nav-link">
+          <i class="fa-fw fas fa-archive"></i><span>ARCHIVES</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <div class="sidebar-bottom d-flex flex-wrap align-items-center w-100">
+    <a href="https://github.com/oboy-1" target="_blank" rel="noopener noreferrer" aria-label="github"><i class="fab fa-github"></i></a>
+    <a href="javascript:location.href = 'mailto:' + ['karthik','vedula.me'].join('@')" aria-label="email"><i class="fas fa-envelope"></i></a>
+    <a href="https://www.linkedin.com/in/karthik-s-vedula/" target="_blank" rel="noopener noreferrer" aria-label="linkedin"><i class="fab fa-linkedin"></i></a>
+    <a href="https://scholar.google.com/citations?user=97KpT5IAAAAJ&hl=en&authuser=2&oi=ao" target="_blank" rel="noopener noreferrer" aria-label="gscholar"><i class="fab fa-google-scholar"></i></a>
+    <a href="{{ '/feed.xml' | relative_url }}" aria-label="rss"><i class="fas fa-rss"></i></a>
+  </div>
+</aside>
+<div class="sidebar-edge-trigger" id="sidebar-trigger"></div>
+
+<script>
+(function () {
+  var sidebar   = document.getElementById('sidebar');
+  var trigger   = document.getElementById('sidebar-trigger');
+  var tab       = document.getElementById('sidebar-tab');
+  var backLink  = document.querySelector('.back-link');
+  var hideTimer = null;
+
+  function show() {
+    clearTimeout(hideTimer);
+    sidebar.classList.add('open');
+    tab.style.opacity = '0';
+  }
+
+  function scheduleHide() {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function () {
+      sidebar.classList.remove('open');
+      tab.style.opacity = '0.7';
+    }, 280);
+  }
+
+  trigger.addEventListener('mouseenter', show);
+  trigger.addEventListener('mouseleave', scheduleHide);
+  tab.addEventListener('mouseenter', show);
+  tab.addEventListener('mouseleave', scheduleHide);
+  sidebar.addEventListener('mouseenter', show);
+  sidebar.addEventListener('mouseleave', scheduleHide);
+  if (backLink) {
+    backLink.addEventListener('mouseenter', show);
+    backLink.addEventListener('mouseleave', scheduleHide);
+  }
+
+  // Slide sidebar away when clicking a non-photography nav link
+  sidebar.querySelectorAll('a:not(.active)').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      var dest = link.href;
+      sidebar.classList.remove('open');
+      setTimeout(function () { window.location.href = dest; }, 320);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
