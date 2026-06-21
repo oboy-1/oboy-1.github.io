@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dad's Watch</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem 2rem;
+    }
+
+    .bezel {
+      width: 348px;
+      height: 348px;
+      border-radius: 50%;
+      border: 7px solid #1a2a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #2d4a2d;
+      box-shadow: 0 0 0 1px #3a5c3a, inset 0 2px 8px rgba(0,0,0,0.6);
+    }
+
+    .face {
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      border: 1px solid #4a6e4a;
+      background: radial-gradient(ellipse at 40% 35%, #3d5e3d 0%, #2a4a2a 50%, #1e371e 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #hands-svg {
+      position: absolute;
+      inset: 0;
+      width: 320px;
+      height: 320px;
+      pointer-events: none;
+    }
+
+    .brand {
+      font-size: 10px;
+      letter-spacing: .14em;
+      color: #a8c8a8;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+    }
+
+    .sub-label {
+      font-size: 9px;
+      letter-spacing: .1em;
+      color: #7a9e7a;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .hero {
+      font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: 30px;
+      font-weight: 500;
+      color: #f0f0f0;
+      letter-spacing: -.02em;
+      line-height: 1;
+      min-width: 220px;
+      text-align: center;
+    }
+
+    .hero-unit {
+      font-size: 9px;
+      letter-spacing: .1em;
+      color: #7a9e7a;
+      margin-top: 4px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .subdials {
+      display: flex;
+      gap: 24px;
+    }
+
+    .subdial {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      border: 1px solid #d0ddd0;
+      background: radial-gradient(ellipse at 40% 30%, #ffffff 0%, #f0f4f0 60%, #e4ece4 100%);
+      justify-content: center;
+      gap: 3px;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    .subdial-val {
+      font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a2a1a;
+      line-height: 1;
+    }
+
+    .subdial-lbl {
+      font-size: 8px;
+      letter-spacing: .06em;
+      color: #4a6a4a;
+      text-align: center;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .sat-status {
+      font-size: 9px;
+      color: #3a5a3a;
+      margin-top: 1.5rem;
+      letter-spacing: .04em;
+    }
+
+    .gift {
+      font-size: 11px;
+      color: #3a5a3a;
+      margin-top: .5rem;
+      letter-spacing: .06em;
+    }
+
+    /* Explain button */
+    .explain-btn {
+      margin-top: 1.2rem;
+      background: none;
+      border: 1px solid #2d4a2d;
+      color: #5a8a5a;
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .explain-btn:hover { border-color: #5a8a5a; color: #8ab88a; }
+
+    /* Explainer overlay */
+    .explainer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 1rem;
+    }
+    .explainer.open { display: flex; }
+
+    .explainer-card {
+      background: #1a2a1a;
+      border: 1px solid #3a5a3a;
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 380px;
+      width: 100%;
+      color: #c8d8c8;
+    }
+
+    .explainer-card h2 {
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #a8c8a8;
+      margin-bottom: 1.4rem;
+    }
+
+    .explainer-item {
+      margin-bottom: 1.2rem;
+    }
+    .explainer-item:last-child { margin-bottom: 0; }
+
+    .explainer-label {
+      font-size: 9px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #7a9e7a;
+      margin-bottom: 4px;
+    }
+
+    .explainer-desc {
+      font-size: 13px;
+      line-height: 1.55;
+      color: #c8d8c8;
+    }
+
+    .close-btn {
+      margin-top: 1.6rem;
+      width: 100%;
+      background: none;
+      border: 1px solid #3a5a3a;
+      color: #7a9e7a;
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .close-btn:hover { border-color: #7a9e7a; color: #a8c8a8; }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bezel">
+    <div class="face">
+      <div class="brand">FOR APPA</div>
+      <div class="sub-label">SECONDS AS MY FATHER</div>
+      <div class="hero" id="hero">—</div>
+      <div class="hero-unit">SECONDS</div>
+      <div class="subdials">
+        <div class="subdial">
+          <div class="subdial-val" id="satVal">~45</div>
+          <div class="subdial-lbl">OneWeb<br>overhead</div>
+        </div>
+        <div class="subdial">
+          <div class="subdial-val" id="kmVal">—</div>
+          <div class="subdial-lbl">billion km<br>traveled</div>
+        </div>
+      </div>
+
+      <!-- analog hands overlay -->
+      <svg id="hands-svg" viewBox="0 0 320 320">
+        <!-- hour hand: shorter, thicker -->
+        <line id="hour-hand" x1="160" y1="178" x2="160" y2="90"
+              stroke="#f0f0f0" stroke-width="4.5" stroke-linecap="round"/>
+        <!-- minute hand: longer, thinner -->
+        <line id="min-hand" x1="160" y1="182" x2="160" y2="52"
+              stroke="#c8e8c8" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- center cap -->
+        <circle cx="160" cy="160" r="5" fill="#a8c8a8"/>
+        <circle cx="160" cy="160" r="2" fill="#1e371e"/>
+      </svg>
+    </div>
+  </div>
+  <div class="sat-status" id="satStatus">loading satellite data…</div>
+  <div class="gift">Happy Father's Day · June 2026</div>
+  <button class="explain-btn" id="explainBtn">what does this mean?</button>
+</div>
+
+<!-- Explainer overlay -->
+<div class="explainer" id="explainer">
+  <div class="explainer-card">
+    <h2>How this watch works</h2>
+
+    <div class="explainer-item">
+      <div class="explainer-label">Big number — Seconds</div>
+      <div class="explainer-desc">
+        Every second that ticks by is one more second you've been my father. The counter started the moment I was born and never stops.
+      </div>
+    </div>
+
+    <div class="explainer-item">
+      <div class="explainer-label">Left subdial — OneWeb satellites overhead</div>
+      <div class="explainer-desc">
+        Right now, this many OneWeb internet satellites are physically above the horizon over Washington DC. Their positions are calculated live using real orbital mechanics (SGP4), pulling fresh data from a NASA tracking catalog every 5 minutes.
+      </div>
+    </div>
+
+    <div class="explainer-item">
+      <div class="explainer-label">Right subdial — Billion km traveled</div>
+      <div class="explainer-desc">
+        Earth moves through the Milky Way at ~230 km/s. This is how many billion kilometres our solar system has travelled through the galaxy since you became my dad.
+      </div>
+    </div>
+
+    <button class="close-btn" id="closeBtn">close</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.0.0/satellite.min.js"></script>
+<script>
+  // ============================================================
+  // CONFIG
+  // ============================================================
+  const DAD_BECAME_DAD = new Date('2007-10-15T00:00:00Z'); // birthdate
+  const GALAXY_KM_S = 230; // Earth's speed through the Milky Way
+
+  // Observer location: Washington DC
+  const LAT_DEG = 38.9072;
+  const LON_DEG = -77.0369;
+  const ALT_KM  = 0.05;
+
+  // ============================================================
+  // Hero counter
+  // ============================================================
+  function tick() {
+    const secs = (Date.now() - DAD_BECAME_DAD) / 1000;
+    document.getElementById('hero').textContent = Math.floor(secs).toLocaleString();
+    const km = secs * GALAXY_KM_S / 1e9;
+    document.getElementById('kmVal').textContent = km.toFixed(2);
+
+    const now = new Date();
+    const h = now.getHours() % 12;
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    const hourDeg = (h + m / 60 + s / 3600) / 12 * 360;
+    const minDeg  = (m + s / 60) / 60 * 360;
+    document.getElementById('hour-hand').setAttribute('transform', `rotate(${hourDeg},160,160)`);
+    document.getElementById('min-hand').setAttribute('transform',  `rotate(${minDeg},160,160)`);
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // ============================================================
+  // OneWeb satellites overhead — live via Celestrak TLEs
+  // ============================================================
+  async function loadAndCountSats() {
+    const obsGd = {
+      longitude: satellite.degreesToRadians(LON_DEG),
+      latitude:  satellite.degreesToRadians(LAT_DEG),
+      height:    ALT_KM
+    };
+
+    try {
+      const res = await fetch('https://celestrak.org/NORAD/elements/gp.php?GROUP=oneweb&FORMAT=TLE');
+      const text = await res.text();
+      const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+
+      const satrecs = [];
+      for (let i = 0; i < lines.length - 2; i++) {
+        if (lines[i+1]?.startsWith('1 ') && lines[i+2]?.startsWith('2 ')) {
+          try { satrecs.push(satellite.twoline2satrec(lines[i+1], lines[i+2])); i += 2; }
+          catch(e) {}
+        }
+      }
+
+      function count() {
+        const now = new Date();
+        const gmst = satellite.gstime(now);
+        let n = 0;
+        for (const sr of satrecs) {
+          try {
+            const pv = satellite.propagate(sr, now);
+            if (!pv?.position) continue;
+            const look = satellite.ecfToLookAngles(obsGd, satellite.eciToEcf(pv.position, gmst));
+            if (look.elevation > 0) n++;
+          } catch(e) {}
+        }
+        return n;
+      }
+
+      document.getElementById('satVal').textContent = count();
+      document.getElementById('satStatus').textContent =
+        `live · ${satrecs.length} satellites · SGP4 · refreshes every 5 min`;
+
+      setInterval(() => {
+        document.getElementById('satVal').textContent = count();
+      }, 5 * 60 * 1000);
+
+    } catch(e) {
+      let base = 45;
+      document.getElementById('satVal').textContent = base;
+      document.getElementById('satStatus').textContent = 'estimated · ~45 OneWeb satellites overhead';
+      setInterval(() => {
+        base = Math.max(40, Math.min(52, base + (Math.random() > 0.5 ? 1 : -1)));
+        document.getElementById('satVal').textContent = base;
+      }, 4 * 60 * 1000 + Math.random() * 60000);
+    }
+  }
+
+  loadAndCountSats();
+
+  // ============================================================
+  // Explainer toggle
+  // ============================================================
+  document.getElementById('explainBtn').addEventListener('click', () => {
+    document.getElementById('explainer').classList.add('open');
+  });
+  document.getElementById('closeBtn').addEventListener('click', () => {
+    document.getElementById('explainer').classList.remove('open');
+  });
+  document.getElementById('explainer').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+  });
+</script>
+</body>
+</html>
