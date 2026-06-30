@@ -40,6 +40,13 @@
   font-weight: 600 !important;
 }
 
+#avatar img {
+  object-fit: cover !important;
+  object-position: top !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 #sidebar .profile-wrapper {
   margin-bottom: 2.5rem !important;
   flex-shrink: 0;
@@ -60,7 +67,7 @@ hr {
     margin: 50px 0;
 }
 
-h2 {
+.post-content h2 {
   border-bottom: 2px solid currentColor;
   padding-bottom: 0.2em;
   margin-bottom: 1.2em;
