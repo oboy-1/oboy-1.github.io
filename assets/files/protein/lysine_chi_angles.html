@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lysine side chain — χ1–χ4</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.5.3/3Dmol-min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --radius: 8px;
+    --accent: #FF6600;
+    --grid: rgba(15,23,42,0.08);
+    --viewer-bg: var(--surface-1);
+
+    --atom-n: #3050f8;
+    --atom-c: #909090;
+
+    --chi1: #0ea5e9;
+    --chi2: #14b8a6;
+    --chi3: #f59e0b;
+    --chi4: #ec4899;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+      --grid: rgba(148,163,184,0.12);
+      --atom-c: #a3a3a3;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 180ms ease;
+  }
+
+  .top-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+    align-self: flex-start;
+  }
+  .sub {
+    font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;
+    max-width: 680px; align-self: flex-start; margin-bottom: 16px;
+  }
+
+  .layout {
+    display: flex; gap: 20px; width: 100%; max-width: 780px;
+    align-items: stretch; flex-wrap: wrap;
+  }
+
+  .plot-wrap {
+    flex: 1 1 340px; min-width: 280px;
+    border: 0.5px solid var(--border); border-radius: 12px;
+    background: var(--surface-1); padding: 14px;
+    display: flex; flex-direction: column;
+  }
+
+  .panel-title {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 12px;
+  }
+
+  .chi-row + .chi-row { margin-top: 16px; }
+  .chi-row-head {
+    display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px;
+    gap: 8px;
+  }
+  .chi-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 500; color: var(--text-primary);
+  }
+  .chi-axis {
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--text-muted); font-weight: 400;
+  }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .chi-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  input[type=range] { width: 100%; }
+  input[type=range]#chi1-slider { accent-color: var(--chi1); }
+  input[type=range]#chi2-slider { accent-color: var(--chi2); }
+  input[type=range]#chi3-slider { accent-color: var(--chi3); }
+  input[type=range]#chi4-slider { accent-color: var(--chi4); }
+
+  #viewer {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--viewer-bg);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .dihedral-legend { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+  .legend-chip {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+  }
+  .legend-divider { width: 1px; height: 12px; align-self: center; background: var(--border); }
+
+  .caption {
+    font-size: 12px; color: var(--text-muted); text-align: center;
+    max-width: 700px; line-height: 1.65; margin-top: 18px;
+  }
+  .caption b { color: var(--text-secondary); font-weight: 500; }
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--bg); border: 0.5px solid var(--border);
+    padding: 1px 5px; border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-label">Lysine side chain — χ1 through χ4</div>
+<p class="sub">Four rotatable bonds, one slider each. Drag any of them and watch that specific segment of the tail swing — everything upstream of it stays put, since a dihedral only rotates the atoms downstream of its axis bond.</p>
+
+<div class="layout">
+  <div class="plot-wrap">
+    <div class="panel-title">Chi angles</div>
+
+    <div class="chi-row">
+      <div class="chi-row-head">
+        <span class="chi-label"><span class="chip-dot" style="background:var(--chi1)"></span>χ1 <span class="chi-axis">N–Cα–Cβ–Cγ</span></span>
+        <span class="chi-value" id="chi1-val">180° · t (Δ0°)</span>
+      </div>
+      <input type="range" id="chi1-slider" min="-180" max="180" step="1" value="180">
+    </div>
+
+    <div class="chi-row">
+      <div class="chi-row-head">
+        <span class="chi-label"><span class="chip-dot" style="background:var(--chi2)"></span>χ2 <span class="chi-axis">Cα–Cβ–Cγ–Cδ</span></span>
+        <span class="chi-value" id="chi2-val">180° · t (Δ0°)</span>
+      </div>
+      <input type="range" id="chi2-slider" min="-180" max="180" step="1" value="180">
+    </div>
+
+    <div class="chi-row">
+      <div class="chi-row-head">
+        <span class="chi-label"><span class="chip-dot" style="background:var(--chi3)"></span>χ3 <span class="chi-axis">Cβ–Cγ–Cδ–Cε</span></span>
+        <span class="chi-value" id="chi3-val">180° · t (Δ0°)</span>
+      </div>
+      <input type="range" id="chi3-slider" min="-180" max="180" step="1" value="180">
+    </div>
+
+    <div class="chi-row">
+      <div class="chi-row-head">
+        <span class="chi-label"><span class="chip-dot" style="background:var(--chi4)"></span>χ4 <span class="chi-axis">Cγ–Cδ–Cε–Nζ</span></span>
+        <span class="chi-value" id="chi4-val">180° · t (Δ0°)</span>
+      </div>
+      <input type="range" id="chi4-slider" min="-180" max="180" step="1" value="180">
+    </div>
+  </div>
+
+  <div class="plot-wrap">
+    <div class="panel-title">Side chain</div>
+    <div id="viewer"></div>
+    <div class="dihedral-legend">
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--chi1)"></span>χ1</span>
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--chi2)"></span>χ2</span>
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--chi3)"></span>χ3</span>
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--chi4)"></span>χ4</span>
+      <span class="legend-divider"></span>
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-n)"></span>N</span>
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-c)"></span>C</span>
+    </div>
+  </div>
+</div>
+
+<div class="caption">
+  Each readout shows the nearest staggered position — <code>g+</code> (≈60°), <code>t</code> (≈180°), or <code>g-</code> (≈-60°) — and how far off it you are. Defaults start at all-trans, a real, commonly observed extended lysine rotamer. One simplification worth knowing: these four sliders move independently here, but in real proteins the chi angles aren't fully independent of each other — some combinations pack better than others, so rotamer libraries report which <i>combinations</i> are common, not just which single-bond positions are common in isolation.
+</div>
+
+<script>
+(function(){
+  // ---------- geometry: NeRF atom placement (same approach as the Ramachandran widget) ----------
+  function sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+  function add(a,b){return [a[0]+b[0],a[1]+b[1],a[2]+b[2]];}
+  function scale(a,s){return [a[0]*s,a[1]*s,a[2]*s];}
+  function midpoint(a,b){return scale(add(a,b),0.5);}
+  function toXYZ(a){return {x:a[0], y:a[1], z:a[2]};}
+  function norm(a){const l=Math.hypot(a[0],a[1],a[2])||1e-9;return [a[0]/l,a[1]/l,a[2]/l];}
+  function cross(a,b){return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];}
+  const D2R = Math.PI/180;
+
+  function nerf(A,B,C,L,angleDeg,dihedralDeg){
+    const theta = angleDeg*D2R;
+    const phi = dihedralDeg*D2R;
+    const D2 = [
+      -L*Math.cos(theta),
+       L*Math.sin(theta)*Math.cos(phi),
+       L*Math.sin(theta)*Math.sin(phi)
+    ];
+    const bc = norm(sub(C,B));
+    const ab = sub(B,A);
+    const n = norm(cross(ab,bc));
+    const nxbc = cross(n,bc);
+    return [
+      C[0] + bc[0]*D2[0] + nxbc[0]*D2[1] + n[0]*D2[2],
+      C[1] + bc[1]*D2[0] + nxbc[1]*D2[1] + n[1]*D2[2],
+      C[2] + bc[2]*D2[0] + nxbc[2]*D2[1] + n[2]*D2[2]
+    ];
+  }
+
+  // fixed generic backbone stub, purely for context/orientation - not interactive here
+  function bootstrap(){
+    const bond_C_N = 1.329, angle_C_N_CA = 121.7;
+    const Cprev = [0,0,0];
+    const Ni = [bond_C_N,0,0];
+    const a = angle_C_N_CA*D2R;
+    const CAi = [bond_C_N + 1.458*Math.cos(Math.PI-a), 1.458*Math.sin(Math.PI-a), 0];
+    const Ci = nerf(Cprev, Ni, CAi, 1.525, 111.2, -60); // generic fixed phi, just for the stub's shape
+    return {Cprev, Ni, CAi, Ci};
+  }
+
+  function buildLysine(chi1, chi2, chi3, chi4){
+    const {Cprev, Ni, CAi, Ci} = bootstrap();
+    const Cb = nerf(Ci, Ni, CAi, 1.530, 110.5, 122.5);           // fixed generic Cbeta placement
+    const Cg = nerf(Ni, CAi, Cb, 1.520, 113.8, chi1);            // chi1 = N-CA-CB-CG
+    const Cd = nerf(CAi, Cb, Cg, 1.520, 111.9, chi2);            // chi2 = CA-CB-CG-CD
+    const Ce = nerf(Cb, Cg, Cd, 1.520, 111.9, chi3);             // chi3 = CB-CG-CD-CE
+    const Nz = nerf(Cg, Cd, Ce, 1.489, 111.7, chi4);             // chi4 = CG-CD-CE-NZ
+    return {Cprev, Ni, CAi, Ci, Cb, Cg, Cd, Ce, Nz};
+  }
+
+  function toPDB(atoms){
+    const order = [
+      ['Cprev','C','C'], ['Ni','N','N'], ['CAi','C','CA'], ['Ci','C','C'],
+      ['Cb','C','CB'], ['Cg','C','CG'], ['Cd','C','CD'], ['Ce','C','CE'], ['Nz','N','NZ']
+    ];
+    let lines = [];
+    order.forEach(([key,elem,name],i)=>{
+      const p = atoms[key];
+      const serial = String(i+1).padStart(5,' ');
+      const atomName = name.padEnd(4,' ');
+      const x = p[0].toFixed(3).padStart(8,' ');
+      const y = p[1].toFixed(3).padStart(8,' ');
+      const z = p[2].toFixed(3).padStart(8,' ');
+      lines.push(`ATOM  ${serial} ${atomName} LYS A   1    ${x}${y}${z}  1.00  0.00          ${elem.padStart(2,' ')}`);
+    });
+    lines.push('END');
+    return lines.join('\n');
+  }
+
+  function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+
+  function angDiff(a,b){
+    const d = Math.abs(a-b) % 360;
+    return d > 180 ? 360-d : d;
+  }
+  function nearestStaggered(angle){
+    const targets = [['g+',60], ['t',180], ['g-',-60]];
+    let best = targets[0], bestD = angDiff(angle, targets[0][1]);
+    targets.forEach(t=>{
+      const d = angDiff(angle, t[1]);
+      if(d < bestD){ bestD = d; best = t; }
+    });
+    return {label:best[0], delta:Math.round(bestD)};
+  }
+
+  let viewer = $3Dmol.createViewer(document.getElementById('viewer'), {backgroundColor: cssVar('--viewer-bg') || '#f8fafc'});
+  let hasInitialView = false;
+
+  function render(){
+    const chi1 = parseFloat(document.getElementById('chi1-slider').value);
+    const chi2 = parseFloat(document.getElementById('chi2-slider').value);
+    const chi3 = parseFloat(document.getElementById('chi3-slider').value);
+    const chi4 = parseFloat(document.getElementById('chi4-slider').value);
+
+    [['chi1',chi1],['chi2',chi2],['chi3',chi3],['chi4',chi4]].forEach(([id,val])=>{
+      const s = nearestStaggered(val);
+      document.getElementById(id+'-val').textContent = Math.round(val)+'° · '+s.label+' (Δ'+s.delta+'°)';
+    });
+
+    const atoms = buildLysine(chi1, chi2, chi3, chi4);
+    const pdb = toPDB(atoms);
+    const savedView = hasInitialView ? viewer.getView() : null;
+
+    viewer.clear();
+    viewer.setBackgroundColor(cssVar('--viewer-bg') || '#f8fafc');
+    viewer.addModel(pdb, 'pdb');
+    viewer.setStyle({}, {stick:{radius:0.15}, sphere:{scale:0.26}});
+    viewer.setStyle({elem:'C'}, {stick:{radius:0.15, color:cssVar('--atom-c')}, sphere:{scale:0.26, color:cssVar('--atom-c')}});
+    viewer.setStyle({elem:'N'}, {stick:{radius:0.15, color:cssVar('--atom-n')}, sphere:{scale:0.3, color:cssVar('--atom-n')}});
+
+    const axes = [
+      [atoms.CAi, atoms.Cb, cssVar('--chi1'), 'χ1'],
+      [atoms.Cb,  atoms.Cg, cssVar('--chi2'), 'χ2'],
+      [atoms.Cg,  atoms.Cd, cssVar('--chi3'), 'χ3'],
+      [atoms.Cd,  atoms.Ce, cssVar('--chi4'), 'χ4']
+    ];
+    axes.forEach(([a,b,color,label])=>{
+      viewer.addCylinder({start:toXYZ(a), end:toXYZ(b), radius:0.24, color:color, opacity:0.4, fromCap:2, toCap:2});
+      viewer.addLabel(label, {position:toXYZ(midpoint(a,b)), backgroundColor:color, backgroundOpacity:0.9, fontColor:'white', fontSize:12, borderRadius:8, inFront:true, showBackground:true});
+    });
+
+    if(savedView){
+      viewer.setView(savedView);
+    } else {
+      viewer.zoomTo();
+      hasInitialView = true;
+    }
+    viewer.render();
+  }
+
+  ['chi1-slider','chi2-slider','chi3-slider','chi4-slider'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', render);
+  });
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+
+  render();
+
+  window.addEventListener('resize', ()=>{
+    viewer.resize();
+    viewer.render();
+  });
+
+  function sendHeight() {
+    window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+  }
+  window.addEventListener('load', () => {
+    setTimeout(sendHeight, 100);
+    setTimeout(sendHeight, 600);
+  });
+  window.addEventListener('resize', sendHeight);
+})();
+</script>
+</body>
+</html>

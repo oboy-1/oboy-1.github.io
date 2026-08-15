@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two data forms — MSA and pair grid</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --border: rgba(15,23,42,0.10);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --msa: #2f6fed; --msa-bg: #eaf1ff; --msa-border: #a9c4fb;
+    --accent: #FF6600; --accent-bg: #fff1e6; --accent-border: #ffb374;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --border: rgba(148,163,184,0.14);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --msa: #5b9bff; --msa-bg: #0d2440; --msa-border: #1e4c8a;
+      --accent-bg: #3a2410; --accent-border: #a35a1a;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 32px 24px; max-width: 760px; margin: 0 auto; }
+
+  .panels { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .panel { flex: 1 1 300px; max-width: 340px; }
+  .panel-card {
+    border: 0.5px solid var(--border); border-radius: 16px; background: var(--surface-1);
+    padding: 24px 20px 20px; text-align: center;
+  }
+  .panel-card.msa { border-top: 3px solid var(--msa); }
+  .panel-card.pair { border-top: 3px solid var(--accent); }
+  .panel-title { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .panel-title.msa-t { color: var(--msa); }
+  .panel-title.pair-t { color: var(--accent); }
+  .panel-sub { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
+  .panel svg { display: block; margin: 0 auto; }
+
+  .caption {
+    text-align: center; font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+    max-width: 560px; margin: 24px auto 0;
+  }
+  .caption b { color: var(--text-primary); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="panels">
+  <div class="panel">
+    <div class="panel-card msa">
+      <div class="panel-title msa-t">The MSA</div>
+      <div class="panel-sub">Related sequences from many species,<br>aligned position by position</div>
+      <svg id="msaSvg" viewBox="0 0 220 150" width="100%" style="max-width:220px"></svg>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-card pair">
+      <div class="panel-title pair-t">The pair grid</div>
+      <div class="panel-sub">One cell per pair of positions —<br>starts almost empty</div>
+      <svg id="pairSvg" viewBox="0 0 220 220" width="100%" style="max-width:220px"></svg>
+    </div>
+  </div>
+</div>
+
+<p class="caption">Two representations of the same protein, evolved in parallel. The MSA already holds real information — actual letters from actual species. The pair grid starts nearly blank, just sequence distance, and has to earn everything else. <b>What happens between these two forms is the entire story of the Evoformer.</b></p>
+
+<script>
+const seq1 = ['M','K','T','A'], seq2 = ['M','K','T','A'], seq3 = ['M','R','T','S'];
+const MSA = [seq1, seq2, seq3];
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+function mono(x,y,t,size,fill,anchor){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+  e.textContent = t; return e;
+}
+
+function renderMSA(){
+  const svg = document.getElementById('msaSvg');
+  const ox=50, oy=30, s=32, g=6, st=s+g;
+  MSA.forEach((seq,r)=>{
+    seq.forEach((l,c)=>{
+      svg.appendChild(el('rect',{x:ox+c*st,y:oy+r*st,width:s,height:s,rx:5,fill:'var(--bg)',stroke:'var(--msa-border)','stroke-width':0.75}));
+      svg.appendChild(mono(ox+c*st+s/2,oy+r*st+s/2,l,13,'var(--text-primary)'));
+    });
+  });
+  ['1','2','3','4'].forEach((n,i)=> svg.appendChild(mono(ox+i*st+s/2,oy-14,n,9,'var(--text-muted)')));
+  ['seq1','seq2','seq3'].forEach((n,i)=> svg.appendChild(mono(ox-10,oy+i*st+s/2,n,8,'var(--text-muted)','end')));
+}
+
+function renderPair(){
+  const svg = document.getElementById('pairSvg');
+  const ox=45, oy=30, s=36, g=6, st=s+g;
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      const x=ox+c*st, y=oy+r*st;
+      if(r===c){
+        svg.appendChild(el('rect',{x,y,width:s,height:s,rx:5,fill:'var(--bg)',stroke:'var(--border)','stroke-width':0.5}));
+        svg.appendChild(mono(x+s/2,y+s/2,'–',10,'var(--text-muted)'));
+        continue;
+      }
+      svg.appendChild(el('rect',{x,y,width:s,height:s,rx:5,fill:'var(--bg)',stroke:'var(--accent-border)','stroke-width':0.75}));
+      svg.appendChild(el('rect',{x,y,width:s,height:s,rx:5,fill:'var(--accent)',opacity:0.07}));
+      const dist = Math.abs(r-c);
+      svg.appendChild(mono(x+s/2,y+s/2-6,'0.08',9,'var(--text-secondary)'));
+      svg.appendChild(mono(x+s/2,y+s/2+9,`d=${dist}`,7.5,'var(--text-muted)'));
+    }
+  }
+  ['1','2','3','4'].forEach((n,i)=>{
+    svg.appendChild(mono(ox+i*st+s/2,oy-14,n,9,'var(--text-muted)'));
+    svg.appendChild(mono(ox-12,oy+i*st+s/2,n,9,'var(--text-muted)','end'));
+  });
+}
+
+renderMSA();
+renderPair();
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramachandran Plot — φ/ψ Explorer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.5.3/3Dmol-min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --radius: 8px;
+    --accent: #FF6600;
+    --grid: rgba(15,23,42,0.08);
+    --viewer-bg: var(--surface-1);
+    --phi-color: #0ea5e9;
+    --psi-color: #a855f7;
+    --atom-n: #3050f8;
+    --atom-c: #909090;
+    --atom-o: #ff0d0d;
+
+    --favored-fill: #d7ead9;
+    --favored-line: #4f9863;
+    --allowed-fill: #eef1e4;
+    --outlier-fill: #f8fafc;
+
+    --green: #16803c;
+    --green-bg: #f0fdf4;
+    --green-border: #86efac;
+    --amber: #92620a;
+    --amber-bg: #fffbeb;
+    --amber-border: #fcd34d;
+    --red: #b91c1c;
+    --red-bg: #fef2f2;
+    --red-border: #fca5a5;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+      --grid: rgba(148,163,184,0.12);
+      --viewer-bg: #0b0e0f;
+
+      --favored-fill: #16321f;
+      --favored-line: #3f9457;
+      --allowed-fill: #23261e;
+      --outlier-fill: #1c1d21;
+
+      --green: #86efac;
+      --green-bg: #0a1f10;
+      --green-border: #22c55e;
+      --amber: #fde68a;
+      --amber-bg: #241d05;
+      --amber-border: #eab308;
+      --red: #fca5a5;
+      --red-bg: #2a0f0f;
+      --red-border: #dc2626;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 180ms ease;
+  }
+
+  .top-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+    align-self: flex-start;
+  }
+  .sub {
+    font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;
+    max-width: 640px; align-self: flex-start; margin-bottom: 16px;
+  }
+
+  .tabs {
+    display: flex; gap: 6px; margin-bottom: 16px; align-self: flex-start; flex-wrap: wrap;
+  }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+    background: var(--surface-1); border: 0.5px solid var(--border); color: var(--text-secondary);
+    padding: 7px 12px; border-radius: 6px; cursor: pointer; transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+
+  .layout {
+    display: flex; gap: 20px; width: 100%; max-width: 780px;
+    align-items: stretch; flex-wrap: wrap;
+  }
+
+  .plot-wrap {
+    flex: 1 1 340px; min-width: 280px;
+    border: 0.5px solid var(--border); border-radius: 12px;
+    background: var(--surface-1); padding: 12px;
+    display: flex; flex-direction: column;
+  }
+
+  .panel-title {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 8px;
+  }
+
+  .panel-title-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  }
+  .panel-title-row .panel-title { margin-bottom: 0; }
+  .rgroup-toggle {
+    display: flex; align-items: center; gap: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--text-secondary); cursor: pointer; user-select: none;
+  }
+  .rgroup-toggle input { accent-color: var(--accent); width: 12px; height: 12px; cursor: pointer; }
+
+  .dihedral-legend { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+  .legend-chip {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+  }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .chip-dot.phi { background: var(--phi-color); }
+  .chip-dot.psi { background: var(--psi-color); }
+  .chip-dot.rgroup { background: var(--accent); }
+  .chip-dot.atom-n { background: var(--atom-n); }
+  .chip-dot.atom-c { background: var(--atom-c); }
+  .chip-dot.atom-o { background: var(--atom-o); }
+  .legend-divider { width: 100%; height: 0; }
+  @media (min-width: 480px) { .legend-divider { width: 1px; height: 12px; align-self: center; background: var(--border); } }
+
+  svg#plot { width: 100%; height: auto; display: block; cursor: grab; touch-action: none; }
+  svg#plot:active { cursor: grabbing; }
+
+  #viewer {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--viewer-bg);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .readout-row {
+    display: flex; gap: 12px; width: 100%; max-width: 780px; margin-top: 16px; flex-wrap: wrap;
+  }
+
+  .stat {
+    flex: 1 1 120px;
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+    background: var(--surface-1); padding: 10px 12px;
+  }
+  .stat-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;
+  }
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .verdict {
+    flex: 2 1 220px;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    font-size: 12px; font-weight: 500; padding: 10px 12px;
+    border-radius: var(--radius); border: 0.5px solid; text-align: center; line-height: 1.4;
+  }
+  .verdict .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .verdict.favored { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+  .verdict.favored .dot { background: var(--green); }
+  .verdict.allowed { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber); }
+  .verdict.allowed .dot { background: var(--amber); }
+  .verdict.outlier { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+  .verdict.outlier .dot { background: var(--red); }
+
+  .caption {
+    font-size: 12px; color: var(--text-muted); text-align: center;
+    max-width: 680px; line-height: 1.65; margin-top: 18px;
+  }
+  .caption b { color: var(--text-secondary); font-weight: 500; }
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--surface-1); border: 0.5px solid var(--border);
+    padding: 1px 5px; border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-label">Ramachandran plot — drag the point</div>
+<p class="sub">The point sets the phi (φ) and psi (ψ) backbone dihedral angles for one residue. The fragment on the right is built live from those two angles using standard bond lengths and angles — not a lookup, the actual geometry those angles produce.</p>
+
+<div class="tabs">
+  <button data-res="general" class="active">General residue</button>
+  <button data-res="glycine">Glycine</button>
+  <button data-res="proline">Proline</button>
+</div>
+
+<div class="layout">
+  <div class="plot-wrap">
+    <div class="panel-title">Ramachandran plot</div>
+    <svg id="plot" viewBox="0 0 380 380"></svg>
+  </div>
+  <div class="plot-wrap">
+    <div class="panel-title-row">
+      <div class="panel-title">Backbone fragment</div>
+      <label class="rgroup-toggle">
+        <input type="checkbox" id="rgroup-toggle" checked>
+        R group
+      </label>
+    </div>
+    <div id="viewer"></div>
+    <div class="dihedral-legend">
+      <span class="legend-chip"><span class="chip-dot phi"></span>φ bond (N–Cα)</span>
+      <span class="legend-chip"><span class="chip-dot psi"></span>ψ bond (Cα–C)</span>
+      <span class="legend-chip"><span class="chip-dot rgroup"></span>R group</span>
+      <span class="legend-divider"></span>
+      <span class="legend-chip"><span class="chip-dot atom-n"></span>N</span>
+      <span class="legend-chip"><span class="chip-dot atom-c"></span>C</span>
+      <span class="legend-chip"><span class="chip-dot atom-o"></span>O</span>
+    </div>
+  </div>
+</div>
+
+<div class="readout-row">
+  <div class="stat">
+    <div class="stat-label">φ (phi)</div>
+    <div class="stat-value" id="phi-val">-60°</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">ψ (psi)</div>
+    <div class="stat-value" id="psi-val">-45°</div>
+  </div>
+  <div class="verdict favored" id="verdict"><span class="dot"></span><span id="verdict-text">Favored — well within a stable region</span></div>
+</div>
+
+<div class="caption">
+  Shaded regions approximate the classic beta-sheet, right-handed alpha, and left-handed alpha basins by location and rough size — not a precise density map traced from PDB statistics, but the quadrants and centers are correct. The two highlighted bonds in the viewer are the actual rotation axes: φ is rotation around N–Cα, ψ is rotation around Cα–C. <b>Glycine</b> has no side chain at all (just an extra H), so the fragment stays a bare backbone — that's why it tolerates conformations everything else can't, including the left-handed helix region. <b>General</b> residues show a single Cβ stub marking where a side chain would branch off (toggle its highlight off above to see it blend back into the backbone coloring). <b>Proline</b> renders its actual five-membered ring back to the backbone nitrogen — drag φ away from ~-60° and watch the chain swing toward a position the ring physically can't allow, which is the real mechanism behind proline's restricted region, not just a rule this widget enforces.
+</div>
+
+<script>
+(function(){
+  // ---------- geometry: NeRF atom placement ----------
+  function sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+  function add(a,b){return [a[0]+b[0],a[1]+b[1],a[2]+b[2]];}
+  function scale(a,s){return [a[0]*s,a[1]*s,a[2]*s];}
+  function midpoint(a,b){return scale(add(a,b),0.5);}
+  function toXYZ(a){return {x:a[0], y:a[1], z:a[2]};}
+  function norm(a){const l=Math.hypot(a[0],a[1],a[2])||1e-9;return [a[0]/l,a[1]/l,a[2]/l];}
+  function cross(a,b){return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];}
+  const D2R = Math.PI/180;
+
+  function nerf(A,B,C,L,angleDeg,dihedralDeg){
+    const theta = angleDeg*D2R;
+    const phi = dihedralDeg*D2R;
+    const D2 = [
+      -L*Math.cos(theta),
+       L*Math.sin(theta)*Math.cos(phi),
+       L*Math.sin(theta)*Math.sin(phi)
+    ];
+    const bc = norm(sub(C,B));
+    const ab = sub(B,A);
+    const n = norm(cross(ab,bc));
+    const nxbc = cross(n,bc);
+    return [
+      C[0] + bc[0]*D2[0] + nxbc[0]*D2[1] + n[0]*D2[2],
+      C[1] + bc[1]*D2[0] + nxbc[1]*D2[1] + n[1]*D2[2],
+      C[2] + bc[2]*D2[0] + nxbc[2]*D2[1] + n[2]*D2[2]
+    ];
+  }
+
+  function bootstrap(){
+    const bond_C_N = 1.329, angle_C_N_CA = 121.7;
+    const Cprev = [0,0,0];
+    const Ni = [bond_C_N,0,0];
+    const a = angle_C_N_CA*D2R;
+    const CAi = [bond_C_N + 1.458*Math.cos(Math.PI-a), 1.458*Math.sin(Math.PI-a), 0];
+    return [Cprev, Ni, CAi];
+  }
+
+  function buildBackbone(phi, psi, resType){
+    const [Cprev, Ni, CAi] = bootstrap();
+    const Ci = nerf(Cprev, Ni, CAi, 1.525, 111.2, phi);
+    const Nnext = nerf(Ni, CAi, Ci, 1.329, 116.2, psi);
+    const CAnext = nerf(CAi, Ci, Nnext, 1.458, 121.7, 180);
+    const Oprev = nerf(Ni, CAi, Cprev, 1.231, 120.8, 0);
+    const Ci_O = nerf(Ni, CAi, Ci, 1.231, 120.8, psi + 180);
+    const atoms = {Cprev, Ni, CAi, Ci, Nnext, CAnext, Oprev, Ci_O};
+
+    if(resType === 'general'){
+      // generic side-chain stub: standard tetrahedral Cbeta placement off Calpha
+      atoms.Cb = nerf(Ci, Ni, CAi, 1.530, 110.5, 122.5);
+    } else if(resType === 'proline'){
+      // the pyrrolidine ring: N-CA-CB-CG-CD-N. Solving exact ring closure from
+      // sequential dihedrals is fiddly, but a regular pentagon's interior angle
+      // (108 deg) is close enough to proline's real ~103-112 deg ring angles that
+      // building it as a pentagon sharing the existing (phi/psi-invariant) N-CA
+      // edge gives a ring that closes exactly and stays fixed relative to N-CA,
+      // which is the real source of proline's locked phi.
+      const L = Math.hypot(...sub(CAi, Ni)); // reuse the real N-CA bond length for every edge
+      const u = norm(sub(CAi, Ni));
+      const helper = Math.abs(u[2]) < 0.9 ? [0,0,1] : [0,1,0];
+      const v = norm(cross(u, helper));
+      const turn = 72 * D2R; // exterior angle of a regular pentagon
+      let dir = 0, cur = [0,0];
+      const pts2d = [[0,0]]; // P0 = N, in local 2D ring-plane coordinates
+      for(let k=0;k<4;k++){
+        cur = [cur[0] + L*Math.cos(dir), cur[1] + L*Math.sin(dir)];
+        pts2d.push(cur);
+        dir += turn;
+      }
+      const to3d = (p2) => add(Ni, add(scale(u,p2[0]), scale(v,p2[1])));
+      atoms.Cb = to3d(pts2d[2]);
+      atoms.Cg = to3d(pts2d[3]);
+      atoms.Cd = to3d(pts2d[4]); // bonds back to Ni, closing the ring exactly
+    }
+
+    return atoms;
+  }
+
+  function toPDB(atoms){
+    const order = [
+      ['Cprev','C','C'], ['Oprev','O','O'], ['Ni','N','N'],
+      ['CAi','C','CA'], ['Ci','C','C'], ['Ci_O','O','O'],
+      ['Nnext','N','N'], ['CAnext','C','CA']
+    ];
+    if(atoms.Cb) order.push(['Cb','C','CB']);
+    if(atoms.Cg) order.push(['Cg','C','CG']);
+    if(atoms.Cd) order.push(['Cd','C','CD']);
+    let lines = [];
+    order.forEach(([key,elem,name],i)=>{
+      const p = atoms[key];
+      const serial = String(i+1).padStart(5,' ');
+      const atomName = name.padEnd(4,' ');
+      const x = p[0].toFixed(3).padStart(8,' ');
+      const y = p[1].toFixed(3).padStart(8,' ');
+      const z = p[2].toFixed(3).padStart(8,' ');
+      lines.push(`ATOM  ${serial} ${atomName} ALA A   1    ${x}${y}${z}  1.00  0.00          ${elem.padStart(2,' ')}`);
+    });
+    lines.push('END');
+    return lines.join('\n');
+  }
+
+  // ---------- 3Dmol viewer ----------
+  let viewer = $3Dmol.createViewer(document.getElementById('viewer'), {backgroundColor: getComputedStyle(document.body).getPropertyValue('--viewer-bg').trim() || '#f8fafc'});
+
+  let hasInitialView = false;
+  let highlightRGroup = true;
+  function renderMolecule(phi, psi){
+    const atoms = buildBackbone(phi, psi, currentResidue);
+    const pdb = toPDB(atoms);
+    const savedView = hasInitialView ? viewer.getView() : null;
+    viewer.clear();
+    viewer.setBackgroundColor(cssVar('--viewer-bg') || '#f8fafc');
+    viewer.addModel(pdb, 'pdb');
+    viewer.setStyle({}, {stick:{radius:0.15}, sphere:{scale:0.28}});
+    viewer.setStyle({elem:'C'}, {stick:{radius:0.15, color:cssVar('--atom-c')}, sphere:{scale:0.28, color:cssVar('--atom-c')}});
+    viewer.setStyle({elem:'N'}, {stick:{radius:0.15, color:cssVar('--atom-n')}, sphere:{scale:0.28, color:cssVar('--atom-n')}});
+    viewer.setStyle({elem:'O'}, {stick:{radius:0.15, color:cssVar('--atom-o')}, sphere:{scale:0.28, color:cssVar('--atom-o')}});
+
+    if(highlightRGroup && (atoms.Cb)){
+      const rgroupSel = {atom:['CB','CG','CD']};
+      viewer.setStyle(rgroupSel, {stick:{radius:0.17, color:cssVar('--accent')}, sphere:{scale:0.34, color:cssVar('--accent')}});
+    }
+
+    // phi = C(i-1)-N-CA-C(i), rotation axis is the N-CA bond
+    // psi = N-CA-C(i)-N(i+1), rotation axis is the CA-C bond
+    const phiColor = cssVar('--phi-color'), psiColor = cssVar('--psi-color');
+    viewer.addCylinder({start:toXYZ(atoms.Ni), end:toXYZ(atoms.CAi), radius:0.26, color:phiColor, opacity:0.4, fromCap:2, toCap:2});
+    viewer.addCylinder({start:toXYZ(atoms.CAi), end:toXYZ(atoms.Ci), radius:0.26, color:psiColor, opacity:0.4, fromCap:2, toCap:2});
+    viewer.addLabel('φ', {position:toXYZ(midpoint(atoms.Ni, atoms.CAi)), backgroundColor:phiColor, backgroundOpacity:0.9, fontColor:'white', fontSize:13, borderRadius:8, inFront:true, showBackground:true});
+    viewer.addLabel('ψ', {position:toXYZ(midpoint(atoms.CAi, atoms.Ci)), backgroundColor:psiColor, backgroundOpacity:0.9, fontColor:'white', fontSize:13, borderRadius:8, inFront:true, showBackground:true});
+
+    if(savedView){
+      viewer.setView(savedView);
+    } else {
+      viewer.zoomTo();
+      hasInitialView = true;
+    }
+    viewer.render();
+  }
+
+  // ---------- Ramachandran regions per residue type ----------
+  const REGIONS = {
+    general: {
+      favored: [
+        [[-170,90],[-70,90],[-70,180],[-170,180]],     // beta sheet, correctly upper-left (phi<0, psi>0)
+        [[-100,-60],[-30,-60],[-30,-15],[-100,-15]],   // right-handed alpha, centered ~(-63,-43)
+        [[45,25],[80,25],[80,65],[45,65]]              // left-handed alpha, centered ~(60,45)
+      ],
+      allowed: [
+        [[-180,60],[-50,60],[-50,180],[-180,180]],     // beta halo
+        [[-180,-180],[-50,-180],[-50,-150],[-180,-150]], // beta wraps around psi=+/-180
+        [[-130,-90],[10,-90],[10,10],[-130,10]],       // alpha-R halo
+        [[20,0],[100,0],[100,90],[20,90]]              // alpha-L halo
+      ]
+    },
+    glycine: {
+      favored: [
+        [[-100,-60],[-30,-60],[-30,-15],[-100,-15]],   // alpha-R, glycine still uses it
+        [[30,15],[100,15],[100,60],[30,60]],           // mirror alpha-L, more populated for Gly
+        [[-170,90],[-70,90],[-70,180],[-170,180]],     // beta, same as general
+        [[40,-150],[100,-150],[100,-90],[40,-90]]      // mirror-image beta (Gly is achiral -> plot is ~symmetric about origin)
+      ],
+      allowed: [
+        [[-180,-180],[180,-180],[180,180],[-180,180]]  // Gly tolerates far more broadly than other residues
+      ]
+    },
+    proline: {
+      favored: [
+        [[-75,-50],[-45,-50],[-45,-10],[-75,-10]],     // helical-like patch, phi locked ~-60
+        [[-75,120],[-45,120],[-45,170],[-75,170]]      // polyproline-II / extended patch, also common and phi-locked
+      ],
+      allowed: [
+        [[-80,-180],[-40,-180],[-40,180],[-80,180]]    // phi essentially fixed by the ring; psi has real freedom
+      ]
+    }
+  };
+
+  const SIZE = 380, MARGIN = 34, PLOT = SIZE - 2*MARGIN;
+  function toSvg(phi, psi){
+    const x = MARGIN + (phi+180)/360 * PLOT;
+    const y = MARGIN + (180-psi)/360 * PLOT;
+    return [x,y];
+  }
+  function toAngles(x,y){
+    const phi = (x-MARGIN)/PLOT*360 - 180;
+    const psi = 180 - (y-MARGIN)/PLOT*360;
+    return [Math.max(-180,Math.min(180,phi)), Math.max(-180,Math.min(180,psi))];
+  }
+  function polyToSvgPoints(poly){
+    return poly.map(([phi,psi])=>toSvg(phi,psi).join(',')).join(' ');
+  }
+  function pointInPoly(px,py,poly){
+    let inside=false;
+    for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+      const xi=poly[i][0], yi=poly[i][1], xj=poly[j][0], yj=poly[j][1];
+      const intersect = ((yi>py)!==(yj>py)) && (px < (xj-xi)*(py-yi)/(yj-yi)+xi);
+      if(intersect) inside=!inside;
+    }
+    return inside;
+  }
+  function classify(phi,psi,resType){
+    const r = REGIONS[resType];
+    for(const poly of r.favored) if(pointInPoly(phi,psi,poly)) return 'favored';
+    for(const poly of r.allowed) if(pointInPoly(phi,psi,poly)) return 'allowed';
+    return 'outlier';
+  }
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('plot');
+  svg.setAttribute('viewBox', `0 0 ${SIZE} ${SIZE}`);
+
+  function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+  function el(tag, attrs){
+    const e = document.createElementNS(NS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  let currentResidue = 'general';
+  let phi = -60, psi = -45;
+
+  function drawPlot(){
+    svg.innerHTML = '';
+    const gridColor = cssVar('--grid');
+    const mutedColor = cssVar('--text-muted');
+    const outlierFill = cssVar('--outlier-fill');
+    const allowedFill = cssVar('--allowed-fill');
+    const favoredFill = cssVar('--favored-fill');
+    const favoredLine = cssVar('--favored-line');
+    const accent = cssVar('--accent');
+
+    svg.appendChild(el('rect', {x:MARGIN, y:MARGIN, width:PLOT, height:PLOT, fill:outlierFill, stroke:gridColor, 'stroke-width':1}));
+
+    for(let g=-180; g<=180; g+=60){
+      const [gx1,gy1] = toSvg(g,-180);
+      const [gx2,gy2] = toSvg(g,180);
+      svg.appendChild(el('line', {x1:gx1,y1:gy1,x2:gx2,y2:gy2,stroke:gridColor,'stroke-width':0.5}));
+      const [hx1,hy1] = toSvg(-180,g);
+      const [hx2,hy2] = toSvg(180,g);
+      svg.appendChild(el('line', {x1:hx1,y1:hy1,x2:hx2,y2:hy2,stroke:gridColor,'stroke-width':0.5}));
+    }
+
+    const r = REGIONS[currentResidue];
+    r.allowed.forEach(poly=>{
+      svg.appendChild(el('polygon', {points: polyToSvgPoints(poly), fill: allowedFill}));
+    });
+    r.favored.forEach(poly=>{
+      svg.appendChild(el('polygon', {points: polyToSvgPoints(poly), fill: favoredFill, stroke: favoredLine, 'stroke-width':1}));
+    });
+
+    [-180,-120,-60,0,60,120,180].forEach(v=>{
+      const [x,y] = toSvg(v,-180);
+      const t = el('text', {x, y:y+16, 'text-anchor':'middle', 'font-size':9, fill:mutedColor, 'font-family':'JetBrains Mono, monospace'});
+      t.textContent = v; svg.appendChild(t);
+      const [x2,y2] = toSvg(-180,v);
+      const t2 = el('text', {x:x2-8, y:y2+3, 'text-anchor':'end', 'font-size':9, fill:mutedColor, 'font-family':'JetBrains Mono, monospace'});
+      t2.textContent = v; svg.appendChild(t2);
+    });
+
+    const phiLab = el('text', {x:SIZE/2, y:SIZE-4, 'text-anchor':'middle', 'font-size':11, fill:mutedColor});
+    phiLab.textContent = 'φ (phi)'; svg.appendChild(phiLab);
+    const psiLab = el('text', {x:12, y:SIZE/2, 'text-anchor':'middle', 'font-size':11, fill:mutedColor, transform:`rotate(-90 12 ${SIZE/2})`});
+    psiLab.textContent = 'ψ (psi)'; svg.appendChild(psiLab);
+
+    const [px,py] = toSvg(phi,psi);
+    const pt = el('circle', {id:'drag-point', cx:px, cy:py, r:7, stroke: cssVar('--bg'), 'stroke-width':2});
+    svg.appendChild(pt);
+    updatePointColor();
+  }
+
+  function updatePointColor(){
+    const cls = classify(phi,psi,currentResidue);
+    const colorVar = {favored:'--green', allowed:'--amber', outlier:'--red'}[cls];
+    const pt = document.getElementById('drag-point');
+    if(pt) pt.setAttribute('fill', cssVar(colorVar));
+
+    const verdict = document.getElementById('verdict');
+    verdict.className = 'verdict ' + cls;
+    const messages = {
+      favored: 'Favored — well within a stable region',
+      allowed: 'Allowed — strained but physically possible',
+      outlier: 'Outlier — backbone atoms are clashing here'
+    };
+    document.getElementById('verdict-text').textContent = messages[cls];
+    document.getElementById('phi-val').textContent = Math.round(phi)+'°';
+    document.getElementById('psi-val').textContent = Math.round(psi)+'°';
+  }
+
+  function update(){
+    const [px,py] = toSvg(phi,psi);
+    const pt = document.getElementById('drag-point');
+    if(pt){ pt.setAttribute('cx',px); pt.setAttribute('cy',py); }
+    updatePointColor();
+    renderMolecule(phi,psi);
+  }
+
+  let dragging=false;
+  function svgCoords(evt){
+    const rect = svg.getBoundingClientRect();
+    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    return [(clientX-rect.left)/rect.width*SIZE, (clientY-rect.top)/rect.height*SIZE];
+  }
+  function startDrag(evt){ dragging=true; moveDrag(evt); evt.preventDefault(); }
+  function moveDrag(evt){
+    if(!dragging) return;
+    const [x,y] = svgCoords(evt);
+    const [nphi,npsi] = toAngles(x,y);
+    phi = nphi; psi = npsi;
+    update();
+    evt.preventDefault();
+  }
+  function endDrag(){ dragging=false; }
+
+  svg.addEventListener('mousedown', startDrag);
+  window.addEventListener('mousemove', moveDrag);
+  window.addEventListener('mouseup', endDrag);
+  svg.addEventListener('touchstart', startDrag, {passive:false});
+  window.addEventListener('touchmove', moveDrag, {passive:false});
+  window.addEventListener('touchend', endDrag);
+
+  document.querySelectorAll('.tabs button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      currentResidue = btn.dataset.res;
+      if(currentResidue==='proline') phi = -60;
+      drawPlot();
+      renderMolecule(phi,psi);
+    });
+  });
+
+  document.getElementById('rgroup-toggle').addEventListener('change', (e)=>{
+    highlightRGroup = e.target.checked;
+    renderMolecule(phi,psi);
+  });
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ()=>{
+    viewer.setBackgroundColor(cssVar('--viewer-bg') || '#f8fafc');
+    drawPlot();
+    renderMolecule(phi,psi);
+  });
+
+  drawPlot();
+  renderMolecule(phi,psi);
+
+  window.addEventListener('resize', ()=>{
+    viewer.resize();
+    viewer.render();
+  });
+
+  function sendHeight() {
+    window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+  }
+  window.addEventListener('load', () => {
+    setTimeout(sendHeight, 100);
+    setTimeout(sendHeight, 600);
+  });
+  window.addEventListener('resize', sendHeight);
+})();
+</script>
+</body>
+</html>

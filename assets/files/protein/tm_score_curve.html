@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TM-score Per-Residue Weighting Curve</title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --radius: 8px;
+    --accent: #FF6600;
+    --curve: #FF6600;
+    --grid: rgba(15,23,42,0.08);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+      --grid: rgba(148,163,184,0.12);
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 180ms ease;
+  }
+
+  .top-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;
+    align-self: flex-start;
+  }
+
+  .layout {
+    display: flex; gap: 24px; width: 100%; max-width: 640px;
+    align-items: flex-start; flex-wrap: wrap;
+  }
+
+  .plot-wrap {
+    flex: 1 1 380px; min-width: 280px;
+    border: 0.5px solid var(--border); border-radius: 12px;
+    background: var(--surface-1); padding: 12px;
+  }
+
+  svg#plot { width: 100%; height: auto; display: block; }
+
+  .readout {
+    flex: 1 1 200px; min-width: 200px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .stat {
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+    background: var(--surface-1); padding: 10px 12px;
+  }
+  .stat-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;
+  }
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .verdict {
+    font-size: 12px; font-weight: 500; padding: 8px 10px;
+    border-radius: var(--radius); border: 0.5px solid; text-align: center;
+    line-height: 1.4;
+  }
+  .verdict.full    { background: #f0fdf4; border-color: #86efac; color: #14532d; }
+  .verdict.partial { background: #fffbeb; border-color: #fcd34d; color: #78350f; }
+  .verdict.none     { background: #fef2f2; border-color: #fca5a5; color: #7f1d1d; }
+
+  @media (prefers-color-scheme: dark) {
+    .verdict.full    { background: #0a1f10; border-color: #22c55e; color: #86efac; }
+    .verdict.partial { background: #241d05; border-color: #eab308; color: #fde68a; }
+    .verdict.none     { background: #2a0f0f; border-color: #dc2626; color: #fca5a5; }
+  }
+
+  .slider-row {
+    width: 100%; max-width: 640px; margin-top: 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .slider-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  input[type=range] {
+    width: 100%; accent-color: var(--accent);
+  }
+
+  .caption {
+    font-size: 12px; color: var(--text-muted); text-align: center;
+    max-width: 560px; line-height: 1.6; margin-top: 16px;
+  }
+
+  code { font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+
+<div class="top-label">TM-score residue weighting — drag the slider</div>
+
+<div class="layout">
+  <div class="plot-wrap">
+    <svg id="plot" viewBox="0 0 400 260"></svg>
+  </div>
+
+  <div class="readout">
+    <div class="stat">
+      <div class="stat-label">d_i / d_0(L_target)</div>
+      <div class="stat-value" id="x-val">0.00</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">1 / (1 + x²)</div>
+      <div class="stat-value" id="y-val">1.00</div>
+    </div>
+    <div class="verdict full" id="verdict">Residue lines up almost perfectly — full credit</div>
+  </div>
+</div>
+
+<div class="slider-row">
+  <input type="range" id="slider" min="0" max="4" step="0.01" value="0">
+  <div class="slider-labels">
+    <span>0 (perfect alignment)</span>
+    <span>4 (way off)</span>
+  </div>
+</div>
+
+<div class="caption">
+  As a residue's aligned distance $d_i$ grows relative to the normalizer $d_0(L_{\mathrm{target}})$, the score doesn't fall off linearly — it drops fast near the middle and flattens out near zero. That's what keeps a handful of badly-misaligned residues from swamping the average the way raw distance would.
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById('plot');
+const slider = document.getElementById('slider');
+const xValEl = document.getElementById('x-val');
+const yValEl = document.getElementById('y-val');
+const verdictEl = document.getElementById('verdict');
+
+const W = 400, H = 260;
+const M = { top: 16, right: 16, bottom: 30, left: 36 };
+const plotW = W - M.left - M.right;
+const plotH = H - M.top - M.bottom;
+const X_MAX = 4;
+
+function sx(x) { return M.left + (x / X_MAX) * plotW; }
+function sy(y) { return M.top + (1 - y) * plotH; }
+
+function isDark() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function el(tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+function render() {
+  svg.innerHTML = '';
+  const gridColor = getComputedStyle(document.body).getPropertyValue('--grid').trim();
+  const mutedColor = getComputedStyle(document.body).getPropertyValue('--text-muted').trim();
+  const curveColor = getComputedStyle(document.body).getPropertyValue('--curve').trim();
+
+  // gridlines + axis ticks
+  for (let gx = 0; gx <= X_MAX; gx++) {
+    const line = el('line', { x1: sx(gx), y1: M.top, x2: sx(gx), y2: M.top + plotH, stroke: gridColor, 'stroke-width': 1 });
+    svg.appendChild(line);
+    const t = el('text', { x: sx(gx), y: M.top + plotH + 16, 'font-size': 10, fill: mutedColor, 'text-anchor': 'middle', 'font-family': 'JetBrains Mono, monospace' });
+    t.textContent = gx;
+    svg.appendChild(t);
+  }
+  for (let gy = 0; gy <= 1.0001; gy += 0.25) {
+    const line = el('line', { x1: M.left, y1: sy(gy), x2: M.left + plotW, y2: sy(gy), stroke: gridColor, 'stroke-width': 1 });
+    svg.appendChild(line);
+    const t = el('text', { x: M.left - 8, y: sy(gy) + 3, 'font-size': 10, fill: mutedColor, 'text-anchor': 'end', 'font-family': 'JetBrains Mono, monospace' });
+    t.textContent = gy.toFixed(2);
+    svg.appendChild(t);
+  }
+
+  // axis labels
+  const xlab = el('text', { x: M.left + plotW / 2, y: H - 4, 'font-size': 11, fill: mutedColor, 'text-anchor': 'middle' });
+  xlab.textContent = 'x = d_i / d_0(L_target)';
+  svg.appendChild(xlab);
+
+  const ylab = el('text', { x: 12, y: M.top + plotH / 2, 'font-size': 11, fill: mutedColor, 'text-anchor': 'middle', transform: `rotate(-90 12 ${M.top + plotH / 2})` });
+  ylab.textContent = 'score';
+  svg.appendChild(ylab);
+
+  // curve
+  let d = '';
+  const N = 200;
+  for (let i = 0; i <= N; i++) {
+    const x = (i / N) * X_MAX;
+    const y = 1 / (1 + x * x);
+    const px = sx(x), py = sy(y);
+    d += (i === 0 ? 'M' : 'L') + px.toFixed(2) + ',' + py.toFixed(2) + ' ';
+  }
+  svg.appendChild(el('path', { d, fill: 'none', stroke: curveColor, 'stroke-width': 2 }));
+
+  // marker + dashed guides
+  const x = parseFloat(slider.value);
+  const y = 1 / (1 + x * x);
+  const px = sx(x), py = sy(y);
+
+  svg.appendChild(el('line', { x1: px, y1: py, x2: px, y2: M.top + plotH, stroke: curveColor, 'stroke-width': 1, 'stroke-dasharray': '3,3', opacity: 0.6 }));
+  svg.appendChild(el('line', { x1: M.left, y1: py, x2: px, y2: py, stroke: curveColor, 'stroke-width': 1, 'stroke-dasharray': '3,3', opacity: 0.6 }));
+  svg.appendChild(el('circle', { cx: px, cy: py, r: 5, fill: curveColor, stroke: isDark() ? '#1b1b1e' : '#ffffff', 'stroke-width': 1.5 }));
+
+  xValEl.textContent = x.toFixed(2);
+  yValEl.textContent = y.toFixed(2);
+
+  verdictEl.classList.remove('full', 'partial', 'none');
+  if (y >= 0.7) {
+    verdictEl.classList.add('full');
+    verdictEl.textContent = 'Residue lines up almost perfectly — nearly full credit';
+  } else if (y >= 0.25) {
+    verdictEl.classList.add('partial');
+    verdictEl.textContent = 'Residue is somewhat off — partial credit';
+  } else {
+    verdictEl.classList.add('none');
+    verdictEl.textContent = 'Residue is far away — almost no credit';
+  }
+}
+
+slider.addEventListener('input', render);
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+
+render();
+
+function sendHeight() {
+  window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+}
+window.addEventListener('load', () => {
+  setTimeout(sendHeight, 100);
+  setTimeout(sendHeight, 600);
+});
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

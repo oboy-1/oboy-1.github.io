@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESM-2 Scaling Laws — 8M to 15B</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --radius: 8px;
+    --accent: #FF6600;
+    --grid: rgba(15,23,42,0.08);
+    --line: #2f6fed;
+    --ref: #9333ea;
+    --green: #1D9E75;
+    --amber: #b8860a;
+    --red: #D85A30;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+      --grid: rgba(148,163,184,0.12);
+      --line: #5b9bff;
+      --ref: #c084fc;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 180ms ease;
+  }
+
+  .top-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+    align-self: flex-start;
+  }
+  .sub {
+    font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;
+    max-width: 680px; align-self: flex-start; margin-bottom: 16px;
+  }
+  .sub code { font-family:'JetBrains Mono', monospace; font-size: 11px; background: var(--surface-1); border: 0.5px solid var(--border); padding: 1px 5px; border-radius: 4px; }
+
+  .tab-row { display:flex; gap: 6px; margin-bottom: 10px; align-self: flex-start; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+    background: var(--surface-1); border: 0.5px solid var(--border); color: var(--text-secondary);
+    padding: 7px 12px; border-radius: 6px; cursor: pointer; transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tabs.secondary button.active { background: var(--line); border-color: var(--line); }
+
+  .layout {
+    display: flex; gap: 24px; width: 100%; max-width: 720px;
+    align-items: flex-start; flex-wrap: wrap;
+  }
+
+  .plot-wrap {
+    flex: 1 1 400px; min-width: 300px;
+    border: 0.5px solid var(--border); border-radius: 12px;
+    background: var(--surface-1); padding: 12px;
+  }
+  svg#plot { width: 100%; height: auto; display: block; }
+
+  .legend { display: flex; gap: 16px; justify-content: center; margin-top: 8px; font-size: 11.5px; color: var(--text-secondary); flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .legend i { width: 10px; height: 2px; display: inline-block; }
+  .legend i.dashed { background: repeating-linear-gradient(90deg, var(--ref) 0 4px, transparent 4px 7px); }
+  .legend i.solid { background: var(--line); }
+
+  .readout {
+    flex: 1 1 220px; min-width: 220px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .stat {
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+    background: var(--surface-1); padding: 10px 12px;
+  }
+  .stat-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;
+  }
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 500;
+    color: var(--text-primary);
+  }
+  .stat-sub { font-family:'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .verdict {
+    font-size: 12px; font-weight: 500; padding: 9px 10px;
+    border-radius: var(--radius); border: 0.5px solid; text-align: center; line-height: 1.45;
+  }
+  .verdict.favorable { background: #f0fdf4; border-color: #86efac; color: #14532d; }
+  .verdict.neutral   { background: #fffbeb; border-color: #fcd34d; color: #78350f; }
+  .verdict.unfavorable { background: #fef2f2; border-color: #fca5a5; color: #7f1d1d; }
+  @media (prefers-color-scheme: dark) {
+    .verdict.favorable { background: #0a1f10; border-color: #22c55e; color: #86efac; }
+    .verdict.neutral   { background: #241d05; border-color: #eab308; color: #fde68a; }
+    .verdict.unfavorable { background: #2a0f0f; border-color: #dc2626; color: #fca5a5; }
+  }
+
+  .slider-row {
+    width: 100%; max-width: 720px; margin-top: 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .slider-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .slider-labels span.active { color: var(--accent); font-weight: 500; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+
+  .caption {
+    font-size: 12px; color: var(--text-muted); text-align: center;
+    max-width: 640px; line-height: 1.65; margin-top: 18px;
+  }
+  .caption b { color: var(--text-secondary); font-weight: 500; }
+
+  .source {
+    font-size: 10.5px; color: var(--text-muted); text-align: center;
+    max-width: 640px; margin-top: 10px; font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-label">ESM-2 scaling laws — drag the slider</div>
+<p class="sub">Six real checkpoints, four orders of magnitude in parameters. Every number below is the actual published value — nothing here is interpolated or simulated.</p>
+
+<div class="tab-row">
+  <div class="tabs" id="metricTabs">
+    <button data-metric="contact" class="active">Unsupervised contact precision</button>
+    <button data-metric="tm">Structure prediction (TM-score)</button>
+  </div>
+</div>
+<div class="tab-row">
+  <div class="tabs secondary" id="datasetTabs"></div>
+</div>
+
+<div class="layout">
+  <div class="plot-wrap">
+    <svg id="plot" viewBox="0 0 420 280"></svg>
+    <div class="legend">
+      <span><i class="solid"></i>ESM-2 family</span>
+      <span><i class="dashed"></i>ESM-1b (650M) reference</span>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div class="stat">
+      <div class="stat-label">Selected model</div>
+      <div class="stat-value" id="model-val">8M</div>
+      <div class="stat-sub" id="arch-val">6 layers · 320 dim · 20 heads</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label" id="metric-label">long-range P@L, large-valid</div>
+      <div class="stat-value" id="metric-val">15.9</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Δ vs previous size</div>
+      <div class="stat-value" id="delta-val">—</div>
+    </div>
+    <div class="verdict neutral" id="verdict">First model in the family — no previous step to compare.</div>
+  </div>
+</div>
+
+<div class="slider-row">
+  <input type="range" id="slider" min="0" max="5" step="1" value="0">
+  <div class="slider-labels" id="sliderLabels"></div>
+</div>
+
+<div class="caption" id="captionText">
+  Long-range contact precision comes from a logistic-regression probe over the model's own attention maps — no structural fine-tuning involved. It climbs steeply at first, then visibly flattens: the jump from 3B→15B is a fraction of the jump from 8M→35M, even though the parameter increase is far larger.
+</div>
+<div class="source">Source: ESM-2 comparison table, facebookresearch/esm README · Lin et al. 2023, <i>Science</i> 379:1123–1130 · perplexity 8M=10.45, 15B=6.37 (paper text)</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById('plot');
+const slider = document.getElementById('slider');
+
+// ---------------- REAL DATA ----------------
+// facebookresearch/esm README, "Comparison to related works" table.
+// Same table cited in Lin et al. 2023, Science 379:1123-1130.
+const MODELS = [
+  { id:'8M',   params:8e6,   label:'8M',   layers:6,  dim:320,  heads:20 },
+  { id:'35M',  params:35e6,  label:'35M',  layers:12, dim:480,  heads:20 },
+  { id:'150M', params:150e6, label:'150M', layers:30, dim:640,  heads:20 },
+  { id:'650M', params:650e6, label:'650M', layers:33, dim:1280, heads:20 },
+  { id:'3B',   params:3e9,   label:'3B',   layers:36, dim:2560, heads:40 },
+  { id:'15B',  params:15e9,  label:'15B',  layers:48, dim:5120, heads:40 },
+];
+
+const CONTACT = {
+  'Large valid': [15.9,28.8,42.2,50.1,52.7,54.5],
+  'CASP14':      [9.8,16.4,26.8,32.5,34.0,37.0],
+  'CAMEO':       [15.7,28.4,40.1,47.6,49.9,51.7],
+};
+const CONTACT_ESM1B = { 'Large valid':41.1, 'CASP14':24.4, 'CAMEO':39.0 };
+
+const TM = {
+  'CASP14': [36.7,41.4,49.0,51.3,52.5,55.4],
+  'CAMEO':  [48.1,56.4,64.9,70.1,71.8,72.1],
+};
+const TM_ESM1B = { 'CASP14':41.6, 'CAMEO':64.5 };
+
+const PERPLEXITY = { '8M':10.45, '15B':6.37 }; // only two values stated explicitly in the paper's text
+
+const DATASETS = { contact: ['Large valid','CASP14','CAMEO'], tm: ['CASP14','CAMEO'] };
+const METRIC_LABEL = {
+  contact: (ds) => `long-range P@L, ${ds.toLowerCase()}`,
+  tm: (ds) => `TM-score × 100, ${ds}`,
+};
+const CAPTIONS = {
+  contact: "Long-range contact precision comes from a logistic-regression probe over the model's own attention maps — no structural fine-tuning involved. It climbs steeply at first, then visibly flattens: the jump from 3B→15B is a fraction of the jump from 8M→35M, even though the parameter increase is far larger.",
+  tm: "TM-score here comes from a structure module trained directly on the frozen language-model embeddings. On CAMEO specifically, 3B→15B is nearly flat (71.8 → 72.1) — ten billion extra parameters buy almost nothing on this benchmark, even though CASP14 (the harder set) still shows a real gain.",
+};
+
+let currentMetric = 'contact';
+let currentDataset = 'Large valid';
+let currentIdx = 0;
+
+// ---------------- geometry ----------------
+const W = 420, H = 280;
+const M = { top: 16, right: 16, bottom: 34, left: 38 };
+const plotW = W - M.left - M.right;
+const plotH = H - M.top - M.bottom;
+
+function logParam(p){ return Math.log10(p); }
+const xMin = logParam(8e6), xMax = logParam(15e9);
+function sx(params){ return M.left + (logParam(params)-xMin)/(xMax-xMin) * plotW; }
+
+function currentSeries(){
+  return currentMetric === 'contact' ? CONTACT[currentDataset] : TM[currentDataset];
+}
+function currentRef(){
+  return currentMetric === 'contact' ? CONTACT_ESM1B[currentDataset] : TM_ESM1B[currentDataset];
+}
+function yMaxFor(){ return currentMetric === 'contact' ? 60 : 80; }
+function sy(v){ return M.top + (1 - v/yMaxFor()) * plotH; }
+
+function el(tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+
+function buildDatasetTabs(){
+  const wrap = document.getElementById('datasetTabs');
+  wrap.innerHTML = '';
+  DATASETS[currentMetric].forEach((ds, i) => {
+    const b = document.createElement('button');
+    b.textContent = ds;
+    if (ds === currentDataset) b.classList.add('active');
+    b.addEventListener('click', () => { currentDataset = ds; refreshAll(); });
+    wrap.appendChild(b);
+  });
+}
+
+function buildSliderLabels(){
+  const wrap = document.getElementById('sliderLabels');
+  wrap.innerHTML = '';
+  MODELS.forEach((m, i) => {
+    const span = document.createElement('span');
+    span.textContent = m.label;
+    if (i === currentIdx) span.classList.add('active');
+    wrap.appendChild(span);
+  });
+}
+
+function drawPlot(){
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+  const gridColor = cssVar('--grid');
+  const mutedColor = cssVar('--text-muted');
+  const lineColor = cssVar('--line');
+  const refColor = cssVar('--ref');
+  const accent = cssVar('--accent');
+  const series = currentSeries();
+  const ref = currentRef();
+  const yMax = yMaxFor();
+
+  // y gridlines
+  const yStep = yMax === 60 ? 15 : 20;
+  for (let gy = 0; gy <= yMax; gy += yStep) {
+    const y = sy(gy);
+    svg.appendChild(el('line', { x1:M.left, y1:y, x2:M.left+plotW, y2:y, stroke:gridColor, 'stroke-width':1 }));
+    const t = el('text', { x:M.left-6, y:y+3, 'font-size':9, fill:mutedColor, 'text-anchor':'end', 'font-family':'JetBrains Mono, monospace' });
+    t.textContent = gy; svg.appendChild(t);
+  }
+  // x gridlines / ticks at each model
+  MODELS.forEach(m=>{
+    const x = sx(m.params);
+    svg.appendChild(el('line', { x1:x, y1:M.top, x2:x, y2:M.top+plotH, stroke:gridColor, 'stroke-width':0.5 }));
+    const t = el('text', { x, y:M.top+plotH+16, 'font-size':9, fill:mutedColor, 'text-anchor':'middle', 'font-family':'JetBrains Mono, monospace' });
+    t.textContent = m.label; svg.appendChild(t);
+  });
+
+  const ylab = el('text', { x:12, y:H/2, 'font-size':10, fill:mutedColor, 'text-anchor':'middle', transform:`rotate(-90 12 ${H/2})` });
+  ylab.textContent = currentMetric==='contact' ? 'P@L' : 'TM × 100';
+  svg.appendChild(ylab);
+  const xlab = el('text', { x:M.left+plotW/2, y:H-4, 'font-size':10, fill:mutedColor, 'text-anchor':'middle' });
+  xlab.textContent = 'parameters (log scale)'; svg.appendChild(xlab);
+
+  // ESM-1b reference line
+  const ry = sy(ref);
+  svg.appendChild(el('line', { x1:M.left, y1:ry, x2:M.left+plotW, y2:ry, stroke:refColor, 'stroke-width':1.3, 'stroke-dasharray':'4,3', opacity:0.8 }));
+  const rlab = el('text', { x:M.left+plotW-4, y:ry-5, 'font-size':9, fill:refColor, 'text-anchor':'end', 'font-family':'JetBrains Mono, monospace' });
+  rlab.textContent = 'ESM-1b '+ref.toFixed(1); svg.appendChild(rlab);
+
+  // ESM-2 curve
+  let d = '';
+  MODELS.forEach((m,i)=>{
+    const x = sx(m.params), y = sy(series[i]);
+    d += (i===0 ? 'M' : 'L') + x.toFixed(2) + ',' + y.toFixed(2) + ' ';
+  });
+  svg.appendChild(el('path', { d, fill:'none', stroke:lineColor, 'stroke-width':2.2 }));
+
+  MODELS.forEach((m,i)=>{
+    const x = sx(m.params), y = sy(series[i]);
+    const isCurrent = i === currentIdx;
+    svg.appendChild(el('circle', {
+      cx:x, cy:y, r: isCurrent ? 6.5 : 3.5,
+      fill: isCurrent ? accent : lineColor,
+      stroke: cssVar('--bg'), 'stroke-width': isCurrent ? 2 : 1.2
+    }));
+  });
+
+  // dashed vertical guide to current point
+  const cx = sx(MODELS[currentIdx].params);
+  svg.appendChild(el('line', { x1:cx, y1:M.top, x2:cx, y2:M.top+plotH, stroke:accent, 'stroke-width':1, 'stroke-dasharray':'2,3', opacity:0.55 }));
+}
+
+function updateReadout(){
+  const m = MODELS[currentIdx];
+  const series = currentSeries();
+  const val = series[currentIdx];
+
+  document.getElementById('model-val').textContent = 'ESM-2 (' + m.label + ')';
+  document.getElementById('arch-val').textContent = `${m.layers} layers · ${m.dim} dim · ${m.heads} heads`;
+  document.getElementById('metric-label').textContent = METRIC_LABEL[currentMetric](currentDataset);
+  document.getElementById('metric-val').textContent = val.toFixed(1);
+  document.getElementById('captionText').textContent = CAPTIONS[currentMetric];
+
+  const verdict = document.getElementById('verdict');
+  const deltaEl = document.getElementById('delta-val');
+
+  if (currentIdx === 0) {
+    deltaEl.textContent = '—';
+    verdict.className = 'verdict neutral';
+    verdict.textContent = 'First model in the family — no previous step to compare.';
+    // still show perplexity note for 8M
+    if (PERPLEXITY[m.id] !== undefined) {
+      verdict.textContent += ` Validation perplexity: ${PERPLEXITY[m.id]} (paper text).`;
+    }
+    return;
+  }
+
+  const prev = series[currentIdx-1];
+  const pct = (val - prev) / prev * 100;
+  deltaEl.textContent = (pct>=0?'+':'') + pct.toFixed(1) + '%';
+
+  let cls, msg;
+  if (pct >= 15) {
+    cls = 'favorable';
+    msg = `Large jump from ${m.label==='35M'?'8M':MODELS[currentIdx-1].label} → ${m.label} (+${pct.toFixed(1)}%) — scaling is clearly still paying off here.`;
+  } else if (pct >= 5) {
+    cls = 'neutral';
+    msg = `Moderate gain from ${MODELS[currentIdx-1].label} → ${m.label} (+${pct.toFixed(1)}%) — returns are starting to taper.`;
+  } else {
+    cls = 'unfavorable';
+    msg = `Small gain from ${MODELS[currentIdx-1].label} → ${m.label} (+${pct.toFixed(1)}%) — a huge parameter jump for a marginal improvement.`;
+  }
+  verdict.className = 'verdict ' + cls;
+  verdict.textContent = msg;
+
+  if (m.id === '15B' && PERPLEXITY['15B'] !== undefined) {
+    verdict.textContent += ` Validation perplexity: ${PERPLEXITY['15B']} (paper text, vs 10.45 at 8M).`;
+  }
+}
+
+function refreshAll(){
+  buildDatasetTabs();
+  buildSliderLabels();
+  drawPlot();
+  updateReadout();
+}
+
+slider.addEventListener('input', () => { currentIdx = parseInt(slider.value); refreshAll(); });
+
+document.querySelectorAll('#metricTabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#metricTabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMetric = btn.dataset.metric;
+    currentDataset = DATASETS[currentMetric][0];
+    refreshAll();
+  });
+});
+
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", refreshAll);
+
+refreshAll();
+
+function sendHeight() {
+  window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+}
+window.addEventListener('load', () => setTimeout(sendHeight, 100));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

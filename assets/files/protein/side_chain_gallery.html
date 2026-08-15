@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's a side chain?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --radius: 8px;
+    --accent: #FF6600;
+    --grid: rgba(15,23,42,0.08);
+
+    --atom-n: #3050f8;
+    --atom-o: #ff0d0d;
+    --atom-s: #cfae0e;
+    --atom-c: #909090;
+
+    --cat-nonpolar: #b08900;
+    --cat-nonpolar-bg: #fef9e7;
+    --cat-polar: #0d9488;
+    --cat-polar-bg: #ecfdf5;
+    --cat-acidic: #dc2626;
+    --cat-acidic-bg: #fef2f2;
+    --cat-basic: #2563eb;
+    --cat-basic-bg: #eff6ff;
+    --cat-aromatic: #9333ea;
+    --cat-aromatic-bg: #faf5ff;
+    --cat-special: #ea580c;
+    --cat-special-bg: #fff7ed;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+      --grid: rgba(148,163,184,0.12);
+
+      --atom-c: #a3a3a3;
+
+      --cat-nonpolar: #eab308;
+      --cat-nonpolar-bg: #241d05;
+      --cat-polar: #2dd4bf;
+      --cat-polar-bg: #042f2a;
+      --cat-acidic: #f87171;
+      --cat-acidic-bg: #2a0f0f;
+      --cat-basic: #60a5fa;
+      --cat-basic-bg: #0d1b30;
+      --cat-aromatic: #c084fc;
+      --cat-aromatic-bg: #241030;
+      --cat-special: #fb923c;
+      --cat-special-bg: #2a1305;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 180ms ease;
+  }
+
+  .top-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+    align-self: flex-start;
+  }
+  .sub {
+    font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;
+    max-width: 720px; align-self: flex-start; margin-bottom: 18px;
+  }
+
+  .tabs {
+    display: flex; gap: 6px; margin-bottom: 18px; align-self: flex-start; flex-wrap: wrap;
+    max-width: 780px;
+  }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+    background: var(--surface-1); border: 0.5px solid var(--border); color: var(--text-secondary);
+    padding: 7px 12px; border-radius: 6px; cursor: pointer; transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    width: 100%; max-width: 780px;
+  }
+
+  .card {
+    border: 0.5px solid var(--border); border-radius: 12px;
+    background: var(--surface-1); padding: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: opacity 150ms ease, transform 150ms ease;
+  }
+  .card.hidden { display: none; }
+
+  .card-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .card-name {
+    font-size: 12.5px; font-weight: 500; color: var(--text-primary);
+  }
+  .card-code {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted);
+  }
+
+  .card svg { width: 100%; height: auto; display: block; }
+
+  .card-badge {
+    align-self: flex-start;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.04em;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 999px;
+    border: 0.5px solid;
+  }
+
+  .legend-row {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px;
+    max-width: 780px; justify-content: center;
+  }
+  .legend-chip {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+  }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+  .caption {
+    font-size: 12px; color: var(--text-muted); text-align: center;
+    max-width: 700px; line-height: 1.65; margin-top: 18px;
+  }
+  .caption b { color: var(--text-secondary); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="top-label">Side chains — filter by category</div>
+<p class="sub">Every amino acid shares the same backbone (grey, left side of each card below) — the R group is the one part that's actually different, and it's what gives each residue its personality. Click a category to filter.</p>
+
+<div class="tabs" id="tabs">
+  <button data-cat="all" class="active">All</button>
+  <button data-cat="nonpolar">Nonpolar</button>
+  <button data-cat="polar">Polar</button>
+  <button data-cat="acidic">Acidic</button>
+  <button data-cat="basic">Basic</button>
+  <button data-cat="aromatic">Aromatic</button>
+  <button data-cat="special">Special</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="legend-row">
+  <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-n)"></span>N</span>
+  <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-c)"></span>C</span>
+  <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-o)"></span>O</span>
+  <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-s)"></span>S</span>
+</div>
+
+<div class="caption">
+  Schematic, not to scale — real side chains have specific bond lengths and angles; this is just a faster sketch (the fused rings in tryptophan and histidine especially are simplified). The shaded background behind each R group is colored by category: <b>nonpolar</b> chains fold inward, away from water; <b>polar, acidic, and basic</b> side chains tend to sit on the surface; <b>aromatic</b> rings can do both, and often stack against each other; <b>glycine</b> and <b>proline</b> are the two structural outliers you've already met — no side chain at all, and a side chain that loops back into the backbone itself. One flag worth knowing: <b>histidine</b> is grouped under "basic" here by convention, but it's a much weaker base than lysine or arginine — its ring is only reliably charged in a narrower pH range, which is exactly why it shows up so often at enzyme active sites.
+</div>
+
+<script>
+(function(){
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    const e = document.createElementNS(NS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+
+  // Each residue: chain = number of plain CH2/CH zigzag vertices before the
+  // terminal group. terminal describes the functional group drawn at the end.
+  const RESIDUES = [
+    { name:'Glycine',       code:'GLY · G', cat:'special',  chain:0, terminal:'H' },
+    { name:'Alanine',       code:'ALA · A', cat:'nonpolar', chain:0, terminal:'CH3' },
+    { name:'Valine',        code:'VAL · V', cat:'nonpolar', chain:0, terminal:'branch' },
+    { name:'Leucine',       code:'LEU · L', cat:'nonpolar', chain:1, terminal:'branch' },
+    { name:'Isoleucine',    code:'ILE · I', cat:'nonpolar', chain:0, terminal:'branch-asym' },
+    { name:'Methionine',    code:'MET · M', cat:'nonpolar', chain:2, terminal:'SMe' },
+    { name:'Serine',        code:'SER · S', cat:'polar',    chain:1, terminal:'OH' },
+    { name:'Threonine',     code:'THR · T', cat:'polar',    chain:0, terminal:'thr-branch' },
+    { name:'Cysteine',      code:'CYS · C', cat:'polar',    chain:1, terminal:'SH' },
+    { name:'Asparagine',    code:'ASN · N', cat:'polar',    chain:1, terminal:'CONH2' },
+    { name:'Glutamine',     code:'GLN · Q', cat:'polar',    chain:2, terminal:'CONH2' },
+    { name:'Aspartate',     code:'ASP · D', cat:'acidic',   chain:1, terminal:'COO' },
+    { name:'Glutamate',     code:'GLU · E', cat:'acidic',   chain:2, terminal:'COO' },
+    { name:'Lysine',        code:'LYS · K', cat:'basic',    chain:4, terminal:'NH3' },
+    { name:'Arginine',      code:'ARG · R', cat:'basic',    chain:3, terminal:'guanidinium' },
+    { name:'Histidine',     code:'HIS · H', cat:'basic',    chain:1, terminal:'imidazole' },
+    { name:'Phenylalanine', code:'PHE · F', cat:'aromatic', chain:1, terminal:'ring6' },
+    { name:'Tyrosine',      code:'TYR · Y', cat:'aromatic', chain:1, terminal:'ring6-OH' },
+    { name:'Tryptophan',    code:'TRP · W', cat:'aromatic', chain:1, terminal:'indole' },
+    { name:'Proline',       code:'PRO · P', cat:'special',  chain:0, terminal:'ring5' }
+  ];
+
+  const CAT_LABEL = { nonpolar:'Nonpolar', polar:'Polar', acidic:'Acidic', basic:'Basic', aromatic:'Aromatic', special:'Special' };
+
+  function buildSVG(res){
+    const svg = el('svg', {viewBox:'0 0 160 90'});
+    const c = cssVar('--cat-' + res.cat);
+    const bg = cssVar('--cat-' + res.cat + '-bg');
+    const cAtom = cssVar('--atom-c');
+    const nAtom = cssVar('--atom-n');
+    const oAtom = cssVar('--atom-o');
+    const sAtom = cssVar('--atom-s');
+
+    // R-group highlight backdrop (skip for glycine, which has no side chain)
+    if(res.terminal !== 'H'){
+      svg.appendChild(el('rect', {x:26, y:8, width:128, height:74, rx:10, fill:bg}));
+    }
+
+    // backbone stub: N - CA - C, grey/blue/red, unhighlighted
+    svg.appendChild(el('circle', {cx:14, cy:45, r:5, fill:nAtom}));
+    svg.appendChild(el('line', {x1:14, y1:45, x2:30, y2:45, stroke:cAtom, 'stroke-width':2}));
+    svg.appendChild(el('circle', {cx:30, cy:45, r:5.5, fill:cAtom}));
+    const caLabel = el('text', {x:30, y:65, 'text-anchor':'middle', 'font-size':7, fill:'var(--text-muted)', 'font-family':'JetBrains Mono, monospace'});
+    caLabel.textContent = 'Cα';
+    svg.appendChild(caLabel);
+
+    let x = 30;
+    const dx = 22;
+    let up = true;
+
+    function bondTo(nx, ny){
+      svg.appendChild(el('line', {x1:x, y1: up ? 32 : 45, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+    }
+
+    // zigzag chain of plain carbons
+    let cy = 45;
+    for(let i=0;i<res.chain;i++){
+      const nx = x + dx;
+      const ny = up ? 25 : 45;
+      svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+      svg.appendChild(el('circle', {cx:nx, cy:ny, r:4.5, fill:cAtom, stroke:c, 'stroke-width':1.5}));
+      x = nx; cy = ny; up = !up;
+    }
+
+    // terminal group
+    const ny = up ? 25 : 45;
+    const nx = x + dx;
+    switch(res.terminal){
+      case 'H': {
+        // glycine: nothing drawn, just the label
+        const t = el('text', {x:60, y:48, 'font-size':10, fill:'var(--text-muted)', 'font-family':'JetBrains Mono, monospace'});
+        t.textContent = '+ H'; svg.appendChild(t);
+        break;
+      }
+      case 'CH3': {
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:5, fill:cAtom, stroke:c, 'stroke-width':1.5}));
+        break;
+      }
+      case 'branch': {
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:5, fill:cAtom, stroke:c, 'stroke-width':1.5}));
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+16, y2:ny-14, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+16, cy:ny-14, r:4, fill:cAtom, stroke:c, 'stroke-width':1.2}));
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+16, y2:ny+14, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+16, cy:ny+14, r:4, fill:cAtom, stroke:c, 'stroke-width':1.2}));
+        break;
+      }
+      case 'branch-asym': {
+        // Isoleucine: branch point directly off the chain, one branch a dead-end
+        // methyl, the other continuing one more carbon before its own dead-end methyl
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:5, fill:cAtom, stroke:c, 'stroke-width':1.5}));
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+16, y2:ny-16, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+16, cy:ny-16, r:4, fill:cAtom, stroke:c, 'stroke-width':1.2}));
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+16, y2:ny+14, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+16, cy:ny+14, r:4, fill:cAtom, stroke:c, 'stroke-width':1.2}));
+        svg.appendChild(el('line', {x1:nx+16, y1:ny+14, x2:nx+32, y2:ny+2, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+32, cy:ny+2, r:4, fill:cAtom, stroke:c, 'stroke-width':1.2}));
+        break;
+      }
+      case 'thr-branch': {
+        // Threonine: branch point directly off the chain, splitting into OH and CH3
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:5, fill:cAtom, stroke:c, 'stroke-width':1.5}));
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+16, y2:ny-14, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+16, cy:ny-14, r:5, fill:oAtom}));
+        const t1 = el('text', {x:nx+16, y:ny-25, 'text-anchor':'middle', 'font-size':7.5, fill:'var(--text-secondary)', 'font-family':'JetBrains Mono, monospace'});
+        t1.textContent = 'OH'; svg.appendChild(t1);
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+16, y2:ny+14, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+16, cy:ny+14, r:4.5, fill:cAtom, stroke:c, 'stroke-width':1.2}));
+        break;
+      }
+      case 'SMe': {
+        // Methionine: sulfur sits mid-chain (thioether), not at the terminal end
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:5, fill:sAtom}));
+        const t = el('text', {x:nx, y:ny-13, 'text-anchor':'middle', 'font-size':8, fill:'var(--text-secondary)', 'font-family':'JetBrains Mono, monospace'});
+        t.textContent = 'S'; svg.appendChild(t);
+        const nx2 = nx+18, ny2 = up ? ny+14 : ny-14;
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx2, y2:ny2, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx2, cy:ny2, r:4.5, fill:cAtom, stroke:c, 'stroke-width':1.2}));
+        break;
+      }
+      case 'CONH2': {
+        // Asparagine / Glutamine: carboxamide, one O one N off the same terminal carbon
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:4.5, fill:cAtom}));
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+14, y2:ny-12, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+14, cy:ny-12, r:5, fill:oAtom}));
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+14, y2:ny+12, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+14, cy:ny+12, r:5, fill:nAtom}));
+        const t = el('text', {x:nx+14, y:ny+27, 'text-anchor':'middle', 'font-size':7.5, fill:'var(--text-secondary)', 'font-family':'JetBrains Mono, monospace'});
+        t.textContent = 'CONH₂'; svg.appendChild(t);
+        break;
+      }
+      case 'guanidinium': {
+        // Arginine: chain ends at a nitrogen, then one more carbon, which
+        // branches into two more nitrogens (the guanidinium group)
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:5, fill:nAtom}));
+        const nx2 = nx+18, ny2 = up ? ny-14 : ny+14;
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx2, y2:ny2, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx2, cy:ny2, r:4.5, fill:cAtom}));
+        svg.appendChild(el('line', {x1:nx2, y1:ny2, x2:nx2+16, y2:ny2-14, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx2+16, cy:ny2-14, r:5, fill:nAtom}));
+        svg.appendChild(el('line', {x1:nx2, y1:ny2, x2:nx2+16, y2:ny2+14, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx2+16, cy:ny2+14, r:5, fill:nAtom}));
+        break;
+      }
+      case 'imidazole': {
+        // Histidine: 5-membered ring, two nitrogens in a 1,3 pattern
+        // (one carbon between them on the short arc, two on the long arc)
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        const ringLen = 15, startAngle = Math.atan2(ny-cy, nx-x);
+        let pts = [[nx,ny]], cur = [nx,ny], ang = startAngle;
+        for(let i=0;i<4;i++){
+          cur = [cur[0]+ringLen*Math.cos(ang), cur[1]+ringLen*Math.sin(ang)];
+          pts.push(cur); ang += 72*Math.PI/180;
+        }
+        svg.appendChild(el('polygon', {points:pts.map(p=>p.join(',')).join(' '), fill:'none', stroke:c, 'stroke-width':2.5}));
+        [2,4].forEach(i=>svg.appendChild(el('circle', {cx:pts[i][0], cy:pts[i][1], r:3.5, fill:cAtom})));
+        [1,3].forEach(i=>svg.appendChild(el('circle', {cx:pts[i][0], cy:pts[i][1], r:4, fill:nAtom})));
+        break;
+      }
+      case 'indole': {
+        // Tryptophan: fused 5-ring (one nitrogen) + 6-ring, sharing one edge.
+        // The 6-ring is built by walking the shared edge in reverse and
+        // continuing the turtle turn with the opposite sign, which traces
+        // it on the outside of the 5-ring instead of back over it.
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        const ringLen = 15, startAngle = Math.atan2(ny-cy, nx-x);
+        let pts = [[nx,ny]], cur = [nx,ny], ang = startAngle;
+        for(let i=0;i<4;i++){
+          cur = [cur[0]+ringLen*Math.cos(ang), cur[1]+ringLen*Math.sin(ang)];
+          pts.push(cur); ang += 72*Math.PI/180;
+        }
+        svg.appendChild(el('polygon', {points:pts.map(p=>p.join(',')).join(' '), fill:'none', stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:pts[1][0], cy:pts[1][1], r:3.5, fill:cAtom}));
+        svg.appendChild(el('circle', {cx:pts[2][0], cy:pts[2][1], r:4, fill:nAtom}));
+        svg.appendChild(el('circle', {cx:pts[3][0], cy:pts[3][1], r:3.5, fill:cAtom}));
+        svg.appendChild(el('circle', {cx:pts[4][0], cy:pts[4][1], r:3.5, fill:cAtom}));
+
+        const sharedDir = Math.atan2(pts[4][1]-pts[3][1], pts[4][0]-pts[3][0]);
+        let hex = [pts[3], pts[4]], hcur = pts[4], hAng = sharedDir - 60*Math.PI/180;
+        for(let i=0;i<4;i++){
+          hcur = [hcur[0]+ringLen*Math.cos(hAng), hcur[1]+ringLen*Math.sin(hAng)];
+          hex.push(hcur); hAng -= 60*Math.PI/180;
+        }
+        svg.appendChild(el('polygon', {points:hex.map(p=>p.join(',')).join(' '), fill:'none', stroke:c, 'stroke-width':2.5}));
+        hex.slice(2).forEach(p=>svg.appendChild(el('circle', {cx:p[0], cy:p[1], r:3.5, fill:cAtom})));
+        break;
+      }
+      case 'OH': {
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:5.5, fill:oAtom}));
+        const t = el('text', {x:nx, y:ny+16, 'text-anchor':'middle', 'font-size':8, fill:'var(--text-secondary)', 'font-family':'JetBrains Mono, monospace'});
+        t.textContent = 'OH'; svg.appendChild(t);
+        break;
+      }
+      case 'SH': {
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:5.5, fill:sAtom}));
+        const t = el('text', {x:nx, y:ny+16, 'text-anchor':'middle', 'font-size':8, fill:'var(--text-secondary)', 'font-family':'JetBrains Mono, monospace'});
+        t.textContent = 'SH'; svg.appendChild(t);
+        break;
+      }
+      case 'COO': {
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:4.5, fill:cAtom}));
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+14, y2:ny-12, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+14, cy:ny-12, r:5, fill:oAtom}));
+        svg.appendChild(el('line', {x1:nx, y1:ny, x2:nx+14, y2:ny+12, stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:nx+14, cy:ny+12, r:5, fill:oAtom}));
+        const t = el('text', {x:nx+14, y:ny+26, 'text-anchor':'middle', 'font-size':8, fill:'var(--text-secondary)', 'font-family':'JetBrains Mono, monospace'});
+        t.textContent = 'COO⁻'; svg.appendChild(t);
+        break;
+      }
+      case 'NH3': {
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:ny, stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('circle', {cx:nx, cy:ny, r:5.5, fill:nAtom}));
+        const t = el('text', {x:nx, y:ny+16, 'text-anchor':'middle', 'font-size':8, fill:'var(--text-secondary)', 'font-family':'JetBrains Mono, monospace'});
+        t.textContent = 'NH3⁺'; svg.appendChild(t);
+        break;
+      }
+      case 'ring6': {
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:(ny+45)/2, stroke:c, 'stroke-width':2.5}));
+        const cx0 = nx+10, cy0 = 45, r = 16;
+        let pts = '';
+        for(let a=0;a<6;a++){
+          const ang = a*60*Math.PI/180;
+          pts += (cx0 + r*Math.cos(ang)) + ',' + (cy0 + r*Math.sin(ang)) + ' ';
+        }
+        svg.appendChild(el('polygon', {points:pts.trim(), fill:'none', stroke:c, 'stroke-width':2.5}));
+        break;
+      }
+      case 'ring6-OH': {
+        // Tyrosine: same benzene ring as phenylalanine, plus a hydroxyl on the
+        // para position (directly opposite the attachment point)
+        svg.appendChild(el('line', {x1:x, y1:cy, x2:nx, y2:(ny+45)/2, stroke:c, 'stroke-width':2.5}));
+        const cx0 = nx+10, cy0 = 45, r = 16;
+        let ringPts = [];
+        for(let a=0;a<6;a++){
+          const ang = a*60*Math.PI/180;
+          ringPts.push([cx0 + r*Math.cos(ang), cy0 + r*Math.sin(ang)]);
+        }
+        svg.appendChild(el('polygon', {points:ringPts.map(p=>p.join(',')).join(' '), fill:'none', stroke:c, 'stroke-width':2.5}));
+        // para vertex (index 3, directly across the ring from the attachment side)
+        const para = ringPts[3];
+        const outward = [para[0]+(para[0]-cx0)*0.7, para[1]+(para[1]-cy0)*0.7];
+        svg.appendChild(el('line', {x1:para[0], y1:para[1], x2:outward[0], y2:outward[1], stroke:c, 'stroke-width':2}));
+        svg.appendChild(el('circle', {cx:outward[0], cy:outward[1], r:5, fill:oAtom}));
+        const t = el('text', {x:outward[0], y:outward[1]+16, 'text-anchor':'middle', 'font-size':7.5, fill:'var(--text-secondary)', 'font-family':'JetBrains Mono, monospace'});
+        t.textContent = 'OH'; svg.appendChild(t);
+        break;
+      }
+      case 'ring5': {
+        // proline: draw the ring looping back to N, distinct from the linear side chains
+        const cx0 = 22, cy0 = 20, r = 15;
+        let pts = '';
+        for(let a=0;a<5;a++){
+          const ang = -90*Math.PI/180 + a*72*Math.PI/180;
+          pts += (cx0 + r*Math.cos(ang)) + ',' + (cy0 + r*Math.sin(ang)) + ' ';
+        }
+        svg.appendChild(el('polygon', {points:pts.trim(), fill:'none', stroke:c, 'stroke-width':2.5}));
+        svg.appendChild(el('line', {x1:14, y1:45, x2:22, y2:35, stroke:c, 'stroke-width':2, 'stroke-dasharray':'2,2'}));
+        const t = el('text', {x:22, y:78, 'text-anchor':'middle', 'font-size':8, fill:'var(--text-secondary)', 'font-family':'JetBrains Mono, monospace'});
+        t.textContent = 'loops to N'; svg.appendChild(t);
+        break;
+      }
+    }
+    return svg;
+  }
+
+  const grid = document.getElementById('grid');
+  RESIDUES.forEach(res=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.cat = res.cat;
+
+    const header = document.createElement('div');
+    header.className = 'card-header';
+    const name = document.createElement('span');
+    name.className = 'card-name';
+    name.textContent = res.name;
+    const code = document.createElement('span');
+    code.className = 'card-code';
+    code.textContent = res.code;
+    header.appendChild(name); header.appendChild(code);
+    card.appendChild(header);
+
+    card.appendChild(buildSVG(res));
+
+    const badge = document.createElement('span');
+    badge.className = 'card-badge';
+    badge.style.color = cssVar('--cat-' + res.cat);
+    badge.style.borderColor = cssVar('--cat-' + res.cat);
+    badge.textContent = CAT_LABEL[res.cat];
+    card.appendChild(badge);
+
+    grid.appendChild(card);
+  });
+
+  document.getElementById('tabs').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.card').forEach(card=>{
+      card.classList.toggle('hidden', cat !== 'all' && card.dataset.cat !== cat);
+    });
+    sendHeight();
+  });
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ()=>{
+    grid.innerHTML = '';
+    RESIDUES.forEach(res=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.cat = res.cat;
+      const header = document.createElement('div');
+      header.className = 'card-header';
+      const name = document.createElement('span');
+      name.className = 'card-name'; name.textContent = res.name;
+      const code = document.createElement('span');
+      code.className = 'card-code'; code.textContent = res.code;
+      header.appendChild(name); header.appendChild(code);
+      card.appendChild(header);
+      card.appendChild(buildSVG(res));
+      const badge = document.createElement('span');
+      badge.className = 'card-badge';
+      badge.style.color = cssVar('--cat-' + res.cat);
+      badge.style.borderColor = cssVar('--cat-' + res.cat);
+      badge.textContent = CAT_LABEL[res.cat];
+      card.appendChild(badge);
+      grid.appendChild(card);
+    });
+  });
+
+  function sendHeight() {
+    window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+  }
+  window.addEventListener('load', () => {
+    setTimeout(sendHeight, 100);
+    setTimeout(sendHeight, 600);
+  });
+  window.addEventListener('resize', sendHeight);
+  setTimeout(sendHeight, 300);
+})();
+</script>
+</body>
+</html>

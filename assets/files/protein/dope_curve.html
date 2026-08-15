@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOPE Distance Scoring Curve</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --radius: 8px;
+    --accent: #FF6600;
+    --grid: rgba(15,23,42,0.08);
+    --green: #1D9E75;
+    --orange: #D85A30;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+      --grid: rgba(148,163,184,0.12);
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 180ms ease;
+  }
+
+  .top-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;
+    align-self: flex-start;
+  }
+
+  .layout {
+    display: flex; gap: 24px; width: 100%; max-width: 640px;
+    align-items: flex-start; flex-wrap: wrap;
+  }
+
+  .plot-wrap {
+    flex: 1 1 380px; min-width: 280px;
+    border: 0.5px solid var(--border); border-radius: 12px;
+    background: var(--surface-1); padding: 12px;
+  }
+
+  svg#plot { width: 100%; height: auto; display: block; }
+
+  .legend {
+    display: flex; gap: 16px; justify-content: center;
+    margin-top: 6px; font-size: 12px; color: var(--text-secondary);
+  }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  .readout {
+    flex: 1 1 200px; min-width: 200px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .stat {
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+    background: var(--surface-1); padding: 10px 12px;
+  }
+  .stat-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;
+  }
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .verdict {
+    font-size: 12px; font-weight: 500; padding: 8px 10px;
+    border-radius: var(--radius); border: 0.5px solid; text-align: center;
+    line-height: 1.4;
+  }
+  .verdict.favorable { background: #f0fdf4; border-color: #86efac; color: #14532d; }
+  .verdict.neutral   { background: #fffbeb; border-color: #fcd34d; color: #78350f; }
+  .verdict.unfavorable { background: #fef2f2; border-color: #fca5a5; color: #7f1d1d; }
+
+  @media (prefers-color-scheme: dark) {
+    .verdict.favorable { background: #0a1f10; border-color: #22c55e; color: #86efac; }
+    .verdict.neutral   { background: #241d05; border-color: #eab308; color: #fde68a; }
+    .verdict.unfavorable { background: #2a0f0f; border-color: #dc2626; color: #fca5a5; }
+  }
+
+  .slider-row {
+    width: 100%; max-width: 640px; margin-top: 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .slider-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+
+  .caption {
+    font-size: 12px; color: var(--text-muted); text-align: center;
+    max-width: 560px; line-height: 1.6; margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-label">DOPE distance scoring — drag the slider</div>
+
+<div class="layout">
+  <div class="plot-wrap">
+    <svg id="plot" viewBox="0 0 400 260"></svg>
+    <div class="legend">
+      <span><i style="background: var(--green);"></i>p(r) observed</span>
+      <span><i style="background: var(--orange);"></i>p_rs(r) reference</span>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div class="stat">
+      <div class="stat-label">distance r_ij</div>
+      <div class="stat-value" id="r-val">4.0 &#197;</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">p(r) / p_rs(r)</div>
+      <div class="stat-value" id="ratio-val">1.00</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">pseudo-energy -kT ln(ratio)</div>
+      <div class="stat-value" id="e-val">0.00</div>
+    </div>
+    <div class="verdict favorable" id="verdict">Placeholder</div>
+  </div>
+</div>
+
+<div class="slider-row">
+  <input type="range" id="slider" min="0" max="15" step="0.1" value="4">
+  <div class="slider-labels">
+    <span>0 &#197; (touching)</span>
+    <span>15 &#197; (cutoff)</span>
+  </div>
+</div>
+
+<div class="caption">
+  When the observed curve sits above the reference at that distance, the pseudo-energy goes negative &mdash; favorable. When it dips below, the energy goes positive &mdash; unfavorable, meaning that distance is rarer than pure packing geometry alone would predict.
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById('plot');
+const slider = document.getElementById('slider');
+const rEl = document.getElementById('r-val');
+const ratioEl = document.getElementById('ratio-val');
+const eEl = document.getElementById('e-val');
+const verdictEl = document.getElementById('verdict');
+
+const W = 400, H = 260;
+const M = { top: 16, right: 16, bottom: 30, left: 36 };
+const plotW = W - M.left - M.right;
+const plotH = H - M.top - M.bottom;
+const RMAX = 15;
+
+function pObs(r){ return r*r*Math.exp(-((r-4)*(r-4))/4); }
+function pRs(r){ return r*r*Math.exp(-r/9); }
+
+let maxY = 0;
+for (let i = 0; i <= 150; i++) { const r = i/10; maxY = Math.max(maxY, pObs(r), pRs(r)); }
+
+function sx(x) { return M.left + (x / RMAX) * plotW; }
+function sy(y) { return M.top + (1 - y / maxY) * plotH; }
+
+function isDark() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function el(tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+function pathFor(fn) {
+  let d = ''; const N = 150;
+  for (let i = 0; i <= N; i++) {
+    const r = (i / N) * RMAX;
+    const y = fn(r);
+    const px = sx(r), py = sy(y);
+    d += (i === 0 ? 'M' : 'L') + px.toFixed(2) + ',' + py.toFixed(2) + ' ';
+  }
+  return d;
+}
+
+function render() {
+  svg.innerHTML = '';
+  const gridColor = getComputedStyle(document.body).getPropertyValue('--grid').trim();
+  const mutedColor = getComputedStyle(document.body).getPropertyValue('--text-muted').trim();
+  const green = getComputedStyle(document.body).getPropertyValue('--green').trim();
+  const orange = getComputedStyle(document.body).getPropertyValue('--orange').trim();
+
+  for (let gx = 0; gx <= RMAX; gx += 3) {
+    svg.appendChild(el('line', { x1: sx(gx), y1: M.top, x2: sx(gx), y2: M.top + plotH, stroke: gridColor, 'stroke-width': 1 }));
+    const t = el('text', { x: sx(gx), y: M.top + plotH + 16, 'font-size': 10, fill: mutedColor, 'text-anchor': 'middle', 'font-family': 'JetBrains Mono, monospace' });
+    t.textContent = gx;
+    svg.appendChild(t);
+  }
+
+  const xlab = el('text', { x: M.left + plotW / 2, y: H - 4, 'font-size': 11, fill: mutedColor, 'text-anchor': 'middle' });
+  xlab.textContent = 'r (Å)';
+  svg.appendChild(xlab);
+
+  svg.appendChild(el('path', { d: pathFor(pObs), fill: 'none', stroke: green, 'stroke-width': 2 }));
+  svg.appendChild(el('path', { d: pathFor(pRs), fill: 'none', stroke: orange, 'stroke-width': 2 }));
+
+  const r = parseFloat(slider.value);
+  const yo = pObs(r), yr = pRs(r);
+  const px = sx(r);
+
+  svg.appendChild(el('line', { x1: px, y1: M.top, x2: px, y2: M.top + plotH, stroke: mutedColor, 'stroke-width': 1, 'stroke-dasharray': '3,3', opacity: 0.6 }));
+  svg.appendChild(el('circle', { cx: px, cy: sy(yo), r: 5, fill: green, stroke: isDark() ? '#1b1b1e' : '#ffffff', 'stroke-width': 1.5 }));
+  svg.appendChild(el('circle', { cx: px, cy: sy(yr), r: 5, fill: orange, stroke: isDark() ? '#1b1b1e' : '#ffffff', 'stroke-width': 1.5 }));
+
+  const ratio = yr > 0.0001 ? yo / yr : 0;
+  const energy = -Math.log(Math.max(ratio, 0.001));
+
+  rEl.textContent = r.toFixed(1) + ' Å';
+  ratioEl.textContent = ratio.toFixed(2);
+  eEl.textContent = energy.toFixed(2);
+
+  verdictEl.classList.remove('favorable', 'neutral', 'unfavorable');
+  if (energy < -0.3) {
+    verdictEl.classList.add('favorable');
+    verdictEl.textContent = 'More common than random packing predicts — chemically favorable';
+  } else if (energy < 0.3) {
+    verdictEl.classList.add('neutral');
+    verdictEl.textContent = 'About as likely as random packing — chemically neutral';
+  } else {
+    verdictEl.classList.add('unfavorable');
+    verdictEl.textContent = 'Rarer than random packing predicts — chemically unfavorable';
+  }
+}
+
+slider.addEventListener('input', render);
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+
+render();
+
+function sendHeight() {
+  window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+}
+window.addEventListener('load', () => setTimeout(sendHeight, 100));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

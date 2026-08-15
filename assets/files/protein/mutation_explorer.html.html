@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mutation Explorer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:           #ffffff;
+    --surface:      #f8fafc;
+    --surface-2:    #f1f5f9;
+    --border:       rgba(15,23,42,0.10);
+    --border-2:     rgba(15,23,42,0.06);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted:   #6e7684;
+
+    --score-high:   #16a34a;
+    --score-mid:    #ca8a04;
+    --score-low:    #dc2626;
+    --score-wt:     #2563eb;
+
+    --pill-wt-bg:      #eff6ff;
+    --pill-wt-border:  #93c5fd;
+    --pill-wt-text:    #1e3a8a;
+    --pill-good-bg:    #f0fdf4;
+    --pill-good-border:#86efac;
+    --pill-good-text:  #14532d;
+    --pill-mid-bg:     #fefce8;
+    --pill-mid-border: #fde047;
+    --pill-mid-text:   #713f12;
+    --pill-bad-bg:     #fef2f2;
+    --pill-bad-border: #fca5a5;
+    --pill-bad-text:   #7f1d1d;
+
+    --nlp-surface:  #fafbff;
+    --nlp-border:   rgba(59,130,246,0.15);
+
+    --token-selected-ring: #2563eb;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:           rgb(27,27,30);
+      --surface:      #25262b;
+      --surface-2:    #2f3137;
+      --border:       rgba(148,163,184,0.12);
+      --border-2:     rgba(148,163,184,0.06);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted:   #7d8694;
+
+      --score-high:   #4ade80;
+      --score-mid:    #facc15;
+      --score-low:    #f87171;
+      --score-wt:     #60a5fa;
+
+      --pill-wt-bg:      #1e2a3a; --pill-wt-border: #3b82f6;  --pill-wt-text: #93c5fd;
+      --pill-good-bg:    #0a1f10; --pill-good-border:#22c55e;  --pill-good-text:#86efac;
+      --pill-mid-bg:     #1f1a08; --pill-mid-border: #ca8a04;  --pill-mid-text: #fde047;
+      --pill-bad-bg:     #2a0f0f; --pill-bad-border: #dc2626;  --pill-bad-text: #fca5a5;
+
+      --nlp-surface:  #1e2030;
+      --nlp-border:   rgba(96,165,250,0.15);
+
+      --token-selected-ring: #60a5fa;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    transition: background 180ms ease, color 180ms ease;
+  }
+
+  .container { width: 100%; max-width: 780px; }
+
+  /* header */
+  .top-label {
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-secondary); font-weight: 500; margin-bottom: 6px;
+  }
+  .top-hint {
+    font-size: 13px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.5;
+  }
+
+  /* panels */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 560px) { .panels { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+
+  .panel-label {
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 500; margin-bottom: 14px;
+  }
+
+  /* token rows */
+  .token-row {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px;
+  }
+
+  .token {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 400;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.12s;
+    user-select: none;
+    position: relative;
+  }
+
+  .token:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+  .token.selected {
+    border-color: var(--token-selected-ring);
+    color: var(--text-primary);
+    background: var(--bg);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--token-selected-ring) 20%, transparent);
+  }
+
+  .token .aa-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 5px 9px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+
+  .token .aa-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--border);
+  }
+
+  .token:hover .aa-tooltip { opacity: 1; }
+
+  /* NLP panel tokens — more subdued, less clickable feeling */
+  .nlp-token {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 400;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--nlp-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.12s;
+    user-select: none;
+  }
+
+  .nlp-token:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+  .nlp-token.selected {
+    border-color: var(--token-selected-ring);
+    color: var(--text-primary);
+    background: var(--bg);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--token-selected-ring) 20%, transparent);
+  }
+
+  /* results area */
+  .result-area {
+    min-height: 90px;
+    border-top: 1px solid var(--border-2);
+    padding-top: 14px;
+  }
+
+  .result-prompt {
+    font-size: 12px; color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* NLP substitution pills */
+  .sub-grid {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+
+  .sub-pill {
+    font-size: 11px; font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 99px;
+    border: 1px solid;
+    cursor: default;
+    transition: transform 0.1s;
+  }
+
+  .sub-pill:hover { transform: translateY(-1px); }
+
+  .pill-wt     { background: var(--pill-wt-bg);   border-color: var(--pill-wt-border);   color: var(--pill-wt-text); }
+  .pill-good   { background: var(--pill-good-bg);  border-color: var(--pill-good-border);  color: var(--pill-good-text); }
+  .pill-mid    { background: var(--pill-mid-bg);   border-color: var(--pill-mid-border);   color: var(--pill-mid-text); }
+  .pill-bad    { background: var(--pill-bad-bg);   border-color: var(--pill-bad-border);   color: var(--pill-bad-text); }
+
+  /* protein heatmap bars */
+  .aa-list { display: flex; flex-direction: column; gap: 3px; }
+
+  .aa-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .aa-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    width: 14px; text-align: center;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .aa-bar-track {
+    flex: 1; height: 6px; background: var(--surface-2);
+    border-radius: 3px; overflow: hidden;
+  }
+
+  .aa-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  .aa-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-muted);
+    width: 42px; text-align: right; flex-shrink: 0;
+  }
+
+  .aa-tag {
+    font-size: 10px; font-weight: 500;
+    padding: 1px 6px; border-radius: 99px; border: 1px solid;
+    width: 52px; text-align: center; flex-shrink: 0;
+  }
+
+  /* takeaway */
+  .takeaway {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 560px) { .takeaway { grid-template-columns: 1fr; } }
+
+  .takeaway-col {}
+  .takeaway-head {
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 500; margin-bottom: 6px;
+  }
+  .takeaway-body {
+    font-size: 13px; color: var(--text-secondary); line-height: 1.6; font-weight: 300;
+  }
+  .takeaway-body strong { color: var(--text-primary); font-weight: 500; }
+
+  /* selected position display */
+  .pos-display {
+    font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;
+  }
+  .pos-display span {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500; color: var(--text-primary);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-label">Interactive — sequence rigidity</div>
+  <div class="top-hint">Click any token to see what happens when you swap it out.</div>
+
+  <div class="panels">
+
+    <!-- NLP panel -->
+    <div class="panel">
+      <div class="panel-label">Natural language — BERT</div>
+      <div class="token-row" id="nlp-tokens"></div>
+      <div class="result-area" id="nlp-result">
+        <div class="result-prompt">← click a word</div>
+      </div>
+    </div>
+
+    <!-- Protein panel -->
+    <div class="panel">
+      <div class="panel-label">Protein — ESM (Ubiquitin 1–15)</div>
+      <div class="token-row" id="prot-tokens"></div>
+      <div class="result-area" id="prot-result">
+        <div class="result-prompt">← click a residue</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- takeaway -->
+  <div class="takeaway">
+    <div class="takeaway-col">
+      <div class="takeaway-head">Language</div>
+      <div class="takeaway-body">Some positions are flexible, some are locked — but a bad swap just produces a <strong>weird sentence</strong>. A human on the other end recovers the meaning.</div>
+    </div>
+    <div class="takeaway-col">
+      <div class="takeaway-head">Proteins</div>
+      <div class="takeaway-body">Same pattern, completely different stakes. A bad swap doesn't produce something weird — it produces something that <strong>physically doesn't work</strong>. No one recovers it.</div>
+    </div>
+  </div>
+
+</div>
+<script>
+const AA_CHEM = {
+  A:'hydrophobic', C:'special',   D:'negative', E:'negative', F:'aromatic',
+  G:'special',     H:'positive',  I:'hydrophobic', K:'positive', L:'hydrophobic',
+  M:'hydrophobic', N:'polar',     P:'special',  Q:'polar',    R:'positive',
+  S:'polar',       T:'polar',     V:'hydrophobic', W:'aromatic', Y:'aromatic',
+};
+const CHEM_COLOR = {
+  hydrophobic: '#f97316', polar: '#3b82f6', positive: '#ef4444',
+  negative: '#6366f1', aromatic: '#a855f7', special: '#22c55e',
+};
+const AA_NAME = {
+  A:'Alanine',    C:'Cysteine',   D:'Aspartate',  E:'Glutamate',
+  F:'Phenylala.', G:'Glycine',    H:'Histidine',  I:'Isoleucine',
+  K:'Lysine',     L:'Leucine',    M:'Methionine', N:'Asparagine',
+  P:'Proline',    Q:'Glutamine',  R:'Arginine',   S:'Serine',
+  T:'Threonine',  V:'Valine',     W:'Tryptophan', Y:'Tyrosine',
+};
+const AA_ORDER = "ACDEFGHIKLMNPQRSTVWY".split('');
+
+// ── shared bar renderer ───────────────────────────────────────────────────────
+// Both sides use real log-probs. Bar width normalised per-position.
+// delta = candidate_score - wildtype_score (always ≤ 0 for non-wt if model is confident)
+// NLP thresholds (BERT, ~6 candidates):  tolerated > -3.68, disruptive < -6.81
+// Protein thresholds (ESM, 20 AAs):      tolerated > -8.50, disruptive < -10.22
+function renderBars(container, items, wtKey, thresholds, footnote) {
+  // items: [{ label, score, color? }]
+  const wtScore = items.find(x => x.label === wtKey)?.score ?? 0;
+  const sorted  = [...items].sort((a, b) => {
+    if (a.label === wtKey) return -1;
+    if (b.label === wtKey) return 1;
+    return b.score - a.score;
+  });
+
+  const minVal = Math.min(...items.map(x => x.score));
+  const maxVal = Math.max(...items.map(x => x.score));
+  const range  = maxVal - minVal || 1;
+
+  let html = '<div class="aa-list">';
+  sorted.forEach(item => {
+    const isWT  = item.label === wtKey;
+    const delta = item.score - wtScore;
+    const width = ((item.score - minVal) / range * 100).toFixed(1);
+
+    let barColor, tagClass, tagText;
+    if (isWT) {
+      barColor = 'var(--score-wt)'; tagClass = 'pill-wt'; tagText = 'original';
+    } else if (delta > thresholds.good) {
+      barColor = 'var(--score-high)'; tagClass = 'pill-good'; tagText = 'tolerated';
+    } else if (delta > thresholds.mid) {
+      barColor = 'var(--score-mid)';  tagClass = 'pill-mid';  tagText = 'harmful';
+    } else {
+      barColor = 'var(--score-low)';  tagClass = 'pill-bad';  tagText = 'disruptive';
+    }
+
+    const labelColor = item.color || 'var(--text-secondary)';
+
+    html += `
+      <div class="aa-row">
+        <div class="aa-letter" style="color:${labelColor};width:auto;min-width:60px;font-family:'Inter',monospace;font-size:11px">${item.label}</div>
+        <div class="aa-bar-track">
+          <div class="aa-bar-fill" style="width:${width}%;background:${barColor}"></div>
+        </div>
+        <div class="aa-score">${isWT ? '—' : delta.toFixed(2)}</div>
+        <div class="aa-tag sub-pill ${tagClass}" style="font-size:10px;padding:1px 6px;width:68px;text-align:center">${tagText}</div>
+      </div>`;
+  });
+  html += `</div><div style="margin-top:8px;font-size:10px;color:var(--text-muted)">${footnote}</div>`;
+  container.innerHTML = html;
+}
+
+// ── NLP panel ─────────────────────────────────────────────────────────────────
+const nlpRow    = document.getElementById('nlp-tokens');
+const nlpResult = document.getElementById('nlp-result');
+const NLP_THRESHOLDS = { good: -3.68, mid: -6.81 };
+
+fetch('nlp_scores.json')
+  .then(r => r.json())
+  .then(data => {
+    data.words.forEach((word, i) => {
+      const t = document.createElement('div');
+      t.className = 'token';
+      t.textContent = word;
+      t.addEventListener('click', () => {
+        document.querySelectorAll('#nlp-tokens .token').forEach(x => x.classList.remove('selected'));
+        t.classList.add('selected');
+        const posScores = data.scores[String(i)];
+        const wt        = word.toLowerCase();
+        const items     = Object.entries(posScores).map(([label, score]) => ({ label, score }));
+        const posDisplay = `<div class="pos-display">word <span>${i+1}</span> — original: <span>${word}</span></div>`;
+        nlpResult.innerHTML = posDisplay;
+        const barsDiv = document.createElement('div');
+        nlpResult.appendChild(barsDiv);
+        renderBars(barsDiv, items, wt, NLP_THRESHOLDS, 'BERT log-probabilities · masked language model');
+      });
+      nlpRow.appendChild(t);
+    });
+  })
+  .catch(() => {
+    nlpRow.innerHTML = `<div style="font-size:12px;color:var(--text-muted);font-style:italic">
+      Could not load nlp_scores.json</div>`;
+  });
+
+// ── Protein panel ─────────────────────────────────────────────────────────────
+const protRow    = document.getElementById('prot-tokens');
+const protResult = document.getElementById('prot-result');
+const PROT_THRESHOLDS = { good: -8.5, mid: -10.22 };
+
+fetch('mutation_scores.json')
+  .then(r => r.json())
+  .then(data => {
+    const SEQUENCE  = data.sequence;
+    const AA_SCORES = data.scores;
+
+    SEQUENCE.split('').forEach((aa, i) => {
+      const t = document.createElement('div');
+      t.className = 'token';
+      t.innerHTML = `${aa}<span class="aa-tooltip">${AA_NAME[aa] || aa}</span>`;
+      t.addEventListener('click', () => {
+        document.querySelectorAll('#prot-tokens .token').forEach(x => x.classList.remove('selected'));
+        t.classList.add('selected');
+        const posScores = AA_SCORES[String(i)];
+        const items = Object.entries(posScores).map(([label, score]) => ({
+          label,
+          score,
+          color: CHEM_COLOR[AA_CHEM[label]] || 'var(--text-secondary)',
+        }));
+        const posDisplay = `<div class="pos-display">position <span>${i+1}</span> — wildtype: <span>${aa}</span></div>`;
+        protResult.innerHTML = posDisplay;
+        const barsDiv = document.createElement('div');
+        protResult.appendChild(barsDiv);
+        renderBars(barsDiv, items, aa, PROT_THRESHOLDS, 'ESM log-probabilities · colored by chemical class');
+      });
+      protRow.appendChild(t);
+    });
+  })
+  .catch(() => {
+    protRow.innerHTML = `<div style="font-size:12px;color:var(--text-muted);font-style:italic">
+      Could not load mutation_scores.json</div>`;
+  });
+
+// ── postMessage auto-resize ───────────────────────────────────────────────────
+function sendHeight() {
+  const h = document.documentElement.scrollHeight;
+  window.parent.postMessage({ iframeHeight: h }, '*');
+}
+
+// send on load, resize, and any click (content expansion)
+window.addEventListener('load', () => setTimeout(sendHeight, 100));
+window.addEventListener('resize', sendHeight);
+document.addEventListener('click', () => setTimeout(sendHeight, 80));
+</script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triangle update — a sweep over the pair grid</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --border: rgba(15,23,42,0.10);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --accent: #FF6600; --accent-bg: #fff1e6; --accent-border: #ffb374;
+    --msa: #2f6fed; --msa-bg: #eaf1ff; --msa-border: #a9c4fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --border: rgba(148,163,184,0.14);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --accent-bg: #3a2410; --accent-border: #a35a1a;
+      --msa: #5b9bff; --msa-bg: #0d2440; --msa-border: #1e4c8a;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 28px 24px 40px; max-width: 700px; margin: 0 auto; }
+  .top-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+  .sub { font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 18px; }
+
+  .visual { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-1); padding: 20px; }
+  .visual svg { display: block; margin: 0 auto; }
+
+  .status {
+    font-size: 13px; line-height: 1.6; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 12px 14px; margin-top: 16px; min-height: 20px;
+  }
+  .status b { color: var(--text-primary); }
+  .status .mono { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+  .status .tri-label { display: block; font-weight: 500; color: var(--accent); margin-bottom: 4px; }
+
+  .actions { display: flex; gap: 10px; margin-top: 16px; align-items: center; flex-wrap: wrap; }
+  button.act {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500;
+    padding: 10px 16px; border-radius: 8px; cursor: pointer; border: 0.5px solid;
+    transition: all 120ms ease;
+  }
+  button.act.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.act.primary:hover { opacity: 0.9; }
+  button.act.primary:disabled { opacity: 0.5; cursor: default; }
+  button.act.secondary { background: var(--surface-1); border-color: var(--border); color: var(--text-secondary); }
+  button.act.secondary:hover { color: var(--text-primary); border-color: var(--text-muted); }
+  .hint { font-size: 11.5px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="top-label">Triangle update</div>
+<p class="sub">Click any off-diagonal cell to make it the target, then run the sweep. Every other position k forms a triangle with the target — cell (i,k) and cell (k,j) — and each triangle contributes to the update for cell (i,j).</p>
+
+<div class="visual"><svg id="gridSvg" viewBox="0 0 460 460" width="100%"></svg></div>
+
+<div class="status" id="status">Target: cell (1, 4). Click "Run sweep" to update it from every triangle through this edge.</div>
+
+<div class="actions">
+  <button class="act primary" id="runBtn">Run sweep →</button>
+  <button class="act secondary" id="resetBtn">Reset values</button>
+  <span class="hint">or click any other cell to pick a new target</span>
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+function text(x,y,t,size,fill,anchor,weight){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"Inter,sans-serif"});
+  if(weight) e.setAttribute('font-weight',weight);
+  e.textContent = t; return e;
+}
+function mono(x,y,t,size,fill,anchor){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+  e.textContent = t; return e;
+}
+function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+
+const N = 6;
+const ORIGINAL = [
+  [null, 0.42, 0.18, 0.71, 0.25, 0.56],
+  [0.35, null, 0.53, 0.29, 0.61, 0.14],
+  [0.22, 0.47, null, 0.38, 0.19, 0.65],
+  [0.66, 0.31, 0.44, null, 0.52, 0.27],
+  [0.28, 0.58, 0.33, 0.46, null, 0.39],
+  [0.49, 0.21, 0.62, 0.17, 0.44, null],
+];
+let PAIR = ORIGINAL.map(row => row.slice());
+
+let target = {i:0, j:3};
+let sweeping = false;
+let highlightK = null;
+
+const svg = document.getElementById('gridSvg');
+const statusEl = document.getElementById('status');
+const runBtn = document.getElementById('runBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+const gcell = 52, ggap = 6, gst = gcell + ggap, gx = 74, gy = 54;
+
+function cellCenter(r,c){ return { x: gx + c*gst + gcell/2, y: gy + r*gst + gcell/2 }; }
+
+function draw(){
+  svg.innerHTML = '';
+  svg.setAttribute('viewBox', '0 0 460 460');
+
+  // filled triangle overlay connecting the target and its two contributing cells this step —
+  // drawn first so it sits behind the grid cells
+  if (highlightK !== null){
+    const {i,j} = target, k = highlightK;
+    const pT = cellCenter(i,j), pA = cellCenter(i,k), pB = cellCenter(k,j);
+    const pts = `${pT.x},${pT.y} ${pA.x},${pA.y} ${pB.x},${pB.y}`;
+    svg.appendChild(el('polygon',{points:pts, fill:'var(--accent)', opacity:0.13}));
+    svg.appendChild(el('polygon',{points:pts, fill:'none', stroke:'var(--accent)', 'stroke-width':1.5, opacity:0.55}));
+  }
+
+  for(let r=0;r<N;r++){
+    for(let c=0;c<N;c++){
+      const x = gx+c*gst, y = gy+r*gst;
+      const isDiag = r===c;
+      const isTarget = r===target.i && c===target.j;
+      const isContributing = highlightK!==null && ((r===target.i && c===highlightK) || (r===highlightK && c===target.j));
+      const isActive = isTarget || isContributing;
+
+      let fill = 'var(--bg)', stroke = 'var(--border)', sw = 0.75;
+      if (isDiag) { fill = 'var(--bg)'; stroke = 'var(--border)'; sw = 0.5; }
+      else if (isActive) { fill = 'var(--accent-bg)'; stroke = 'var(--accent)'; sw = isTarget ? 2.5 : 1.5; }
+
+      const rect = el('rect',{x,y,width:gcell,height:gcell,rx:7,fill,stroke,'stroke-width':sw});
+      if (!isDiag) { rect.style.cursor = 'pointer'; rect.addEventListener('click', () => selectTarget(r,c)); }
+      svg.appendChild(rect);
+
+      if (isDiag){
+        svg.appendChild(mono(x+gcell/2,y+gcell/2,'–',11,'var(--text-muted)'));
+      } else {
+        const v = PAIR[r][c];
+        svg.appendChild(mono(x+gcell/2,y+gcell/2, v.toFixed(2), 11.5, isActive?'var(--accent)':'var(--text-secondary)'));
+      }
+    }
+  }
+
+  for(let i=0;i<N;i++){
+    svg.appendChild(mono(gx+i*gst+gcell/2, gy-16, String(i+1), 9.5, 'var(--text-muted)'));
+    svg.appendChild(mono(gx-16, gy+i*gst+gcell/2, String(i+1), 9.5, 'var(--text-muted)', 'end'));
+  }
+  svg.appendChild(text(gx+3*gst, gy-34, 'residue j', 10, 'var(--text-muted)'));
+  svg.appendChild(text(30, gy+3*gst, 'residue i', 10, 'var(--text-muted)', 'middle'));
+}
+
+function selectTarget(i,j){
+  if (sweeping) return;
+  target = {i,j};
+  highlightK = null;
+  statusEl.innerHTML = `Target: cell (${i+1}, ${j+1}). Click "Run sweep" to update it from every triangle through this edge.`;
+  draw();
+}
+
+function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+
+async function runSweep(){
+  if (sweeping) return;
+  sweeping = true;
+  runBtn.disabled = true;
+
+  const {i,j} = target;
+  const ks = [];
+  for (let k=0;k<N;k++) if (k!==i && k!==j) ks.push(k);
+  const oldVal = PAIR[i][j];
+  const products = [];
+
+  for (let step=0; step<ks.length; step++){
+    const k = ks[step];
+    highlightK = k;
+    draw();
+    const a = PAIR[i][k], b = PAIR[k][j], p = a*b;
+    products.push(p);
+    statusEl.innerHTML = `<span class="tri-label">Triangle ${step+1} of ${ks.length}: (${i+1}, ${k+1}, ${j+1})</span>` +
+      `cell (${i+1},${k+1}) = <b>${a.toFixed(2)}</b> &times; cell (${k+1},${j+1}) = <b>${b.toFixed(2)}</b> &nbsp;&rarr;&nbsp; <b>${p.toFixed(3)}</b>`;
+    await sleep(1100);
+  }
+
+  const sum = products.reduce((s,x)=>s+x,0);
+  const newVal = sum / products.length;
+  PAIR[i][j] = newVal;
+  highlightK = null;
+  draw();
+
+  statusEl.innerHTML = `Summed <span class="mono">${products.length}</span> triangles and averaged: cell (${i+1}, ${j+1}) went from <b>${oldVal.toFixed(2)}</b> to <b>${newVal.toFixed(2)}</b> — pulled toward what every other triangle through this edge agrees on.`;
+
+  sweeping = false;
+  runBtn.disabled = false;
+}
+
+function resetValues(){
+  if (sweeping) return;
+  PAIR = ORIGINAL.map(row => row.slice());
+  highlightK = null;
+  statusEl.innerHTML = `Target: cell (${target.i+1}, ${target.j+1}). Click "Run sweep" to update it from every triangle through this edge.`;
+  draw();
+}
+
+runBtn.addEventListener('click', runSweep);
+resetBtn.addEventListener('click', resetValues);
+
+draw();
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

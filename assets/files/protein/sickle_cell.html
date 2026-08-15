@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Mutation, Different World</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --radius: 8px;
+    --normal-color: #ef4444;
+    --mutant-color: #f97316;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 180ms ease;
+  }
+
+  .top-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px;
+    align-self: flex-start;
+  }
+
+  .sequences {
+    display: flex; gap: 32px; margin-bottom: 24px; align-items: flex-start;
+  }
+  .seq-block { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .seq-block-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+
+  .seq-row { display: flex; align-items: center; gap: 5px; }
+  .aa {
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 500;
+    padding: 7px 11px; border: 0.5px solid var(--border);
+    border-radius: var(--radius); background: var(--surface-1);
+    color: var(--text-secondary); user-select: none;
+  }
+  .aa.normal  { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+  .aa.mutant  { border-color: #f97316; color: #f97316; background: #fff7ed; }
+  .aa.dim { opacity: 0.35; }
+  .aa.ellipsis { border: none; background: none; color: var(--text-muted); padding: 7px 4px; }
+
+  .seq-caption { font-size: 11px; color: var(--text-secondary); }
+
+  .arrow-down { font-size: 20px; color: var(--text-muted); margin: 4px 0; }
+
+  /* Main panels */
+  .panels { display: flex; gap: 24px; width: 100%; max-width: 560px; }
+  .panel {
+    flex: 1; border: 0.5px solid var(--border); border-radius: 12px;
+    padding: 16px; background: var(--surface-1);
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .panel.normal-panel { border-color: rgba(239,68,68,0.3); }
+  .panel.mutant-panel { border-color: rgba(249,115,22,0.3); }
+  .panel-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .panel-title { font-size: 13px; font-weight: 500; text-align: center; line-height: 1.4; }
+  .panel.normal-panel .panel-title { color: #ef4444; }
+  .panel.mutant-panel .panel-title { color: #f97316; }
+
+  svg.cell-svg { width: 100%; max-width: 120px; }
+
+  .outcome {
+    font-size: 11px; font-weight: 500; padding: 4px 10px;
+    border-radius: 99px; border: 0.5px solid; text-align: center;
+  }
+  .outcome.good { background: #f0fdf4; border-color: #86efac; color: #14532d; }
+  .outcome.bad  { background: #fef2f2; border-color: #fca5a5; color: #7f1d1d; }
+
+  @media (prefers-color-scheme: dark) {
+    .aa.normal { background: #2a0f0f; }
+    .aa.mutant { background: #2a1a08; }
+    .panel.normal-panel { background: #1e1010; }
+    .panel.mutant-panel { background: #1e1208; }
+    .outcome.good { background: #0a1f10; border-color: #22c55e; color: #86efac; }
+    .outcome.bad  { background: #2a0f0f; border-color: #dc2626; color: #fca5a5; }
+  }
+
+  .caption {
+    font-size: 12px; color: var(--text-muted); text-align: center;
+    max-width: 480px; line-height: 1.6; margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-label">One mutation, different world</div>
+
+<!-- Two sequences side by side -->
+<div class="sequences">
+  <div class="seq-block">
+    <div class="seq-block-label">Wildtype — Glu (E)</div>
+    <div class="seq-row">
+      <div class="aa ellipsis">···</div>
+      <div class="aa dim">V</div>
+      <div class="aa dim">H</div>
+      <div class="aa dim">L</div>
+      <div class="aa dim">T</div>
+      <div class="aa dim">P</div>
+      <div class="aa normal">E</div>
+      <div class="aa dim">E</div>
+      <div class="aa dim">K</div>
+      <div class="aa ellipsis">···</div>
+    </div>
+  </div>
+
+  <div style="font-size:22px;color:var(--text-muted);padding-top:28px">→</div>
+
+  <div class="seq-block">
+    <div class="seq-block-label">Mutant — Val (V)</div>
+    <div class="seq-row">
+      <div class="aa ellipsis">···</div>
+      <div class="aa dim">V</div>
+      <div class="aa dim">H</div>
+      <div class="aa dim">L</div>
+      <div class="aa dim">T</div>
+      <div class="aa dim">P</div>
+      <div class="aa mutant">V</div>
+      <div class="aa dim">E</div>
+      <div class="aa dim">K</div>
+      <div class="aa ellipsis">···</div>
+    </div>
+  </div>
+</div>
+
+<!-- Panels -->
+<div class="panels">
+  <div class="panel normal-panel">
+    <div class="panel-label">Glu (E) — wildtype</div>
+    <svg class="cell-svg" viewBox="0 0 120 80">
+      <ellipse cx="60" cy="40" rx="44" ry="28" fill="#fecaca" stroke="#ef4444" stroke-width="1.2"/>
+      <ellipse cx="60" cy="40" rx="28" ry="14" fill="#fca5a5" stroke="#ef4444" stroke-width="0.6" opacity="0.5"/>
+    </svg>
+    <div class="panel-title">Normal red blood cell</div>
+    <div class="outcome good">✓ carries oxygen normally</div>
+  </div>
+
+  <div class="panel mutant-panel">
+    <div class="panel-label">Val (V) — mutant</div>
+    <svg class="cell-svg" viewBox="0 0 120 80">
+      <path d="M20 42 Q30 18 60 22 Q90 26 100 38 Q108 50 88 58 Q68 66 44 64 Q24 62 20 42 Z"
+        fill="#fed7aa" stroke="#f97316" stroke-width="1.2"/>
+      <path d="M30 44 Q42 28 62 30 Q80 32 88 42"
+        fill="none" stroke="#f97316" stroke-width="0.8" opacity="0.5"/>
+    </svg>
+    <div class="panel-title">Sickled red blood cell</div>
+    <div class="outcome bad">✗ causes sickle cell disease</div>
+  </div>
+</div>
+
+<div class="caption">
+  Position 6 of the hemoglobin β-chain. Glutamate (E) is negatively charged and sits on the protein surface. Valine (V) is hydrophobic — it sticks to neighbouring molecules, causing hemoglobin to polymerize into rigid fibers. One character change. The cell's shape, and its ability to carry oxygen, completely breaks down.
+</div>
+<script>
+function sendHeight() {
+  window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+}
+window.addEventListener('load', () => setTimeout(sendHeight, 100));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

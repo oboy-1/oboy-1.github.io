@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Row attention — why first</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --border: rgba(15,23,42,0.10);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --accent: #FF6600; --accent-bg: #fff1e6; --accent-border: #ffb374;
+    --msa: #2f6fed; --msa-bg: #eaf1ff; --msa-border: #a9c4fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --border: rgba(148,163,184,0.14);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --accent-bg: #3a2410; --accent-border: #a35a1a;
+      --msa: #5b9bff; --msa-bg: #0d2440; --msa-border: #1e4c8a;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 28px 24px 40px; max-width: 700px; margin: 0 auto; }
+  .top-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+
+  .tabs { display: flex; gap: 6px; margin: 22px 0 14px; flex-wrap: wrap; }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.03em; background: var(--surface-1); border: 0.5px solid var(--border);
+    color: var(--text-secondary); padding: 8px 14px; border-radius: 6px; cursor: pointer;
+    transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .stage-caption {
+    font-size: 13.5px; line-height: 1.6; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; min-height: 20px;
+  }
+
+  .visual { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-1); padding: 16px; }
+  .visual svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div class="top-label">Row attention</div>
+
+
+<div class="tabs" id="tabs"></div>
+<div class="stage-caption" id="caption"></div>
+<div class="visual" id="visual"></div>
+
+<script>
+const VEC = { M:[0.9,0.1], K:[0.2,0.8], T:[0.5,0.5], A:[0.1,0.2] };
+const seq1 = ['M','K','T','A'];
+const labels = ['self','Position 2 (K)','Position 3 (T)','Position 4 (A)'];
+
+// same alignment used in the column-attention widget, for visual continuity
+const allSeqs = [['M','K','T','A'],['M','K','T','A'],['M','R','T','S']]; // Dog, Cat, Fish
+const species = ['Dog','Cat','Fish'];
+// decorative pair-grid values for rows other than 1 — illustrative only, not used in any computation
+const pairRowDecor = [
+  [null,null,null,null],       // row 1 — real biases used here, filled in below
+  [0.45,null,0.22,0.31],
+  [0.37,0.22,null,0.28],
+  [0.72,0.31,0.28,null],
+];
+function dot(a,b){ return a[0]*b[0]+a[1]*b[1]; }
+function softmax(arr){ const m=Math.max(...arr); const ex=arr.map(x=>Math.exp(x-m)); const s=ex.reduce((a,b)=>a+b,0); return ex.map(x=>x/s); }
+
+const biases = [0, 0.45, 0.37, 0.72];
+const raws = seq1.map(l => dot(VEC.M, VEC[l]));
+const scores = raws.map((r,i)=>r+biases[i]);
+const weights = softmax(scores);
+const updated = [0,1].map(d => weights.reduce((sum,w,i)=> sum + w*VEC[seq1[i]][d], 0));
+
+const STAGES = [
+  { id:0, label:'1. Why', caption: 'Position 1 starts as just "M". To understand what it\'s really doing, we need information from the other positions — but we don\'t yet know how much each one actually matters.' },
+  { id:1, label:'2. Compute relevance', caption: 'Relevance comes from two numbers per position, added together: content similarity (how alike the two residues look) and the pair-grid bias (what the pair grid — built up over earlier blocks and updated by row/column attention, outer product mean, and triangle update — already believes about this specific pair). Row attention doesn\'t compute relevance from content alone.' },
+  { id:2, label:'3. Combine and update', caption: 'Those two numbers get added, then passed through softmax across all four positions to get a weight. Position 1\'s new representation is a blend of all four, weighted this way — no longer just "M," mostly shaped by position 3, a little less by the others.' },
+];
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+function render(stage){
+  const svg = el('svg', { viewBox:'0 0 640 590', width:'100%' });
+  svg.style.maxWidth = '600px';
+  const defs = el('defs');
+  const marker = el('marker', { id:'arrow', viewBox:'0 0 10 10', refX:8, refY:5, markerWidth:6, markerHeight:6, orient:'auto-start-reverse' });
+  const path = el('path', { d:'M2 1L8 5L2 9', fill:'none', stroke:'var(--text-muted)', 'stroke-width':1.5, 'stroke-linecap':'round', 'stroke-linejoin':'round' });
+  marker.appendChild(path); defs.appendChild(marker); svg.appendChild(defs);
+
+  function rect(x,y,w,h,fill,stroke,sw,dash){ const r=el('rect',{x,y,width:w,height:h,rx:8,fill,stroke,'stroke-width':sw||0.75}); if(dash) r.setAttribute('stroke-dasharray',dash); return r; }
+  function text(x,y,t,size,fill,anchor,weight){
+    const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"Inter,sans-serif"});
+    if(weight) e.setAttribute('font-weight',weight);
+    e.textContent = t; return e;
+  }
+  function mono(x,y,t,size,fill,anchor){
+    const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+    e.textContent = t; return e;
+  }
+
+  // --- source grids: the MSA row and pair-grid row that "sim" and "bias" actually come from ---
+  const gcell=28, ggap=5, gst=gcell+ggap;
+
+  const mgx=30, mgy=48;
+  svg.appendChild(text(mgx+2*gst,20,'MSA — this sequence\'s row',10,'var(--text-muted)'));
+  allSeqs.forEach((seq,r)=>{
+    seq.forEach((l,c)=>{
+      const on = r===0;
+      const x=mgx+c*gst, y=mgy+r*gst;
+      svg.appendChild(rect(x,y,gcell,gcell, on?'var(--msa-bg)':'var(--bg)', on?'var(--msa-border)':'var(--border)', on?1.5:0.5));
+      svg.appendChild(mono(x+gcell/2,y+gcell/2,l,11,on?'var(--msa)':'var(--text-muted)'));
+    });
+  });
+  ['1','2','3','4'].forEach((n,i)=> svg.appendChild(mono(mgx+i*gst+gcell/2,mgy-8,n,8,'var(--text-muted)')));
+  species.forEach((n,i)=> svg.appendChild(text(mgx-8,mgy+i*gst+gcell/2,n,8.5,i===0?'var(--msa)':'var(--text-muted)','end')));
+
+  const pgx=370, pgy=48;
+  svg.appendChild(text(pgx+2*gst,20,'pair grid — row 1',10,'var(--text-muted)'));
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      const on = r===0;
+      const x=pgx+c*gst, y=pgy+r*gst;
+      if(r===c){
+        svg.appendChild(rect(x,y,gcell,gcell,'var(--bg)','var(--border)',0.5));
+        svg.appendChild(mono(x+gcell/2,y+gcell/2,'–',9,'var(--text-muted)'));
+        continue;
+      }
+      const val = r===0 ? biases[c] : pairRowDecor[r][c];
+      svg.appendChild(rect(x,y,gcell,gcell, on?'var(--accent-bg)':'var(--bg)', on?'var(--accent-border)':'var(--border)', on?1.5:0.5));
+      svg.appendChild(mono(x+gcell/2,y+gcell/2,val.toFixed(2),8,on?'var(--accent)':'var(--text-muted)'));
+    }
+  }
+  ['1','2','3','4'].forEach((n,i)=>{
+    svg.appendChild(mono(pgx+i*gst+gcell/2,pgy-8,n,8,'var(--text-muted)'));
+    svg.appendChild(mono(pgx-8,pgy+i*gst+gcell/2,n,8,i===0?'var(--accent)':'var(--text-muted)','end'));
+  });
+
+  const xs = [40,200,360,520], w=80, h=60;
+  const topY = 230, botY = 490;
+
+  // row labels
+  svg.appendChild(text(20,210,'before',10,'var(--text-muted)','start'));
+  svg.appendChild(text(20,470,'after',10,'var(--text-muted)','start'));
+
+  // top row: original residues, plain
+  seq1.forEach((l,i)=>{
+    svg.appendChild(rect(xs[i],topY,w,h,'var(--surface-1)','var(--border)',0.75));
+    svg.appendChild(mono(xs[i]+w/2,topY+28,l,16,'var(--text-primary)'));
+    svg.appendChild(text(xs[i]+w/2,topY+48,`pos ${i+1}`,9,'var(--text-muted)'));
+  });
+
+  // connecting lines: all four top positions feeding into bottom position 1
+  const targetX = xs[0]+w/2, targetY = botY;
+  xs.forEach((x,i)=>{
+    const startX = x+w/2, startY = topY+h;
+    if(stage===0){
+      svg.appendChild(el('line',{x1:startX,y1:startY,x2:targetX,y2:targetY,stroke:'var(--text-muted)','stroke-width':1.5,'stroke-dasharray':'4,4',opacity:0.6}));
+      svg.appendChild(mono(startX,startY+18,'?',11,'var(--text-muted)'));
+    } else if(stage===1){
+      // not yet combined — show the two raw ingredients feeding each weight,
+      // most importantly the pair-grid bias term, not just content similarity
+      svg.appendChild(el('line',{x1:startX,y1:startY,x2:targetX,y2:targetY,stroke:'var(--text-muted)','stroke-width':1.5,opacity:0.45}));
+      svg.appendChild(mono(startX,startY+16,`sim ${raws[i].toFixed(2)}`,9.5,'var(--text-secondary)'));
+      svg.appendChild(mono(startX,startY+31,`+ bias ${biases[i].toFixed(2)}`,9.5,'var(--accent)'));
+    } else {
+      const wt = weights[i];
+      svg.appendChild(el('line',{x1:startX,y1:startY,x2:targetX,y2:targetY,stroke:'var(--accent)','stroke-width':(wt*16).toFixed(1),opacity:(0.35+wt*1.4).toFixed(2)}));
+      svg.appendChild(mono(startX,startY+16,`${scores[i].toFixed(2)} →`,9,'var(--text-secondary)'));
+      svg.appendChild(mono(startX,startY+31,wt.toFixed(2),11.5,'var(--accent)'));
+    }
+  });
+
+  // bottom row: position 1 is the active one; 2-4 shown muted, not traced here
+  for(let i=0;i<4;i++){
+    if(i===0){
+      const fillColor = stage===2 ? 'var(--accent-bg)' : 'var(--surface-1)';
+      const strokeColor = stage===2 ? 'var(--accent-border)' : 'var(--border)';
+      svg.appendChild(rect(xs[i],botY,w,h,fillColor,strokeColor,1.25));
+      if(stage===2){
+        svg.appendChild(mono(xs[i]+w/2,botY+24,`[${updated[0].toFixed(2)}`,11,'var(--accent)'));
+        svg.appendChild(mono(xs[i]+w/2,botY+40,`${updated[1].toFixed(2)}]`,11,'var(--accent)'));
+      } else {
+        svg.appendChild(text(xs[i]+w/2,botY+28,'?',18,'var(--text-muted)'));
+      }
+      svg.appendChild(text(xs[i]+w/2,botY+52,'was M',9,'var(--text-muted)'));
+    } else {
+      svg.appendChild(rect(xs[i],botY,w,h,'var(--bg)','var(--border)',0.5,'3,3'));
+      svg.appendChild(mono(xs[i]+w/2,botY+28,seq1[i],13,'var(--border)'));
+      svg.appendChild(text(xs[i]+w/2,botY+48,'not traced here',8,'var(--text-muted)'));
+    }
+  }
+
+  return svg;
+}
+
+let current = 0;
+const tabsEl = document.getElementById('tabs');
+STAGES.forEach(st=>{
+  const b = document.createElement('button');
+  b.textContent = st.label;
+  b.addEventListener('click', ()=> setStage(st.id));
+  tabsEl.appendChild(b);
+});
+
+function setStage(id){
+  current = id;
+  [...tabsEl.children].forEach((b,i)=> b.classList.toggle('active', i===id));
+  document.getElementById('caption').textContent = STAGES[id].caption;
+  const visual = document.getElementById('visual');
+  visual.innerHTML = '';
+  visual.appendChild(render(id));
+  sendHeight();
+}
+
+setStage(0);
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

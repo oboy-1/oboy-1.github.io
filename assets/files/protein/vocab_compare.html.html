@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocabulary Comparison</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-0: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --radius: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-0: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 32px 24px;
+    transition: background 180ms ease;
+  }
+
+  .cols { display: flex; gap: 2rem; align-items: flex-start; }
+  .col { flex: 1; min-width: 0; }
+  .col-head {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+  }
+  .col-count { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+
+  .grid { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  .aa-chip {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500;
+    padding: 5px 10px; border: 0.5px solid var(--border);
+    border-radius: var(--radius); background: var(--surface-1);
+    color: var(--text-secondary); display: flex; align-items: center; gap: 5px;
+    flex-shrink: 0;
+  }
+  .aa-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  .scroll-window {
+    height: 224px; overflow: hidden; position: relative;
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+  }
+  .scroll-inner {
+    display: flex; flex-wrap: wrap; gap: 5px;
+    padding: 8px; will-change: transform; align-content: flex-start;
+  }
+  .tok-chip {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500;
+    padding: 5px 10px; border: 0.5px solid var(--border);
+    border-radius: var(--radius); background: var(--surface-1);
+    color: var(--text-secondary); white-space: nowrap; flex-shrink: 0;
+  }
+
+  .divider { width: 0.5px; background: var(--border); align-self: stretch; }
+
+  .fade-top, .fade-bot {
+    position: absolute; left: 0; right: 0; height: 28px; pointer-events: none; z-index: 2;
+  }
+  .fade-top { top: 0; background: linear-gradient(to bottom, var(--surface-0), transparent); }
+  .fade-bot { bottom: 0; background: linear-gradient(to top, var(--surface-0), transparent); }
+</style>
+</head>
+<body>
+
+<div class="cols">
+  <div class="col">
+    <div class="col-head">Protein vocabulary</div>
+    <div class="col-count">20 amino acids — always</div>
+    <div class="grid" id="aa-grid"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="col">
+    <div class="col-head">GPT-4 vocabulary</div>
+    <div class="col-count">~100,000 subword tokens</div>
+    <div class="scroll-window">
+      <div class="fade-top"></div>
+      <div class="scroll-inner" id="scroll-inner"></div>
+      <div class="fade-bot"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const AAS = [
+  { letter:'A', color:'#f97316' },{ letter:'C', color:'#22c55e' },
+  { letter:'D', color:'#6366f1' },{ letter:'E', color:'#6366f1' },
+  { letter:'F', color:'#a855f7' },{ letter:'G', color:'#22c55e' },
+  { letter:'H', color:'#ef4444' },{ letter:'I', color:'#f97316' },
+  { letter:'K', color:'#ef4444' },{ letter:'L', color:'#f97316' },
+  { letter:'M', color:'#22c55e' },{ letter:'N', color:'#3b82f6' },
+  { letter:'P', color:'#22c55e' },{ letter:'Q', color:'#3b82f6' },
+  { letter:'R', color:'#ef4444' },{ letter:'S', color:'#3b82f6' },
+  { letter:'T', color:'#3b82f6' },{ letter:'V', color:'#f97316' },
+  { letter:'W', color:'#a855f7' },{ letter:'Y', color:'#a855f7' },
+];
+
+const TOKENS = [
+  'the','Ġis','Ġof','Ġand','Ġin','Ġto','##ing','##tion','##ed',
+  'Ġprotein','Ġamino','Ġsequence','Ġfold','##ase','Ġbind','Ġstruct',
+  '##ure','Ġcell','Ġgene','##tic','▁enzyme','Ġresidue','Ġchain',
+  'Ġhelix','##al','Ġsheet','Ġactive','##ity','Ġsite','Ġtransport',
+  'Ġreceptor','Ġmembrane','Ġsignal','Ġkinase','Ġdomain','##ain',
+  '▁RNA','▁ATP','Ġmutation','Ġembedding','ĠESM','▁ProtBERT',
+  'Ġhydro','##phobic','Ġpolar','Ġaromatic','Ġglycine','Ġalanine',
+  'Ġlysine','Ġcysteine','Ġarginine','Ġtryptophan','##alanine',
+  'Ġuniprot','Ġhomolog','##ous','Ġevolution','ĠPDB','Ġcryo','##EM',
+  'Ġcoordinates','ĠAlphaFold','Ġinverse','Ġtransformer','##head',
+  'Ġattention','##bert','Ġcatalysis','Ġligand','Ġsubstrate',
+  'Ġthermostable','Ġdocking','▁ESMFold','Ġmembrane','##ome',
+  'Ġenzyme','##yme','Ġprotease','Ġantibody','##body','Ġvaccine',
+  'Ġdrug','Ġdisease','Ġmutation','##ant','Ġwildtype','##type',
+];
+
+const aaGrid = document.getElementById('aa-grid');
+AAS.forEach(aa => {
+  const chip = document.createElement('div');
+  chip.className = 'aa-chip';
+  chip.innerHTML = `<span class="aa-dot" style="background:${aa.color}"></span>${aa.letter}`;
+  aaGrid.appendChild(chip);
+});
+
+const inner = document.getElementById('scroll-inner');
+[...TOKENS,...TOKENS,...TOKENS,...TOKENS].forEach(tok => {
+  const chip = document.createElement('span');
+  chip.className = 'tok-chip';
+  chip.textContent = tok;
+  inner.appendChild(chip);
+});
+
+let pos = 0;
+function scroll() {
+  pos += 0.5;
+  if (pos >= inner.scrollHeight / 2) pos = 0;
+  inner.style.transform = `translateY(-${pos}px)`;
+  requestAnimationFrame(scroll);
+}
+requestAnimationFrame(scroll);
+
+function sendHeight() {
+  window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+}
+window.addEventListener('load', () => setTimeout(sendHeight, 100));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

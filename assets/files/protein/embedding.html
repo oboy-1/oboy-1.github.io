@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLM Embedding Explorer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --surface-2: #f1f5f9;
+    --border: rgba(15,23,42,0.10);
+    --border-strong: rgba(15,23,42,0.18);
+    --border-stronger: rgba(15,23,42,0.28);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --radius: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --surface-2: #2f3137;
+      --border: rgba(148,163,184,0.12);
+      --border-strong: rgba(148,163,184,0.22);
+      --border-stronger: rgba(148,163,184,0.36);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 180ms ease;
+  }
+
+  .lbl {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
+  }
+
+  .flow { display: flex; align-items: center; gap: 10px; }
+
+  .seq-block { flex-shrink: 0; }
+  .seq-tokens { display: flex; flex-wrap: wrap; gap: 5px; max-width: 260px; }
+
+  .aa-token {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500;
+    padding: 5px 9px; border: 0.5px solid var(--border);
+    border-radius: var(--radius); background: var(--surface-1);
+    color: var(--text-secondary); cursor: pointer;
+    transition: border-color 0.12s, color 0.12s, background 0.12s;
+    user-select: none; display: flex; align-items: center; gap: 4px;
+  }
+  .aa-token:hover { border-color: var(--border-strong); color: var(--text-primary); }
+  .aa-token.active { border-color: var(--border-stronger); color: var(--text-primary); background: var(--surface-2); }
+
+  .connector { display: flex; align-items: center; flex-shrink: 0; }
+  .arrow { font-size: 16px; color: var(--text-muted); }
+
+  .model-box {
+    border: 0.5px solid var(--border); border-radius: 10px;
+    padding: 9px 13px; background: var(--surface-1);
+    text-align: center; flex-shrink: 0;
+  }
+  .model-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .model-sub { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+  .vec-block { flex-shrink: 0; }
+  .vec-name {
+    font-size: 11px; font-weight: 500; color: var(--text-primary);
+    margin-bottom: 5px; min-height: 15px; transition: color 0.15s;
+  }
+  .vec-cells { display: flex; flex-direction: column; gap: 3px; }
+  .vec-cell {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    padding: 4px 8px; border: 0.5px solid var(--border);
+    border-radius: 3px; background: var(--surface-1);
+    color: var(--text-muted); text-align: right; width: 66px;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+  }
+  .vec-cell.pop {
+    background: var(--surface-2); color: var(--text-primary);
+    border-color: var(--border-stronger);
+  }
+  .ellipsis { font-size: 12px; color: var(--text-muted); text-align: center; padding: 1px 0; }
+  .vec-dim { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+  .detail {
+    font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+    margin-top: 1.25rem; min-height: 18px; transition: opacity 0.18s;
+    max-width: 480px; text-align: left;
+  }
+
+  .aa-token.active {
+    border-color: #22c55e;
+    border-width: 1.5px;
+    color: var(--text-primary);
+    background: var(--surface-2);
+    box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+  }
+
+  .flow { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<div class="flow">
+  <div class="seq-block">
+    <div class="lbl">Sequence</div>
+    <div class="seq-tokens" id="seq-tokens"></div>
+  </div>
+
+  <div class="connector"><div class="arrow">→</div></div>
+
+  <div class="model-box">
+    <div class="model-name">ESM-2</div>
+    <div class="model-sub">33 layers</div>
+  </div>
+
+  <div class="connector"><div class="arrow">→</div></div>
+
+  <div class="vec-block">
+    <div class="lbl">Embedding</div>
+    <div class="vec-name" id="vec-name">—</div>
+    <div class="vec-cells" id="vec-cells"></div>
+    <div class="vec-dim">5 of 1,280 dims</div>
+  </div>
+</div>
+
+<div class="detail" id="detail">← click a residue</div>
+
+<script>
+const AAS = [
+  { letter:'M', name:'Methionine',    chem:'special',     vals:[ 0.82,-0.34, 1.21, 0.56,-0.91], body:'Always the start residue — coded by AUG. Its embedding at position 1 is distinct from M appearing anywhere else in a sequence.' },
+  { letter:'Q', name:'Glutamine',     chem:'polar',       vals:[ 0.21, 0.67,-0.43, 1.02, 0.38], body:'Polar, hydrogen bond donor and acceptor. Highly conserved at position 2 of ubiquitin across all eukaryotes.' },
+  { letter:'I', name:'Isoleucine',    chem:'hydrophobic', vals:[-1.04, 0.88, 0.31,-0.62, 1.15], body:'Branched hydrophobic residue. Strongly prefers the buried protein core. ESM attention heads connect it to other hydrophobic residues nearby.' },
+  { letter:'F', name:'Phenylalanine', chem:'aromatic',    vals:[ 1.33,-0.71, 0.54, 0.22,-1.08], body:'Aromatic ring enabling π–π stacking. One of the most conformationally restricted residues.' },
+  { letter:'V', name:'Valine',        chem:'hydrophobic', vals:[-0.45, 1.09,-0.87, 0.63, 0.28], body:'Small branched hydrophobic. Strong β-sheet preference. ESM connects it to residues physically close in 3D — learned from sequence alone.' },
+  { letter:'K', name:'Lysine',        chem:'positive',    vals:[ 0.77,-1.23, 0.95,-0.41, 1.04], body:'Positively charged, long side chain. K48 and K63 in ubiquitin are critical polyubiquitin attachment points for protein degradation.' },
+  { letter:'T', name:'Threonine',     chem:'polar',       vals:[ 0.39, 0.82,-0.56, 1.17,-0.73], body:'Polar hydroxyl group — a common phosphorylation site. Acts as both structural residue and signalling switch depending on context.' },
+  { letter:'L', name:'Leucine',       chem:'hydrophobic', vals:[-0.92, 0.45, 1.06,-0.38, 0.71], body:'Most common amino acid in proteins. Its embedding reflects a buried, core-stabilising role in ubiquitin\'s fold.' },
+  { letter:'T', name:'Threonine',     chem:'polar',       vals:[ 0.51,-0.34, 0.79, 0.93,-0.62], body:'Same letter as position 7, but a different vector — surrounding context differs. This is what transformers do that older models couldn\'t.' },
+  { letter:'G', name:'Glycine',       chem:'special',     vals:[ 1.44, 0.07,-1.31, 0.24, 0.88], body:'No side chain — maximum backbone flexibility. Nearly irreplaceable at tight turns. ESM learned this entirely from sequence statistics.' },
+  { letter:'K', name:'Lysine',        chem:'positive',    vals:[-0.68, 1.35, 0.42,-0.97, 0.53], body:'Second K — different embedding from K at position 6 despite the same letter. Context-dependent representations are ESM\'s core strength.' },
+  { letter:'T', name:'Threonine',     chem:'polar',       vals:[ 0.64,-0.89, 1.08,-0.31, 0.77], body:'Third T, third distinct embedding. Positions 7, 9, and 12 are all T — but all three vectors differ. Same token, different context, different meaning.' },
+];
+
+const CC = { hydrophobic:'#f97316', polar:'#3b82f6', positive:'#ef4444', aromatic:'#a855f7', special:'#22c55e' };
+
+const seqTokens = document.getElementById('seq-tokens');
+const vecCellsEl = document.getElementById('vec-cells');
+const vecName = document.getElementById('vec-name');
+const detail = document.getElementById('detail');
+
+AAS.forEach((aa, i) => {
+  const t = document.createElement('div');
+  t.className = 'aa-token';
+  t.innerHTML = `<span style="color:${CC[aa.chem]};font-size:7px">●</span>${aa.letter}`;
+  t.addEventListener('click', () => { clearInterval(timer); activate(i); });
+  seqTokens.appendChild(t);
+});
+
+const cells = [];
+for (let r = 0; r < 5; r++) {
+  const c = document.createElement('div');
+  c.className = 'vec-cell';
+  c.textContent = '—';
+  vecCellsEl.appendChild(c);
+  cells.push(c);
+  if (r === 2) {
+    const d = document.createElement('div');
+    d.className = 'ellipsis';
+    d.textContent = '⋮';
+    vecCellsEl.appendChild(d);
+  }
+}
+
+function activate(idx) {
+  document.querySelectorAll('.aa-token').forEach((t,i) => t.classList.toggle('active', i===idx));
+  const aa = AAS[idx];
+  vecName.textContent = `${aa.letter} · ${aa.name}`;
+  vecName.style.color = CC[aa.chem];
+  cells.forEach((c,i) => {
+    c.classList.remove('pop');
+    setTimeout(() => { c.textContent = aa.vals[i].toFixed(2); c.classList.add('pop'); }, i*55);
+  });
+  detail.style.opacity = 0;
+  setTimeout(() => { detail.textContent = aa.body; detail.style.opacity = 1; }, 150);
+}
+
+let idx = 0;
+let timer = setInterval(() => { activate(idx); idx = (idx+1) % AAS.length; }, 3000);
+setTimeout(() => { activate(0); idx = 1; }, 300);
+
+function sendHeight() {
+  window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+}
+window.addEventListener('load', () => setTimeout(sendHeight, 100));
+window.addEventListener('resize', sendHeight);
+document.addEventListener('click', () => setTimeout(sendHeight, 80));
+</script>
+</body>
+</html>

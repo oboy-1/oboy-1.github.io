@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outer product mean — why first</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --border: rgba(15,23,42,0.10);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --accent: #FF6600; --accent-bg: #fff1e6; --accent-border: #ffb374;
+    --msa: #2f6fed; --msa-bg: #eaf1ff; --msa-border: #a9c4fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --border: rgba(148,163,184,0.14);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --accent-bg: #3a2410; --accent-border: #a35a1a;
+      --msa: #5b9bff; --msa-bg: #0d2440; --msa-border: #1e4c8a;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 28px 24px 40px; max-width: 700px; margin: 0 auto; }
+  .top-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+
+  .tabs { display: flex; gap: 6px; margin: 22px 0 14px; flex-wrap: wrap; }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.03em; background: var(--surface-1); border: 0.5px solid var(--border);
+    color: var(--text-secondary); padding: 8px 14px; border-radius: 6px; cursor: pointer;
+    transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .stage-caption {
+    font-size: 13.5px; line-height: 1.6; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; min-height: 20px;
+  }
+
+  .visual { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-1); padding: 16px; }
+  .visual svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div class="top-label">Outer product mean</div>
+
+
+<div class="tabs" id="tabs"></div>
+<div class="stage-caption" id="caption"></div>
+<div class="visual" id="visual"></div>
+
+<script>
+function outer(a,b){ return [[a[0]*b[0],a[0]*b[1]],[a[1]*b[0],a[1]*b[1]]]; }
+function avgMats(mats){
+  const n = mats.length;
+  return [[0,0],[0,0]].map((row,i)=> row.map((_,j)=> mats.reduce((s,m)=>s+m[i][j],0)/n));
+}
+
+const A=[1,0], B=[0,1];
+const coupledPairs = [['A','A'],['A','A'],['B','B'],['B','B']];
+const uncoupledPairs = [['A','A'],['A','B'],['B','A'],['B','B']];
+const toyVec = {A,B};
+const coupledOuters = coupledPairs.map(([p,q])=>outer(toyVec[p],toyVec[q]));
+const uncoupledOuters = uncoupledPairs.map(([p,q])=>outer(toyVec[p],toyVec[q]));
+const coupledAvg = avgMats(coupledOuters);
+const uncoupledAvg = avgMats(uncoupledOuters);
+
+const VEC = { M:[0.9,0.1], A:[0.1,0.2], S:[0.15,0.25] };
+const realPairs = [['M','A'],['M','A'],['M','S']];
+const realOuters = realPairs.map(([p,q])=>outer(VEC[p],VEC[q]));
+const realAvg = avgMats(realOuters);
+
+// same alignment used in row/column attention, for visual continuity — pos 1 and pos 4 are the two columns feeding this example
+const allSeqs = [['M','K','T','A'],['M','K','T','A'],['M','R','T','S']]; // Dog, Cat, Fish
+const speciesNames = ['Dog','Cat','Fish'];
+
+const STAGES = [
+  { id:0, label:'1. Why', caption: 'Four species, two positions each. Left: the two positions always move together. Right: they vary independently. Average their outer products and watch what survives.' },
+  { id:1, label:'2. The real example', caption: 'Same idea, real data: three species, positions 1 and 4. Position 1 barely varies (M, M, M); position 4 varies a bit (A, A, S). The averaged pattern leans structured, not flat — a real but modest signal.' },
+  { id:2, label:'3. Written into the grid', caption: 'That averaged matrix, after a learned projection, becomes the new value in pair grid cell (1,4) — the first real write of this pass.' },
+];
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+function text(x,y,t,size,fill,anchor,weight){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"Inter,sans-serif"});
+  if(weight) e.setAttribute('font-weight',weight);
+  e.textContent = t; return e;
+}
+function mono(x,y,t,size,fill,anchor){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+  e.textContent = t; return e;
+}
+function heat(svg, ox, oy, cell, mat, maxVal, showNums, numSize){
+  for(let r=0;r<2;r++){
+    for(let c=0;c<2;c++){
+      const v = mat[r][c];
+      const x=ox+c*(cell+2), y=oy+r*(cell+2);
+      const op = Math.min(1, 0.15+0.8*(v/maxVal));
+      svg.appendChild(el('rect',{x,y,width:cell,height:cell,rx:2,fill:'var(--accent)',opacity:op.toFixed(2)}));
+      if(showNums){
+        svg.appendChild(mono(x+cell/2,y+cell/2,v.toFixed(2),numSize||8,v>maxVal*0.5?'#fff':'var(--text-secondary)'));
+      }
+    }
+  }
+}
+
+function stage0(){
+  const svg = el('svg', { viewBox:'0 0 640 340', width:'100%' });
+  svg.style.maxWidth = '600px';
+
+  function panel(px, title, pairs, avg, verdict, verdictColor){
+    svg.appendChild(text(px+120,24,title,12,'var(--text-primary)',null,500));
+    pairs.forEach(([p,q],i)=>{
+      const mx = px + i*65;
+      const mat = outer(toyVec[p],toyVec[q]);
+      heat(svg, mx, 50, 14, mat, 1, false);
+      svg.appendChild(mono(mx+15,120,`${p},${q}`,9,'var(--text-muted)'));
+      svg.appendChild(text(mx+15,134,`sp${i+1}`,8,'var(--text-muted)'));
+    });
+    svg.appendChild(el('line',{x1:px+120,y1:150,x2:px+120,y2:185,stroke:'var(--text-muted)','stroke-width':1.5,'marker-end':'url(#opm-arrow)'}));
+    svg.appendChild(text(px+150,168,'average',9.5,'var(--text-muted)','start'));
+    heat(svg, px+80, 195, 40, avg, 1, true, 11);
+    svg.appendChild(text(px+120,290,verdict,11,verdictColor,null,500));
+  }
+
+  const defs = el('defs');
+  const marker = el('marker', { id:'opm-arrow', viewBox:'0 0 10 10', refX:8, refY:5, markerWidth:6, markerHeight:6, orient:'auto-start-reverse' });
+  marker.appendChild(el('path',{ d:'M2 1L8 5L2 9', fill:'none', stroke:'var(--text-muted)', 'stroke-width':1.5, 'stroke-linecap':'round', 'stroke-linejoin':'round' }));
+  defs.appendChild(marker); svg.appendChild(defs);
+
+  panel(30, 'positions move together', coupledPairs, coupledAvg, 'sharp diagonal — real signal', 'var(--accent)');
+  panel(370, 'positions move independently', uncoupledPairs, uncoupledAvg, 'flat smear — no signal', 'var(--text-muted)');
+
+  return svg;
+}
+
+function stage1(){
+  const svg = el('svg', { viewBox:'0 0 640 500', width:'100%' });
+  svg.style.maxWidth = '600px';
+  const defs = el('defs');
+  const marker = el('marker', { id:'opm-arrow2', viewBox:'0 0 10 10', refX:8, refY:5, markerWidth:6, markerHeight:6, orient:'auto-start-reverse' });
+  marker.appendChild(el('path',{ d:'M2 1L8 5L2 9', fill:'none', stroke:'var(--text-muted)', 'stroke-width':1.5, 'stroke-linecap':'round', 'stroke-linejoin':'round' }));
+  defs.appendChild(marker); svg.appendChild(defs);
+
+  // --- the actual MSA grid, showing exactly which two columns feed this example ---
+  const gcell=28, ggap=5, gst=gcell+ggap, gx=190, gy=48;
+  svg.appendChild(text(gx+2*gst,20,'MSA — columns 1 and 4',10,'var(--text-muted)'));
+  allSeqs.forEach((seq,r)=>{
+    seq.forEach((l,c)=>{
+      const on = c===0 || c===3;
+      const x=gx+c*gst, y=gy+r*gst;
+      svg.appendChild(el('rect',{x,y,width:gcell,height:gcell,rx:5,fill:on?'var(--msa-bg)':'var(--bg)',stroke:on?'var(--msa-border)':'var(--border)','stroke-width':on?1.5:0.5}));
+      svg.appendChild(mono(x+gcell/2,y+gcell/2,l,11,on?'var(--msa)':'var(--text-muted)'));
+    });
+  });
+  ['1','2','3','4'].forEach((n,i)=> svg.appendChild(mono(gx+i*gst+gcell/2,gy-8,n,8,(i===0||i===3)?'var(--msa)':'var(--text-muted)')));
+  speciesNames.forEach((n,i)=> svg.appendChild(text(gx-8,gy+i*gst+gcell/2,n,8.5,'var(--text-muted)','end')));
+
+  const gridBottom = gy+3*gst;
+  svg.appendChild(el('line',{x1:gx+2*gst,y1:gridBottom+4,x2:260,y2:156,stroke:'var(--msa)','stroke-width':1.25,opacity:0.6,'marker-end':'url(#opm-arrow2)'}));
+
+  const labels = ['Dog','Cat','Fish'];
+  realPairs.forEach(([p,q],i)=>{
+    const mx = 100 + i*140;
+    svg.appendChild(text(mx+20,164,labels[i],11,'var(--text-primary)',null,500));
+    svg.appendChild(mono(mx+20,182,`pos1=${p}, pos4=${q}`,9.5,'var(--text-muted)'));
+    const mat = outer(VEC[p],VEC[q]);
+    heat(svg, mx, 200, 20, mat, 0.2, true, 8);
+  });
+
+  svg.appendChild(el('line',{x1:320,y1:270,x2:320,y2:310,stroke:'var(--text-muted)','stroke-width':1.5,'marker-end':'url(#opm-arrow2)'}));
+  svg.appendChild(text(350,290,'average across species',10,'var(--text-muted)','start'));
+
+  heat(svg, 260, 325, 60, realAvg, 0.2, true, 12);
+  svg.appendChild(text(320,470,'leans structured, not flat',11,'var(--accent)',null,500));
+
+  return svg;
+}
+
+function stage2(){
+  const svg = el('svg', { viewBox:'0 0 640 260', width:'100%' });
+  svg.style.maxWidth = '600px';
+  const defs = el('defs');
+  const marker = el('marker', { id:'opm-arrow3', viewBox:'0 0 10 10', refX:8, refY:5, markerWidth:6, markerHeight:6, orient:'auto-start-reverse' });
+  marker.appendChild(el('path',{ d:'M2 1L8 5L2 9', fill:'none', stroke:'var(--accent)', 'stroke-width':1.5, 'stroke-linecap':'round', 'stroke-linejoin':'round' }));
+  defs.appendChild(marker); svg.appendChild(defs);
+
+  svg.appendChild(text(100,30,'averaged matrix',10,'var(--text-muted)'));
+  heat(svg, 60, 50, 60, realAvg, 0.2, true, 12);
+
+  svg.appendChild(el('line',{x1:220,y1:100,x2:340,y2:100,stroke:'var(--accent)','stroke-width':1.5,'marker-end':'url(#opm-arrow3)'}));
+  svg.appendChild(text(280,85,'projection',9.5,'var(--text-muted)'));
+
+  // the pair grid cell, filling in
+  const gx=380, gy=50, cell=32, gap=4, st=cell+gap;
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      const x=gx+c*st, y=gy+r*st;
+      const isHero = r===0 && c===3;
+      const isDiag = r===c;
+      const fill = isHero ? 'var(--accent-bg)' : 'var(--surface-1)';
+      const stroke = isHero ? 'var(--accent-border)' : 'var(--border)';
+      svg.appendChild(el('rect',{x,y,width:cell,height:cell,rx:4,fill,stroke,'stroke-width':isHero?1.5:0.5}));
+      if(isDiag) svg.appendChild(mono(x+cell/2,y+cell/2,'–',9,'var(--text-muted)'));
+      if(isHero) svg.appendChild(mono(x+cell/2,y+cell/2,'0.50',9,'var(--accent)'));
+    }
+  }
+  ['1','2','3','4'].forEach((n,i)=>{
+    svg.appendChild(mono(gx+i*st+cell/2,gy-8,n,8,'var(--text-muted)'));
+    svg.appendChild(mono(gx-6,gy+i*st+cell/2+3,n,8,'var(--text-muted)','end'));
+  });
+  svg.appendChild(text(gx+2*st,gy+4*st+18,'pair grid, cell (1,4)',10.5,'var(--accent)'));
+
+  return svg;
+}
+
+let current = 0;
+const tabsEl = document.getElementById('tabs');
+STAGES.forEach(st=>{
+  const b = document.createElement('button');
+  b.textContent = st.label;
+  b.addEventListener('click', ()=> setStage(st.id));
+  tabsEl.appendChild(b);
+});
+
+function setStage(id){
+  current = id;
+  [...tabsEl.children].forEach((b,i)=> b.classList.toggle('active', i===id));
+  document.getElementById('caption').textContent = STAGES[id].caption;
+  const visual = document.getElementById('visual');
+  visual.innerHTML = '';
+  const renderers = [stage0, stage1, stage2];
+  visual.appendChild(renderers[id]());
+  sendHeight();
+}
+
+setStage(0);
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

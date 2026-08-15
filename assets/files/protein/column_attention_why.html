@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Column attention — why first</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --border: rgba(15,23,42,0.10);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --accent: #FF6600; --accent-bg: #fff1e6; --accent-border: #ffb374;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --border: rgba(148,163,184,0.14);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --accent-bg: #3a2410; --accent-border: #a35a1a;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 28px 24px 40px; max-width: 700px; margin: 0 auto; }
+  .top-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+
+  .tabs { display: flex; gap: 6px; margin: 22px 0 14px; flex-wrap: wrap; }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.03em; background: var(--surface-1); border: 0.5px solid var(--border);
+    color: var(--text-secondary); padding: 8px 14px; border-radius: 6px; cursor: pointer;
+    transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .stage-caption {
+    font-size: 13.5px; line-height: 1.6; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; min-height: 20px;
+  }
+
+  .visual { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-1); padding: 16px; }
+  .visual svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div class="top-label">Column attention</div>
+
+
+<div class="tabs" id="tabs"></div>
+<div class="stage-caption" id="caption"></div>
+<div class="visual" id="visual"></div>
+
+<script>
+const VEC = { K:[0.2,0.8], R:[0.3,0.9] };
+function dot(a,b){ return a[0]*b[0]+a[1]*b[1]; }
+function softmax(arr){ const m=Math.max(...arr); const ex=arr.map(x=>Math.exp(x-m)); const s=ex.reduce((a,b)=>a+b,0); return ex.map(x=>x/s); }
+
+const colLetters = ['K','K','R']; // Dog, Cat, Fish at position 2
+const vecs = colLetters.map(l=>VEC[l]);
+const scores = vecs.map(v=>dot(vecs[0],v));
+const weights = softmax(scores);
+const updated = [0,1].map(d => weights.reduce((sum,w,i)=> sum + w*vecs[i][d], 0));
+
+const STAGES = [
+  { id:0, label:'1. Why', caption: 'This is column 2 of the alignment, pulled out from the grid above. Dog has a K here. On its own, we don\'t know if that K is meaningful or arbitrary — we don\'t yet know how much Cat and Fish\'s versions should matter.' },
+  { id:1, label:'2. Compute relevance', caption: 'Relevance comes purely from how similar the content looks — no pair-grid bias here, this step only compares species to each other, within this one column. Cat matches Dog exactly; Fish diverges.' },
+  { id:2, label:'3. Update the representation', caption: 'Dog\'s representation barely moves — Cat agrees with it almost entirely, reinforcing rather than changing it. Fish pulls it slightly toward something new. If every species disagreed, the shift would be much larger.' },
+];
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+function render(stage){
+  const svg = el('svg', { viewBox:'0 0 640 420', width:'100%' });
+  svg.style.maxWidth = '600px';
+  const defs = el('defs');
+  const marker = el('marker', { id:'arrow', viewBox:'0 0 10 10', refX:8, refY:5, markerWidth:6, markerHeight:6, orient:'auto-start-reverse' });
+  const path = el('path', { d:'M2 1L8 5L2 9', fill:'none', stroke:'var(--text-muted)', 'stroke-width':1.5, 'stroke-linecap':'round', 'stroke-linejoin':'round' });
+  marker.appendChild(path); defs.appendChild(marker); svg.appendChild(defs);
+
+  function rect(x,y,w,h,fill,stroke,sw,dash){ const r=el('rect',{x,y,width:w,height:h,rx:6,fill,stroke,'stroke-width':sw||0.75}); if(dash) r.setAttribute('stroke-dasharray',dash); return r; }
+  function text(x,y,t,size,fill,anchor,weight){
+    const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"Inter,sans-serif"});
+    if(weight) e.setAttribute('font-weight',weight);
+    e.textContent = t; return e;
+  }
+  function mono(x,y,t,size,fill,anchor){
+    const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+    e.textContent = t; return e;
+  }
+
+  // --- the actual MSA grid, for context: 4 positions x 3 species ---
+  const allSeqs = [['M','K','T','A'],['M','K','T','A'],['M','R','T','S']]; // Dog, Cat, Fish
+  const gx=250, gy=20, gcell=32, ggap=6, gst=gcell+ggap, targetCol=1;
+  allSeqs.forEach((seq,r)=>{
+    seq.forEach((l,c)=>{
+      const on = c===targetCol;
+      const x=gx+c*gst, y=gy+r*gst;
+      svg.appendChild(rect(x,y,gcell,gcell, on?'var(--accent-bg)':'var(--bg)', on?'var(--accent-border)':'var(--border)', on?1.5:0.5));
+      svg.appendChild(mono(x+gcell/2,y+gcell/2,l,12,'var(--text-secondary)'));
+    });
+  });
+  ['1','2','3','4'].forEach((n,i)=> svg.appendChild(mono(gx+i*gst+gcell/2,gy-8,n,8,'var(--text-muted)')));
+  ['Dog','Cat','Fish'].forEach((n,i)=> svg.appendChild(text(gx-10,gy+i*gst+gcell/2,n,9,'var(--text-muted)','end')));
+  svg.appendChild(text(gx+gcell*2,gy-20,'the full alignment',9.5,'var(--text-muted)'));
+
+  // arrow from the highlighted column down to the extracted "before" stack
+  const gridBottom = gy+2*gst+gcell;
+  svg.appendChild(el('line',{x1:gx+targetCol*gst+gcell/2,y1:gridBottom+4,x2:130,y2:174,stroke:'var(--accent)','stroke-width':1.25,opacity:0.7,'marker-end':'url(#arrow)'}));
+
+  // --- extracted column: before stack (left) and after stack (right), both vertical ---
+  const stackW=100, stackH=50, stackGap=16, stackStride=stackH+stackGap;
+  const beforeX=80, afterX=420, stackY0=180;
+  svg.appendChild(text(beforeX+stackW/2,stackY0-16,'before',10,'var(--text-muted)'));
+  svg.appendChild(text(afterX+stackW/2,stackY0-16,'after',10,'var(--text-muted)'));
+
+  const species = ['Dog','Cat','Fish'];
+  const letters = allSeqs.map(seq=>seq[targetCol]);
+
+  // before stack: real values, all shown plainly
+  species.forEach((sp,i)=>{
+    const y = stackY0+i*stackStride;
+    svg.appendChild(rect(beforeX,y,stackW,stackH,'var(--surface-1)','var(--border)',0.75));
+    svg.appendChild(text(beforeX+stackW/2,y+18,sp,11.5,'var(--text-primary)',null,500));
+    svg.appendChild(mono(beforeX+stackW/2,y+35,letters[i],12,'var(--text-secondary)'));
+  });
+
+  // connecting lines: all three before-cells feed into Dog's after-cell
+  const targetY = stackY0+stackH/2;
+  species.forEach((sp,i)=>{
+    const y = stackY0+i*stackStride+stackH/2;
+    const startX = beforeX+stackW, endX = afterX;
+    if(stage===0){
+      svg.appendChild(el('line',{x1:startX,y1:y,x2:endX,y2:targetY,stroke:'var(--text-muted)','stroke-width':1.5,'stroke-dasharray':'4,4',opacity:0.6}));
+      svg.appendChild(mono((startX+endX)/2,(y+targetY)/2-8,'?',10.5,'var(--text-muted)'));
+    } else {
+      const wt = weights[i];
+      svg.appendChild(el('line',{x1:startX,y1:y,x2:endX,y2:targetY,stroke:'var(--accent)','stroke-width':(wt*16).toFixed(1),opacity:(0.35+wt*1.4).toFixed(2)}));
+      svg.appendChild(mono((startX+endX)/2,(y+targetY)/2-8,wt.toFixed(2),10.5,'var(--accent)'));
+    }
+  });
+
+  // after stack: Dog is traced, Cat/Fish shown muted
+  species.forEach((sp,i)=>{
+    const y = stackY0+i*stackStride;
+    if(i===0){
+      const fillColor = stage===2 ? 'var(--accent-bg)' : 'var(--surface-1)';
+      const strokeColor = stage===2 ? 'var(--accent-border)' : 'var(--border)';
+      svg.appendChild(rect(afterX,y,stackW,stackH,fillColor,strokeColor,1.25));
+      svg.appendChild(text(afterX+stackW/2,y+16,'Dog',11.5,stage===2?'var(--accent)':'var(--text-primary)',null,500));
+      if(stage===2){
+        svg.appendChild(mono(afterX+stackW/2,y+35,`[${updated[0].toFixed(2)},${updated[1].toFixed(2)}]`,10,'var(--accent)'));
+      } else {
+        svg.appendChild(text(afterX+stackW/2,y+35,'?',14,'var(--text-muted)'));
+      }
+    } else {
+      svg.appendChild(rect(afterX,y,stackW,stackH,'var(--bg)','var(--border)',0.5,'3,3'));
+      svg.appendChild(text(afterX+stackW/2,y+16,sp,10.5,'var(--border)'));
+      svg.appendChild(mono(afterX+stackW/2,y+34,'not traced',7.5,'var(--text-muted)'));
+    }
+  });
+
+  return svg;
+}
+
+let current = 0;
+const tabsEl = document.getElementById('tabs');
+STAGES.forEach(st=>{
+  const b = document.createElement('button');
+  b.textContent = st.label;
+  b.addEventListener('click', ()=> setStage(st.id));
+  tabsEl.appendChild(b);
+});
+
+function setStage(id){
+  current = id;
+  [...tabsEl.children].forEach((b,i)=> b.classList.toggle('active', i===id));
+  document.getElementById('caption').textContent = STAGES[id].caption;
+  const visual = document.getElementById('visual');
+  visual.innerHTML = '';
+  visual.appendChild(render(id));
+  sendHeight();
+}
+
+setStage(0);
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anatomy of an amino acid</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.5.3/3Dmol-min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --text-muted: #6e7684;
+    --accent: #FF6600;
+    --viewer-bg: var(--surface-1);
+
+    --atom-n: #3050f8;
+    --atom-c: #909090;
+    --atom-o: #ff0d0d;
+    --atom-h: #d1d5db;
+
+    --hl-amino: #3050f8;
+    --hl-calpha: #7c3aed;
+    --hl-carboxyl: #dc2626;
+    --hl-rgroup: #FF6600;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+      --text-muted: #7d8694;
+      --atom-c: #a3a3a3;
+      --atom-h: #4b5563;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    width: 100%; max-width: 520px;
+    border: 0.5px solid var(--border); border-radius: 12px;
+    background: var(--surface-1); padding: 14px;
+  }
+
+  #viewer {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: var(--viewer-bg);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .legend-row { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
+  .legend-chip {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+  }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; justify-content: center; flex-wrap: wrap; }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.03em;
+    background: var(--surface-1); border: 0.5px solid var(--border); color: var(--text-secondary);
+    padding: 8px 14px; border-radius: 6px; cursor: pointer; transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .caption {
+    font-size: 11.5px; color: var(--text-muted); text-align: center;
+    max-width: 560px; line-height: 1.6; margin-top: 14px;
+  }
+  .caption b { color: var(--text-secondary); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="tabs" id="tabs">
+  <button data-mode="part" class="active">By part</button>
+  <button data-mode="atom">By atom type</button>
+</div>
+
+<div class="card">
+  <div id="viewer"></div>
+  <div class="legend-row" id="legend-part">
+    <span class="legend-chip"><span class="chip-dot" style="background:var(--hl-amino)"></span>Amino group</span>
+    <span class="legend-chip"><span class="chip-dot" style="background:var(--hl-calpha)"></span>α-carbon</span>
+    <span class="legend-chip"><span class="chip-dot" style="background:var(--hl-carboxyl)"></span>Carboxyl group</span>
+    <span class="legend-chip"><span class="chip-dot" style="background:var(--hl-rgroup)"></span>R group</span>
+  </div>
+  <div class="legend-row" id="legend-atom" style="display:none;">
+    <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-n)"></span>N</span>
+    <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-c)"></span>C</span>
+    <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-o)"></span>O</span>
+    <span class="legend-chip"><span class="chip-dot" style="background:var(--atom-h)"></span>H</span>
+  </div>
+</div>
+<p class="caption" id="caption">Every amino acid shares this same skeleton — <b>amino group</b>, <b>α-carbon</b>, and <b>carboxyl group</b> are identical across all 20. The <b>R group</b> is the one part that changes, and it's what makes each amino acid chemically distinct. Drag to rotate.</p>
+
+<script>
+(function(){
+  // ---------- geometry: NeRF atom placement, same approach as the other widgets ----------
+  function sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+  function add(a,b){return [a[0]+b[0],a[1]+b[1],a[2]+b[2]];}
+  function scale(a,s){return [a[0]*s,a[1]*s,a[2]*s];}
+  function midpoint3(a,b,c){return [(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3];}
+  function toXYZ(a){return {x:a[0], y:a[1], z:a[2]};}
+  function norm(a){const l=Math.hypot(a[0],a[1],a[2])||1e-9;return [a[0]/l,a[1]/l,a[2]/l];}
+  function cross(a,b){return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];}
+  // Direction pointing away from all of an atom's bonded neighbors - places
+  // a label in open space regardless of which way the molecule is rotated,
+  // instead of guessing a fixed screen-space offset.
+  function outwardDir(pos, neighbors){
+    let avg = [0,0,0];
+    neighbors.forEach(n => { avg = add(avg, norm(sub(n,pos))); });
+    avg = scale(avg, 1/neighbors.length);
+    return norm(scale(avg,-1));
+  }
+  const D2R = Math.PI/180;
+
+  function nerf(A,B,C,L,angleDeg,dihedralDeg){
+    const theta = angleDeg*D2R;
+    const phi = dihedralDeg*D2R;
+    const D2 = [
+      -L*Math.cos(theta),
+       L*Math.sin(theta)*Math.cos(phi),
+       L*Math.sin(theta)*Math.sin(phi)
+    ];
+    const bc = norm(sub(C,B));
+    const ab = sub(B,A);
+    const n = norm(cross(ab,bc));
+    const nxbc = cross(n,bc);
+    return [
+      C[0] + bc[0]*D2[0] + nxbc[0]*D2[1] + n[0]*D2[2],
+      C[1] + bc[1]*D2[0] + nxbc[1]*D2[1] + n[1]*D2[2],
+      C[2] + bc[2]*D2[0] + nxbc[2]*D2[1] + n[2]*D2[2]
+    ];
+  }
+
+  // bootstrap: N, CA, and one amine H to establish the reference frame
+  // (this molecule is standalone, not part of a chain, so there's no
+  // preceding carbonyl to bootstrap off like in the backbone widget)
+  function build(){
+    const Ni = [0,0,0];
+    const CAi = [1.458,0,0];
+    const H1 = [1.458 - 1.01*Math.cos(109.5*D2R), 1.01*Math.sin(109.5*D2R), 0]; // first amine H, sets the plane
+
+    const Ci   = nerf(H1, Ni, CAi, 1.525, 111.2, 60);     // carboxyl carbon off CA
+    const Cb   = nerf(H1, Ni, CAi, 1.530, 110.5, 180);    // R-group stub off CA, same reference atom as Ci so the two are properly 120 deg apart
+    const Odbl = nerf(Ni, CAi, Ci, 1.231, 121.0, 0);      // C=O, planar sp2 carbon
+    const Ooh  = nerf(Ni, CAi, Ci, 1.360, 118.0, 180);    // C-OH, opposite side of the same plane
+    const Hoh  = nerf(CAi, Ci, Ooh, 0.98, 109.5, 180);    // hydroxyl H
+    const H2   = nerf(Ci, CAi, Ni, 1.01, 109.5, 120);     // second amine H
+    const H3   = nerf(Ci, CAi, Ni, 1.01, 109.5, -120);    // third amine H (free amino acid, protonatable N)
+
+    return {Ni, CAi, H1, Ci, Cb, Odbl, Ooh, Hoh, H2, H3};
+  }
+
+  function toPDB(atoms){
+    const order = [
+      ['Ni','N','N'], ['H1','H','H'], ['H2','H','H'], ['H3','H','H'],
+      ['CAi','C','CA'], ['Cb','C','CB'],
+      ['Ci','C','C'], ['Odbl','O','O'], ['Ooh','O','OXT'], ['Hoh','H','H']
+    ];
+    let lines = [];
+    order.forEach(([key,elem,name],i)=>{
+      const p = atoms[key];
+      const serial = String(i+1).padStart(5,' ');
+      const atomName = name.padEnd(4,' ');
+      const x = p[0].toFixed(3).padStart(8,' ');
+      const y = p[1].toFixed(3).padStart(8,' ');
+      const z = p[2].toFixed(3).padStart(8,' ');
+      lines.push(`ATOM  ${serial} ${atomName} GLY A   1    ${x}${y}${z}  1.00  0.00          ${elem.padStart(2,' ')}`);
+    });
+    lines.push('END');
+    return lines.join('\n');
+  }
+
+  function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+
+  const viewer = $3Dmol.createViewer(document.getElementById('viewer'), {backgroundColor: cssVar('--viewer-bg') || '#f8fafc'});
+
+  let mode = 'part';
+
+  const captions = {
+    part: 'Every amino acid shares this same skeleton — <b>amino group</b>, <b>α-carbon</b>, and <b>carboxyl group</b> are identical across all 20. The <b>R group</b> is the one part that changes, and it\'s what makes each amino acid chemically distinct. Drag to rotate.',
+    atom: 'Same molecule, colored by element instead of by functional part: <b>nitrogen</b>, <b>carbon</b>, <b>oxygen</b>, and <b>hydrogen</b>. This is the raw chemistry underneath the amino/α-carbon/carboxyl/R-group labels — those four parts are just different arrangements of these same four elements. Drag to rotate.'
+  };
+
+  function render(){
+    const atoms = build();
+    const pdb = toPDB(atoms);
+
+    viewer.clear();
+    viewer.setBackgroundColor(cssVar('--viewer-bg') || '#f8fafc');
+    viewer.addModel(pdb, 'pdb');
+    viewer.setStyle({}, {stick:{radius:0.13}, sphere:{scale:0.24}});
+    viewer.setStyle({elem:'C'}, {stick:{radius:0.13, color:cssVar('--atom-c')}, sphere:{scale:0.24, color:cssVar('--atom-c')}});
+    viewer.setStyle({elem:'N'}, {stick:{radius:0.13, color:cssVar('--atom-n')}, sphere:{scale:0.3, color:cssVar('--atom-n')}});
+    viewer.setStyle({elem:'O'}, {stick:{radius:0.13, color:cssVar('--atom-o')}, sphere:{scale:0.28, color:cssVar('--atom-o')}});
+    viewer.setStyle({elem:'H'}, {stick:{radius:0.1, color:cssVar('--atom-h')}, sphere:{scale:0.16, color:cssVar('--atom-h')}});
+
+    if (mode === 'part') {
+      // ---- highlight halos + labels for the four named parts ----
+      const aminoColor = cssVar('--hl-amino');
+      const calphaColor = cssVar('--hl-calpha');
+      const carboxylColor = cssVar('--hl-carboxyl');
+      const rgroupColor = cssVar('--hl-rgroup');
+      const carboxylCenter = midpoint3(atoms.Ci, atoms.Odbl, atoms.Ooh);
+
+      viewer.addSphere({center:toXYZ(atoms.Ni), radius:1.15, color:aminoColor, opacity:0.32});
+      viewer.addSphere({center:toXYZ(atoms.CAi), radius:0.95, color:calphaColor, opacity:0.34});
+      viewer.addSphere({center:toXYZ(atoms.Cb), radius:0.9, color:rgroupColor, opacity:0.38});
+      viewer.addSphere({center:toXYZ(carboxylCenter), radius:1.6, color:carboxylColor, opacity:0.26});
+
+      const aminoDir = outwardDir(atoms.Ni, [atoms.CAi, atoms.H1, atoms.H2, atoms.H3]);
+      const calphaDir = outwardDir(atoms.CAi, [atoms.Ni, atoms.Ci, atoms.Cb]);
+      const rgroupDir = outwardDir(atoms.Cb, [atoms.CAi]);
+      const carboxylDir = outwardDir(carboxylCenter, [atoms.CAi]);
+
+      viewer.addLabel('amino group', {position:toXYZ(add(atoms.Ni, scale(aminoDir,1.9))), backgroundColor:aminoColor, backgroundOpacity:0.9, fontColor:'white', fontSize:11, borderRadius:8, inFront:true, showBackground:true});
+      viewer.addLabel('α-carbon', {position:toXYZ(add(atoms.CAi, scale(calphaDir,1.7))), backgroundColor:calphaColor, backgroundOpacity:0.9, fontColor:'white', fontSize:11, borderRadius:8, inFront:true, showBackground:true});
+      viewer.addLabel('R group', {position:toXYZ(add(atoms.Cb, scale(rgroupDir,1.5))), backgroundColor:rgroupColor, backgroundOpacity:0.9, fontColor:'white', fontSize:11, borderRadius:8, inFront:true, showBackground:true});
+      viewer.addLabel('carboxyl group', {position:toXYZ(add(carboxylCenter, scale(carboxylDir,2.1))), backgroundColor:carboxylColor, backgroundOpacity:0.9, fontColor:'white', fontSize:11, borderRadius:8, inFront:true, showBackground:true});
+    }
+
+    viewer.zoomTo();
+    viewer.render();
+  }
+
+  document.getElementById('tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-mode]');
+    if (!btn || btn.classList.contains('active')) return;
+    mode = btn.dataset.mode;
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('legend-part').style.display = mode === 'part' ? 'flex' : 'none';
+    document.getElementById('legend-atom').style.display = mode === 'atom' ? 'flex' : 'none';
+    document.getElementById('caption').innerHTML = captions[mode];
+    render();
+    sendHeight();
+  });
+
+  render();
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+
+  window.addEventListener('resize', ()=>{
+    viewer.resize();
+    viewer.render();
+  });
+
+  function sendHeight() {
+    window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*');
+  }
+  window.addEventListener('load', () => { setTimeout(sendHeight, 100); setTimeout(sendHeight, 600); });
+  window.addEventListener('resize', sendHeight);
+})();
+</script>
+</body>
+</html>
