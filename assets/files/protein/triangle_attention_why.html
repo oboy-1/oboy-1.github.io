@@ -63,7 +63,9 @@
   }
   .candidate-row b { color: var(--text-primary); }
   .candidate-row .k-label { color: var(--msa); font-weight: 500; min-width: 30px; }
+  .candidate-row .qk-val { color: var(--msa); }
   .candidate-row .bias-val { color: var(--bias); }
+  .candidate-row .weight-val { color: var(--accent); }
   .candidate-row .weight-bar { flex: 1 1 50px; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; min-width: 30px; }
   .candidate-row .weight-fill { height: 100%; background: var(--accent); }
 </style>
@@ -209,11 +211,11 @@ function candidateRow(cd, i, j, weight){
   const biasLabel = mode==='start' ? `(${j+1},${cd.k+1})` : `(${cd.k+1},${i+1})`;
   const score = cd.qk + cd.bias;
   let html = `<span class="k-label">k=${cd.k+1}</span>`;
-  html += `q&middot;k <b>${cd.qk.toFixed(2)}</b> <span style="color:var(--text-muted)">cell ${candLabel}</span>`;
+  html += `q&middot;k <b class="qk-val">${cd.qk.toFixed(2)}</b> <span style="color:var(--text-muted)">cell ${candLabel}</span>`;
   html += `&nbsp;+&nbsp; bias <b class="bias-val">${cd.bias.toFixed(2)}</b> <span style="color:var(--text-muted)">cell ${biasLabel}</span>`;
   html += `&nbsp;=&nbsp; score <b>${score.toFixed(2)}</b>`;
   html += `&nbsp;&rarr;&nbsp;<span class="weight-bar"><span class="weight-fill" style="width:${(weight*100).toFixed(0)}%"></span></span>`;
-  html += `<b>${weight.toFixed(2)}</b>`;
+  html += `<b class="weight-val">${weight.toFixed(2)}</b>`;
   row.innerHTML = html;
   return row;
 }
