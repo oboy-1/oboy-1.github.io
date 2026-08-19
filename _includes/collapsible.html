@@ -31,10 +31,50 @@ details summary {
 }
 </style>
 
-<details>
+{% capture _collapsible_counter_output %}{% increment collapsible_counter %}{% endcapture %}
+{% assign collapsible_id = include.id | default: "collapsible-" | append: collapsible_counter %}
+
+{% if include.mermaid %}
+<details id="{{ collapsible_id }}" markdown="1">
+  <summary>{{ include.summary }}</summary>
+
+  <div class="collapsible-content" markdown="1">
+
+{{ include.content }}
+
+  </div>
+</details>
+{% else %}
+<details id="{{ collapsible_id }}">
   <summary>{{ include.summary }}</summary>
 
   <div class="collapsible-content">
     {{ include.content }}
   </div>
 </details>
+{% endif %}
+
+{% if include.mermaid %}
+<script>
+(function() {
+  var details = document.getElementById('{{ collapsible_id }}');
+  if (!details) return;
+  var rendered = false;
+  details.addEventListener('toggle', function() {
+    if (!details.open || rendered) return;
+    rendered = true;
+    var mermaidEls = details.getElementsByClassName('mermaid');
+    Array.prototype.forEach.call(mermaidEls, function(el) {
+      var original = el.previousSibling && el.previousSibling.children && el.previousSibling.children[0];
+      if (original) {
+        el.textContent = original.textContent;
+      }
+      el.removeAttribute('data-processed');
+    });
+    if (window.mermaid && mermaidEls.length) {
+      mermaid.init(null, mermaidEls);
+    }
+  });
+})();
+</script>
+{% endif %}
