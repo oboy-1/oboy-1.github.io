@@ -125,8 +125,7 @@ let stage = 0;
 
 const STAGES = [
   { label:'1. Why', caption: () => `Cell (${target.i+1}, ${target.j+1}) sits on its own. We don't yet know how much any other cell in its ${mode==='start'?'row':'column'} should inform it, or which triangles through this edge actually matter.` },
-  { label:'2. Compute relevance', caption: () => `Each candidate gets two numbers. q·k compares its key to the target's query — both touch position ${target.i+1}. Bias comes from the one edge of the triangle that skips position ${target.i+1} entirely, connecting the two positions neither the target nor the candidate share. Nothing's combined yet.` },
-  { label:'3. Combine and update', caption: () => `q·k and bias get added into a score per candidate. Compare the scores below — the biggest one doesn't just edge out the rest, softmax turns that gap into a real gap in weight. This is what triangle update didn't have: candidates compete, so one triangle can end up dominating the update while the rest barely matter.` },
+  { label:'2. Compute & compete', caption: () => `Each candidate gets a q·k — comparing its key to the target's query, both touching position ${target.i+1} — plus a bias from the one edge of the triangle that skips position ${target.i+1} entirely. Added together that's a score, and softmax turns the scores into weights that compete: the biggest doesn't just edge out the rest, it can end up dominating while the others get pushed toward zero. That's what triangle update's flat sum never does.` },
 ];
 
 function candidatesFor(i,j,m){
@@ -203,7 +202,7 @@ function drawGrid(activeK){
   svg.appendChild(text(30, gy+3*gst, 'residue i', 10, 'var(--text-muted)', 'middle'));
 }
 
-function candidateRow(cd, i, j, showWeight, weight){
+function candidateRow(cd, i, j, weight){
   const row = document.createElement('div');
   row.className = 'candidate-row';
   const candLabel = mode==='start' ? `(${i+1},${cd.k+1})` : `(${cd.k+1},${j+1})`;
@@ -212,11 +211,9 @@ function candidateRow(cd, i, j, showWeight, weight){
   let html = `<span class="k-label">k=${cd.k+1}</span>`;
   html += `q&middot;k <b>${cd.qk.toFixed(2)}</b> <span style="color:var(--text-muted)">cell ${candLabel}</span>`;
   html += `&nbsp;+&nbsp; bias <b class="bias-val">${cd.bias.toFixed(2)}</b> <span style="color:var(--text-muted)">cell ${biasLabel}</span>`;
-  if (showWeight){
-    html += `&nbsp;=&nbsp; score <b>${score.toFixed(2)}</b>`;
-    html += `&nbsp;&rarr;&nbsp;<span class="weight-bar"><span class="weight-fill" style="width:${(weight*100).toFixed(0)}%"></span></span>`;
-    html += `<b>${weight.toFixed(2)}</b>`;
-  }
+  html += `&nbsp;=&nbsp; score <b>${score.toFixed(2)}</b>`;
+  html += `&nbsp;&rarr;&nbsp;<span class="weight-bar"><span class="weight-fill" style="width:${(weight*100).toFixed(0)}%"></span></span>`;
+  html += `<b>${weight.toFixed(2)}</b>`;
   row.innerHTML = html;
   return row;
 }
@@ -240,15 +237,15 @@ async function render(){
   const {i,j} = target;
   const cands = candidatesFor(i,j,mode);
   const scores = cands.map(cd => cd.qk + cd.bias);
-  const weights = stage >= 2 ? softmax(scores) : null;
+  const weights = softmax(scores);
 
-  // walk through one triangle at a time — same reveal pattern for both
-  // "compute relevance" and "combine and update," so each stage is watched, not just read
+  // walk through one triangle at a time, q·k + bias + score + weight all revealed together —
+  // so the reader watches each candidate get fully resolved instead of a two-pass split
   for (let idx=0; idx<cands.length; idx++){
     if (myToken !== renderToken) return; // superseded by a newer click
     const cd = cands[idx];
     drawGrid(cd.k);
-    wrap.appendChild(candidateRow(cd, i, j, stage >= 2, weights ? weights[idx] : null));
+    wrap.appendChild(candidateRow(cd, i, j, weights[idx]));
     sendHeight();
     await sleep(850);
   }
@@ -256,14 +253,12 @@ async function render(){
 
   drawGrid(null); // rest state: all triangles shown together
 
-  if (stage >= 2){
-    const newVal = cands.reduce((s,cd,idx)=> s + weights[idx]*cd.value, 0);
-    const old = PAIR[i][j];
-    const summary = document.createElement('div');
-    summary.className = 'candidate-row';
-    summary.innerHTML = `New value for cell (${i+1}, ${j+1}): <b style="color:var(--accent)">${newVal.toFixed(2)}</b> <span style="color:var(--text-muted)">(was ${old.toFixed(2)})</span>`;
-    wrap.appendChild(summary);
-  }
+  const newVal = cands.reduce((s,cd,idx)=> s + weights[idx]*cd.value, 0);
+  const old = PAIR[i][j];
+  const summary = document.createElement('div');
+  summary.className = 'candidate-row';
+  summary.innerHTML = `New value for cell (${i+1}, ${j+1}): <b style="color:var(--accent)">${newVal.toFixed(2)}</b> <span style="color:var(--text-muted)">(was ${old.toFixed(2)})</span>`;
+  wrap.appendChild(summary);
   sendHeight();
 }
 
@@ -278,17 +273,15 @@ function renderStatic(){
   const {i,j} = target;
   const cands = candidatesFor(i,j,mode);
   const scores = cands.map(cd => cd.qk + cd.bias);
-  const weights = stage >= 2 ? softmax(scores) : null;
-  cands.forEach((cd,idx) => wrap.appendChild(candidateRow(cd, i, j, stage >= 2, weights ? weights[idx] : null)));
+  const weights = softmax(scores);
+  cands.forEach((cd,idx) => wrap.appendChild(candidateRow(cd, i, j, weights[idx])));
 
-  if (stage >= 2){
-    const newVal = cands.reduce((s,cd,idx)=> s + weights[idx]*cd.value, 0);
-    const old = PAIR[i][j];
-    const summary = document.createElement('div');
-    summary.className = 'candidate-row';
-    summary.innerHTML = `New value for cell (${i+1}, ${j+1}): <b style="color:var(--accent)">${newVal.toFixed(2)}</b> <span style="color:var(--text-muted)">(was ${old.toFixed(2)})</span>`;
-    wrap.appendChild(summary);
-  }
+  const newVal = cands.reduce((s,cd,idx)=> s + weights[idx]*cd.value, 0);
+  const old = PAIR[i][j];
+  const summary = document.createElement('div');
+  summary.className = 'candidate-row';
+  summary.innerHTML = `New value for cell (${i+1}, ${j+1}): <b style="color:var(--accent)">${newVal.toFixed(2)}</b> <span style="color:var(--text-muted)">(was ${old.toFixed(2)})</span>`;
+  wrap.appendChild(summary);
   sendHeight();
 }
 

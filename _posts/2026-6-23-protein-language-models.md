@@ -705,9 +705,15 @@ $$
 m_{ij} = 0.05\,m_1 + 0.10\,m_2 + 0.80\,m_3 + 0.05\,m_4
 $$
 
-Same four triangles, same four messages — but now $k_3$ dominates the update while the rest are almost silent. Those weights aren't hand-picked. They come out of an attention computation: $(i,j)$ turns into a **query** — what is this pair looking for — and every candidate $k$ turns into a **key** — what does this triangle offer. The query is compared against each key, the triangle's third edge is added in as a bias, and a softmax turns the resulting scores into weights that have to compete with each other, unlike the flat sum triangle update uses.
+Same four triangles, same four messages — but now $k_3$ dominates the update while the rest are almost silent. Those weights aren't hand-picked. They come out of an attention computation: $(i,j)$ turns into a **query** — what is this pair looking for — and every candidate $k$ turns into a **key** — what does this triangle offer. The query is compared against each key, and the triangle's third edge is added in as a bias, so each candidate $k$ gets one score:
 
-Try it below: pick a cell, and see which triangles win the competition.
+$$
+s_{ijk} = q_{ij} \cdot k_{ik} + b_{jk}
+$$
+
+A softmax then turns those scores into weights that have to compete with each other — raise one and the rest get pushed down — which is exactly what the flat sum in triangle update doesn't do.
+
+Try it below: pick a cell, and see which triangles win the competition. The widget's "q·k" is $q_{ij}\cdot k_{ik}$ and "bias" is $b_{jk}$, so the score you see building up in each row is $s_{ijk}$ above.
 
 <iframe id="triangle-attention-frame" src="{{ site.baseurl }}/assets/files/protein/triangle_attention_why.html"
   style="width:100%;border:none;" scrolling="no" height="700"></iframe>
