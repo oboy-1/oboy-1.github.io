@@ -108,3 +108,12 @@ figcaption {
   }
 }
 
+/* Default rounded corners for Mermaid flowchart node boxes. CSS rx/ry always
+   wins over the SVG rect's rx/ry attribute, so this applies even though
+   Mermaid's own per-diagram embedded <style> sets fill/stroke at higher
+   (ID-scoped) specificity. */
+.mermaid .node rect {
+  rx: 6px;
+  ry: 6px;
+}
+

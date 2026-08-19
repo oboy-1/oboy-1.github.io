@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triangle attention — why first</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --border: rgba(15,23,42,0.10);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --accent: #FF6600; --accent-bg: #fff1e6; --accent-border: #ffb374;
+    --msa: #2f6fed; --msa-bg: #eaf1ff; --msa-border: #a9c4fb;
+    --bias: #7c3aed; --bias-bg: #f3e8ff; --bias-border: #c4b5fd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --border: rgba(148,163,184,0.14);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --accent-bg: #3a2410; --accent-border: #a35a1a;
+      --msa: #5b9bff; --msa-bg: #0d2440; --msa-border: #1e4c8a;
+      --bias: #a78bfa; --bias-bg: #2e1a47; --bias-border: #5b3a8a;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 28px 24px 40px; max-width: 920px; margin: 0 auto; }
+  .top-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+  .sub { font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 16px; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.03em; background: var(--surface-1); border: 0.5px solid var(--border);
+    color: var(--text-secondary); padding: 8px 14px; border-radius: 6px; cursor: pointer;
+    transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tabs.mode-tabs { margin-bottom: 18px; }
+
+  .stage-caption {
+    font-size: 13.5px; line-height: 1.6; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; min-height: 20px;
+  }
+
+  .layout { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+
+  .visual { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-1); padding: 16px; flex: 0 0 auto; }
+  .visual svg { display: block; margin: 0 auto; width: 320px; }
+
+  .side { flex: 1 1 320px; min-width: 280px; display: flex; flex-direction: column; }
+
+  .legend-row { display: flex; gap: 14px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
+  .legend-chip { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+  .candidates { display: flex; flex-direction: column; gap: 6px; }
+  .candidate-row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 6px; padding: 7px 10px;
+  }
+  .candidate-row b { color: var(--text-primary); }
+  .candidate-row .k-label { color: var(--msa); font-weight: 500; min-width: 30px; }
+  .candidate-row .bias-val { color: var(--bias); }
+  .candidate-row .weight-bar { flex: 1 1 50px; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; min-width: 30px; }
+  .candidate-row .weight-fill { height: 100%; background: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="top-label">Triangle attention</div>
+<p class="sub">Click any off-diagonal cell to make it the target — it becomes the <b>query</b>. It doesn't gate anything; it drives a competition. Starting node lets it query across its row; ending node, across its column. Every candidate becomes a <b>key</b>, compared against the query, plus a <b>bias</b> from the one edge of the triangle that connects the two positions neither the target nor the candidate touch directly.</p>
+
+<div class="tabs mode-tabs" id="modeTabs">
+  <button data-mode="start" class="active">Starting node (row)</button>
+  <button data-mode="end">Ending node (column)</button>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="stage-caption" id="caption"></div>
+
+<div class="layout">
+  <div>
+    <div class="visual"><svg id="gridSvg" viewBox="0 0 460 460"></svg></div>
+    <div class="legend-row">
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--accent)"></span>target</span>
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--msa)"></span>key / candidate</span>
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--bias)"></span>bias (third side)</span>
+    </div>
+  </div>
+  <div class="side">
+    <div class="candidates" id="candidates"></div>
+  </div>
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+function text(x,y,t,size,fill,anchor,weight){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"Inter,sans-serif"});
+  if(weight) e.setAttribute('font-weight',weight);
+  e.textContent = t; return e;
+}
+function mono(x,y,t,size,fill,anchor){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+  e.textContent = t; return e;
+}
+function softmax(arr){ const m=Math.max(...arr); const ex=arr.map(x=>Math.exp(x-m)); const s=ex.reduce((a,b)=>a+b,0); return ex.map(x=>x/s); }
+
+const N = 6;
+const PAIR = [
+  [null, 0.15, 0.12, 0.71, 0.85, 0.20],
+  [0.35, null, 0.53, 0.29, 0.61, 0.14],
+  [0.22, 0.47, null, 0.38, 0.19, 0.65],
+  [0.66, 0.10, 0.14, null, 0.78, 0.22],
+  [0.90, 0.58, 0.33, 0.46, null, 0.39],
+  [0.49, 0.21, 0.62, 0.17, 0.44, null],
+];
+
+let target = {i:0, j:3};
+let mode = 'start'; // 'start' = attend over row i, bias from (j,k). 'end' = attend over column j, bias from (k,i).
+let stage = 0;
+
+const STAGES = [
+  { label:'1. Why', caption: () => `Cell (${target.i+1}, ${target.j+1}) sits on its own. We don't yet know how much any other cell in its ${mode==='start'?'row':'column'} should inform it, or which triangles through this edge actually matter.` },
+  { label:'2. Compute relevance', caption: () => `Each candidate gets two numbers. q·k compares its key to the target's query — both touch position ${target.i+1}. Bias comes from the one edge of the triangle that skips position ${target.i+1} entirely, connecting the two positions neither the target nor the candidate share. Nothing's combined yet.` },
+  { label:'3. Combine and update', caption: () => `q·k and bias get added into a score per candidate. Compare the scores below — the biggest one doesn't just edge out the rest, softmax turns that gap into a real gap in weight. This is what triangle update didn't have: candidates compete, so one triangle can end up dominating the update while the rest barely matter.` },
+];
+
+function candidatesFor(i,j,m){
+  const ks = [];
+  for (let k=0;k<N;k++) if (k!==i && k!==j) ks.push(k);
+  // qk stands in for q^T k, the dot product between the target's query and the candidate's key —
+  // since both are simplified to one scalar here, that dot product is just their product, so qk
+  // actually depends on the target's own value, not just the candidate's
+  return ks.map(k => {
+    if (m==='start') return { k, candCell:[i,k], biasCell:[j,k], qk: PAIR[i][j]*PAIR[i][k], bias: PAIR[j][k], value: PAIR[i][k] };
+    return { k, candCell:[k,j], biasCell:[k,i], qk: PAIR[i][j]*PAIR[k][j], bias: PAIR[k][i], value: PAIR[k][j] };
+  });
+}
+
+const svg = document.getElementById('gridSvg');
+const gcell = 52, ggap = 6, gst = gcell + ggap, gx = 74, gy = 54;
+function cellCenter(r,c){ return { x: gx + c*gst + gcell/2, y: gy + r*gst + gcell/2 }; }
+function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+
+function drawGrid(activeK){
+  svg.innerHTML = '';
+  svg.setAttribute('viewBox', '0 0 460 460');
+
+  const {i,j} = target;
+  const allCands = stage >= 1 ? candidatesFor(i,j,mode) : [];
+  const single = (activeK !== null && activeK !== undefined) ? allCands.find(cd => cd.k === activeK) : null;
+  const highlighted = single ? [single] : allCands;
+
+  // filled triangle overlay connecting target, candidate, and third side — only while
+  // walking through one k at a time, so the "triangle" shape is unambiguous
+  if (single){
+    const pT = cellCenter(i,j);
+    const pC = cellCenter(single.candCell[0], single.candCell[1]);
+    const pB = cellCenter(single.biasCell[0], single.biasCell[1]);
+    const pts = `${pT.x},${pT.y} ${pC.x},${pC.y} ${pB.x},${pB.y}`;
+    svg.appendChild(el('polygon',{points:pts, fill:'var(--accent)', opacity:0.13}));
+    svg.appendChild(el('polygon',{points:pts, fill:'none', stroke:'var(--accent)', 'stroke-width':1.5, opacity:0.55}));
+  }
+
+  for(let r=0;r<N;r++){
+    for(let c=0;c<N;c++){
+      const x = gx+c*gst, y = gy+r*gst;
+      const isDiag = r===c;
+      const isTarget = r===i && c===j;
+      const isCand = highlighted.some(cd => cd.candCell[0]===r && cd.candCell[1]===c);
+      const isBias = highlighted.some(cd => cd.biasCell[0]===r && cd.biasCell[1]===c);
+
+      let fill = 'var(--bg)', stroke = 'var(--border)', sw = 0.75;
+      if (isDiag) { fill = 'var(--bg)'; stroke = 'var(--border)'; sw = 0.5; }
+      else if (isTarget) { fill = 'var(--accent-bg)'; stroke = 'var(--accent)'; sw = 2.5; }
+      else if (isCand) { fill = 'var(--msa-bg)'; stroke = 'var(--msa)'; sw = 1.5; }
+      else if (isBias) { fill = 'var(--bias-bg)'; stroke = 'var(--bias)'; sw = 1.5; }
+
+      const rect = el('rect',{x,y,width:gcell,height:gcell,rx:7,fill,stroke,'stroke-width':sw});
+      if (!isDiag) { rect.style.cursor = 'pointer'; rect.addEventListener('click', () => selectTarget(r,c)); }
+      svg.appendChild(rect);
+
+      if (isDiag){
+        svg.appendChild(mono(x+gcell/2,y+gcell/2,'–',11,'var(--text-muted)'));
+      } else {
+        const v = PAIR[r][c];
+        let color = 'var(--text-secondary)';
+        if (isTarget) color = 'var(--accent)'; else if (isCand) color = 'var(--msa)'; else if (isBias) color = 'var(--bias)';
+        svg.appendChild(mono(x+gcell/2,y+gcell/2, v.toFixed(2), 11.5, color));
+      }
+    }
+  }
+
+  for(let k=0;k<N;k++){
+    svg.appendChild(mono(gx+k*gst+gcell/2, gy-16, String(k+1), 9.5, 'var(--text-muted)'));
+    svg.appendChild(mono(gx-16, gy+k*gst+gcell/2, String(k+1), 9.5, 'var(--text-muted)', 'end'));
+  }
+  svg.appendChild(text(gx+3*gst, gy-34, 'residue j', 10, 'var(--text-muted)'));
+  svg.appendChild(text(30, gy+3*gst, 'residue i', 10, 'var(--text-muted)', 'middle'));
+}
+
+function candidateRow(cd, i, j, showWeight, weight){
+  const row = document.createElement('div');
+  row.className = 'candidate-row';
+  const candLabel = mode==='start' ? `(${i+1},${cd.k+1})` : `(${cd.k+1},${j+1})`;
+  const biasLabel = mode==='start' ? `(${j+1},${cd.k+1})` : `(${cd.k+1},${i+1})`;
+  const score = cd.qk + cd.bias;
+  let html = `<span class="k-label">k=${cd.k+1}</span>`;
+  html += `q&middot;k <b>${cd.qk.toFixed(2)}</b> <span style="color:var(--text-muted)">cell ${candLabel}</span>`;
+  html += `&nbsp;+&nbsp; bias <b class="bias-val">${cd.bias.toFixed(2)}</b> <span style="color:var(--text-muted)">cell ${biasLabel}</span>`;
+  if (showWeight){
+    html += `&nbsp;=&nbsp; score <b>${score.toFixed(2)}</b>`;
+    html += `&nbsp;&rarr;&nbsp;<span class="weight-bar"><span class="weight-fill" style="width:${(weight*100).toFixed(0)}%"></span></span>`;
+    html += `<b>${weight.toFixed(2)}</b>`;
+  }
+  row.innerHTML = html;
+  return row;
+}
+
+function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+
+let renderToken = 0;
+
+async function render(){
+  const myToken = ++renderToken;
+  document.getElementById('caption').textContent = STAGES[stage].caption();
+  const wrap = document.getElementById('candidates');
+  wrap.innerHTML = '';
+
+  if (stage === 0){
+    drawGrid(null);
+    sendHeight();
+    return;
+  }
+
+  const {i,j} = target;
+  const cands = candidatesFor(i,j,mode);
+  const scores = cands.map(cd => cd.qk + cd.bias);
+  const weights = stage >= 2 ? softmax(scores) : null;
+
+  // walk through one triangle at a time — same reveal pattern for both
+  // "compute relevance" and "combine and update," so each stage is watched, not just read
+  for (let idx=0; idx<cands.length; idx++){
+    if (myToken !== renderToken) return; // superseded by a newer click
+    const cd = cands[idx];
+    drawGrid(cd.k);
+    wrap.appendChild(candidateRow(cd, i, j, stage >= 2, weights ? weights[idx] : null));
+    sendHeight();
+    await sleep(850);
+  }
+  if (myToken !== renderToken) return;
+
+  drawGrid(null); // rest state: all triangles shown together
+
+  if (stage >= 2){
+    const newVal = cands.reduce((s,cd,idx)=> s + weights[idx]*cd.value, 0);
+    const old = PAIR[i][j];
+    const summary = document.createElement('div');
+    summary.className = 'candidate-row';
+    summary.innerHTML = `New value for cell (${i+1}, ${j+1}): <b style="color:var(--accent)">${newVal.toFixed(2)}</b> <span style="color:var(--text-muted)">(was ${old.toFixed(2)})</span>`;
+    wrap.appendChild(summary);
+  }
+  sendHeight();
+}
+
+function renderStatic(){
+  // instant version of render(), used for theme changes — no reason to replay the sweep
+  document.getElementById('caption').textContent = STAGES[stage].caption();
+  const wrap = document.getElementById('candidates');
+  wrap.innerHTML = '';
+  drawGrid(null);
+  if (stage === 0){ sendHeight(); return; }
+
+  const {i,j} = target;
+  const cands = candidatesFor(i,j,mode);
+  const scores = cands.map(cd => cd.qk + cd.bias);
+  const weights = stage >= 2 ? softmax(scores) : null;
+  cands.forEach((cd,idx) => wrap.appendChild(candidateRow(cd, i, j, stage >= 2, weights ? weights[idx] : null)));
+
+  if (stage >= 2){
+    const newVal = cands.reduce((s,cd,idx)=> s + weights[idx]*cd.value, 0);
+    const old = PAIR[i][j];
+    const summary = document.createElement('div');
+    summary.className = 'candidate-row';
+    summary.innerHTML = `New value for cell (${i+1}, ${j+1}): <b style="color:var(--accent)">${newVal.toFixed(2)}</b> <span style="color:var(--text-muted)">(was ${old.toFixed(2)})</span>`;
+    wrap.appendChild(summary);
+  }
+  sendHeight();
+}
+
+function selectTarget(i,j){
+  target = {i,j};
+  render();
+}
+
+const tabsEl = document.getElementById('tabs');
+STAGES.forEach((st,idx)=>{
+  const b = document.createElement('button');
+  b.textContent = st.label;
+  if (idx===0) b.classList.add('active');
+  b.addEventListener('click', ()=>{
+    stage = idx;
+    [...tabsEl.children].forEach((btn,i)=> btn.classList.toggle('active', i===idx));
+    render();
+  });
+  tabsEl.appendChild(b);
+});
+
+document.getElementById('modeTabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-mode]');
+  if (!btn) return;
+  document.querySelectorAll('#modeTabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  mode = btn.dataset.mode;
+  render();
+});
+
+render();
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderStatic);
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>
