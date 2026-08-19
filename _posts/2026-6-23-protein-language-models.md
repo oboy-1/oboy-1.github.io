@@ -691,5 +691,69 @@ That's the whole mechanism. Everything else in the Evoformer block moves informa
 
 {% include collapsible.html summary="Click here for the real math behind triangle update" content=triangle_update_math mermaid=true %}
 
+Triangle update pools. For cell $(i,j)$, every third vertex $k$ contributes a message $m_k$, and the update just adds them all up:
+
+$$
+m_{ij} = m_1 + m_2 + m_3 + m_4
+$$
+
+There's no mechanism asking which $k$ actually matters here — every triangle counts the same, and $(i,j)$ absorbs all of them at once.
+
+Triangle attention asks that question. Instead of summing everything equally, it first decides how much each $k$ deserves to count, then sums a weighted version:
+
+$$
+m_{ij} = 0.05\,m_1 + 0.10\,m_2 + 0.80\,m_3 + 0.05\,m_4
+$$
+
+Same four triangles, same four messages — but now $k_3$ dominates the update while the rest are almost silent. Those weights aren't hand-picked. They come out of an attention computation: $(i,j)$ turns into a **query** — what is this pair looking for — and every candidate $k$ turns into a **key** — what does this triangle offer. The query is compared against each key, the triangle's third edge is added in as a bias, and a softmax turns the resulting scores into weights that have to compete with each other, unlike the flat sum triangle update uses.
+
+Try it below: pick a cell, and see which triangles win the competition.
+
+<iframe id="triangle-attention-frame" src="{{ site.baseurl }}/assets/files/protein/triangle_attention_why.html"
+  style="width:100%;border:none;" scrolling="no" height="700"></iframe>
+<script>
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.iframeHeight && e.source === document.getElementById('triangle-attention-frame').contentWindow) {
+    document.getElementById('triangle-attention-frame').style.height = e.data.iframeHeight + 'px';
+  }
+});
+</script>
+
+> - q&middot;k in the widget stands in for a real dot product between projected vectors; here both are simplified to one scalar, so it's just their product.
+> - The query doesn't gate the result after the fact — it drives the competition up front. $(i,j)$'s own value decides what gets compared against, which is why q&middot;k depends on the target too, not just the candidate.
+{: .prompt-warning}
+
+{% capture triangle_attention_math %}
+AlphaFold2 calls this **triangular self-attention**, and like triangle update it runs two variants — attending around the starting node (row) or the ending node (column). Here's the starting-node version, for pair grid cell $z_{ij}$ attending over every $k$ in row $i$:
+
+$$
+q_{ij} = W_Q\,z_{ij} \qquad k_{ik} = W_K\,z_{ik} \qquad v_{ik} = W_V\,z_{ik} \qquad b_{jk} = W_B\,z_{jk}
+$$
+
+$$
+s_{ijk} = \frac{q_{ij}^{\top} k_{ik}}{\sqrt{d}} + b_{jk}
+$$
+
+$$
+\alpha_{ijk} = \operatorname{softmax}_k\big(s_{ijk}\big)
+$$
+
+$$
+z_{ij}^{\text{new}} = \sum_{k} \alpha_{ijk}\, v_{ik}
+$$
+
+where $d$ is the key dimension and every $W$ is a learned linear projection.
+
+A few things worth tracing back to the interactive above:
+
+- $z_{ij}$ only enters through $q_{ij}$. It sets what the pair is looking for; it never touches the output directly. Everything in $z_{ij}^{\text{new}}$ comes from the $v_{ik}$'s.
+- $b_{jk}$ is projected from $z_{jk}$ — the third side of the triangle, the one edge connecting the two positions neither $z_{ij}$ nor $z_{ik}$ share. This is the piece that makes it *triangle* attention rather than plain self-attention.
+- $\alpha_{ijk}$ is one softmax across every $k$ in the row at once, so the weights are forced to compete — raising one lowers the others. That's the difference from triangle update's sum, where every $k$ contributes independently and none of them compete for influence.
+- The ending-node variant has the same shape, attending over column $j$ instead of row $i$: keys and values come from $z_{kj}$, and the bias comes from $z_{ki}$.
+
+Same three inputs as triangle update — $z_{ij}$, $z_{ik}$, $z_{jk}$ — but here they're split into a query, a set of keys and values, and a bias, and combined through competition instead of a sum.
+{% endcapture %}
+
+{% include collapsible.html summary="Click here for the real math behind triangle attention" content=triangle_attention_math mermaid=true %}
 
 
