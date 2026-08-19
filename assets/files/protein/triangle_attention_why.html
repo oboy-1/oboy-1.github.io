@@ -214,8 +214,9 @@ function candidateRow(cd, i, j, weight){
   html += `q&middot;k <b class="qk-val">${cd.qk.toFixed(2)}</b> <span style="color:var(--text-muted)">cell ${candLabel}</span>`;
   html += `&nbsp;+&nbsp; bias <b class="bias-val">${cd.bias.toFixed(2)}</b> <span style="color:var(--text-muted)">cell ${biasLabel}</span>`;
   html += `&nbsp;=&nbsp; score <b>${score.toFixed(2)}</b>`;
-  const fillOpacity = (0.35 + weight*0.65).toFixed(2);
-  html += `&nbsp;&rarr;&nbsp;<span class="weight-bar"><span class="weight-fill" style="width:${(weight*100).toFixed(0)}%;opacity:${fillOpacity}"></span></span>`;
+  const fillPct = (15 + weight*85).toFixed(0);
+  const fillColor = `color-mix(in srgb, var(--accent) ${fillPct}%, var(--border))`;
+  html += `&nbsp;&rarr;&nbsp;<span class="weight-bar"><span class="weight-fill" style="width:${(weight*100).toFixed(0)}%;background:${fillColor}"></span></span>`;
   html += `<b class="weight-val">${weight.toFixed(2)}</b>`;
   row.innerHTML = html;
   return row;
