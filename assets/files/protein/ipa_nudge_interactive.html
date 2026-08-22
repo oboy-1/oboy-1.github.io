@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPA — watch the nudge</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --border: rgba(15,23,42,0.10);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --teal: #0f766e; --teal-bg: #ecfdf9; --teal-border: #7cd9c8;
+    --coral: #c2410c; --coral-bg: #fff1ea; --coral-border: #f0a877;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --border: rgba(148,163,184,0.14);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --teal: #5eead4; --teal-bg: #082f2a; --teal-border: #14584f;
+      --coral: #fdba8c; --coral-bg: #341a0c; --coral-border: #6b3210;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 28px 24px 40px; max-width: 660px; margin: 0 auto; }
+  .top-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .sub { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 18px; }
+  .sub b { color: var(--text-primary); font-weight: 500; }
+
+  .visual { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-1); padding: 14px; }
+  .visual svg { display: block; margin: 0 auto; }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:10px; font-size:11px; color:var(--text-secondary); }
+  .legend span { display:flex; align-items:center; gap:5px; }
+  .legend i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+
+  .controls { display: flex; align-items: center; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+  button.act {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500;
+    padding: 10px 18px; border-radius: 8px; cursor: pointer; border: none;
+  }
+  button.nudge { background: var(--coral); color: #fff; }
+  button.nudge:hover { opacity: 0.88; }
+  button.reset { background: var(--surface-1); color: var(--text-secondary); border: 0.5px solid var(--border); }
+  button.reset:hover { color: var(--text-primary); }
+  .status { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-muted); }
+
+  .breakdown { margin-top: 14px; border: 0.5px solid var(--border); border-radius: 10px; background: var(--surface-1); padding: 14px 16px; min-height: 96px; }
+  .breakdown .hint { font-size: 12.5px; color: var(--text-muted); text-align: center; padding: 20px 0; }
+  .breakdown-title { font-size: 12.5px; font-weight: 500; margin-bottom: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .bar-label { font-size: 10.5px; color: var(--text-secondary); width: 110px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 5px; }
+  .bar-val { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--text-secondary); width: 40px; text-align: right; }
+  .bar-note { font-size: 10.5px; color: var(--text-muted); margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div class="top-label">IPA — watch the nudge</div>
+<p class="sub">Hover B, C, or D to see why it's pulling that hard. Click <b>Nudge</b> to actually move A.</p>
+
+<div class="visual"><svg id="svg" viewBox="0 0 600 420" width="100%" style="max-width:560px"></svg></div>
+<div class="legend">
+  <span><i style="background:var(--coral)"></i>A, and its pull toward each candidate</span>
+  <span><i style="background:var(--teal)"></i>query↔key distance (hover to see)</span>
+</div>
+
+<div class="controls">
+  <button class="act nudge" id="nudgeBtn">Nudge →</button>
+  <button class="act reset" id="resetBtn">Reset</button>
+  <span class="status" id="status">pass 0</span>
+</div>
+
+<div class="breakdown" id="breakdown"></div>
+
+<script>
+function rotate(x,y,deg){ const r=deg*Math.PI/180; return [x*Math.cos(r)-y*Math.sin(r), x*Math.sin(r)+y*Math.cos(r)]; }
+function dist(p1,p2){ return Math.hypot(p1[0]-p2[0], p1[1]-p2[1]); }
+function softmax(arr){ const m=Math.max(...arr); const ex=arr.map(x=>Math.exp(x-m)); const s=ex.reduce((a,b)=>a+b,0); return ex.map(x=>x/s); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function angleLerp(a,b,t){
+  // shortest-path angle interpolation
+  let diff = ((b-a+540)%360)-180;
+  return a + diff*t;
+}
+
+let A = { x:300, y:320, ang:90 };
+const CANDS = [
+  { name:'B', x:120, y:100, ang:-30, content:0.70, bias:0.75 },
+  { name:'C', x:420, y:90,  ang:200, content:0.55, bias:0.30 },
+  { name:'D', x:480, y:300, ang:140, content:0.40, bias:0.60 },
+];
+let passCount = 0;
+
+function keyPoint(r){ const [dx,dy]=rotate(25,0,r.ang); return [r.x+dx, r.y+dy]; }
+function valuePoint(r){ const [dx,dy]=rotate(0,-25,r.ang); return [r.x+dx, r.y+dy]; }
+function queryPoint(r){ const [dx,dy]=rotate(25,0,r.ang); return [r.x+dx, r.y+dy]; }
+
+function computeWeights(){
+  const Q = queryPoint(A);
+  const scores = CANDS.map(c=>{
+    const K = keyPoint(c);
+    const d = dist(Q,K);
+    return c.content + c.bias - d/300;
+  });
+  return softmax(scores);
+}
+
+function computeTarget(weights){
+  let tx=0, ty=0;
+  CANDS.forEach((c,i)=>{ const V=valuePoint(c); tx+=weights[i]*V[0]; ty+=weights[i]*V[1]; });
+  return [tx,ty];
+}
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
+function txt(x,y,t,size,fill,anchor){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+  e.textContent = t; return e;
+}
+
+function drawResidue(svg, r, color, radius, label){
+  const g = el('g',{});
+  const [fx,fy] = rotate(radius+10, 0, r.ang);
+  g.appendChild(el('line',{x1:r.x,y1:r.y,x2:r.x+fx,y2:r.y+fy, stroke:color, 'stroke-width':2, 'marker-end':'url(#arrowhead)'}));
+  g.appendChild(el('circle',{cx:r.x,cy:r.y,r:radius, fill:'var(--bg)', stroke:color, 'stroke-width':2}));
+  g.appendChild(txt(r.x, r.y, label, 12, color));
+  svg.appendChild(g);
+}
+
+let hovered = null;
+
+function render(){
+  const svg = document.getElementById('svg');
+  svg.innerHTML = '';
+  const defs = el('defs',{});
+  const marker = el('marker',{id:'arrowhead', viewBox:'0 0 10 10', refX:8, refY:5, markerWidth:5, markerHeight:5, orient:'auto-start-reverse'});
+  marker.appendChild(el('path',{d:'M2 1L8 5L2 9', fill:'none', stroke:'context-stroke', 'stroke-width':1.5}));
+  defs.appendChild(marker);
+  const pullArrow = el('marker',{id:'pullhead', viewBox:'0 0 10 10', refX:8, refY:5, markerWidth:6, markerHeight:6, orient:'auto-start-reverse'});
+  pullArrow.appendChild(el('path',{d:'M1 1L9 5L1 9Z', fill:'context-stroke'}));
+  defs.appendChild(pullArrow);
+  svg.appendChild(defs);
+
+  const weights = computeWeights();
+  const Q = queryPoint(A);
+  const target = computeTarget(weights);
+
+  // pull arrows: from A toward each candidate's value point, length = weight
+  CANDS.forEach((c,i)=>{
+    const V = valuePoint(c);
+    const dx = V[0]-A.x, dy = V[1]-A.y;
+    const len = Math.hypot(dx,dy);
+    const pullLen = 20 + weights[i]*130;
+    const ex = A.x + (dx/len)*pullLen, ey = A.y + (dy/len)*pullLen;
+    const isHot = hovered===c.name;
+    const strokeW = isHot ? 4 : (1.5+weights[i]*3);
+    const opacity = isHot ? 1 : (0.4+weights[i]*0.5);
+    svg.appendChild(el('line',{x1:A.x,y1:A.y,x2:ex,y2:ey, stroke:'var(--coral)', 'stroke-width':strokeW, opacity:opacity.toFixed(2), 'marker-end':'url(#pullhead)'}));
+  });
+
+  // faint query-key lines only for the hovered candidate, or all faint if none hovered
+  CANDS.forEach(c=>{
+    const K = keyPoint(c);
+    const isHot = hovered===c.name;
+    if(hovered && !isHot) return;
+    svg.appendChild(el('line',{x1:Q[0],y1:Q[1],x2:K[0],y2:K[1], stroke:'var(--teal)', 'stroke-width':isHot?2:1, 'stroke-dasharray': isHot?'':'2,3', opacity:isHot?0.9:0.35}));
+    svg.appendChild(el('circle',{cx:K[0],cy:K[1],r:4, fill:'var(--teal)', opacity:isHot?1:0.4}));
+  });
+
+  // target marker
+  svg.appendChild(el('circle',{cx:target[0],cy:target[1],r:6, fill:'none', stroke:'var(--text-primary)', 'stroke-width':1.5, 'stroke-dasharray':'2,2'}));
+  svg.appendChild(txt(target[0], target[1]-14, 'target', 9, 'var(--text-muted)'));
+
+  svg.appendChild(el('circle',{cx:Q[0],cy:Q[1],r:3.5, fill:'var(--coral)'}));
+
+  // residues — hover detection lives outside render(), see mousemove listener below
+  CANDS.forEach(c=>{
+    drawResidue(svg, c, hovered===c.name ? 'var(--teal)' : 'var(--text-secondary)', 16, c.name);
+  });
+  drawResidue(svg, A, 'var(--coral)', 18, 'A');
+
+  document.getElementById('status').textContent = `pass ${passCount}`;
+  renderBreakdown(weights);
+}
+
+function renderBreakdown(weights){
+  const box = document.getElementById('breakdown');
+  if(!hovered){
+    box.innerHTML = `<div class="hint">hover a residue to see why it's pulling that hard</div>`;
+    return;
+  }
+  const idx = CANDS.findIndex(c=>c.name===hovered);
+  const c = CANDS[idx];
+  const Q = queryPoint(A);
+  const K = keyPoint(c);
+  const d = dist(Q,K);
+  const distTerm = -d/300;
+  const maxBar = 1.6;
+  function bar(label, val, color){
+    const pct = Math.max(0, Math.min(100, ((val+1.6)/(1.6+1.6))*100));
+    return `<div class="bar-row"><span class="bar-label">${label}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div><span class="bar-val">${val.toFixed(2)}</span></div>`;
+  }
+  box.innerHTML = `
+    <div class="breakdown-title">why ${hovered} pulls with weight ${weights[idx].toFixed(2)}</div>
+    ${bar('content similarity', c.content, 'var(--teal)')}
+    ${bar('pair-grid belief', c.bias, 'var(--coral)')}
+    ${bar('distance term', distTerm, 'var(--text-secondary)')}
+    <div class="bar-note">closer query↔key = less negative here = stronger pull</div>
+  `;
+}
+
+document.getElementById('nudgeBtn').addEventListener('click', ()=>{
+  const weights = computeWeights();
+  const target = computeTarget(weights);
+  A.x = lerp(A.x, target[0], 0.4);
+  A.y = lerp(A.y, target[1], 0.4);
+
+  // orientation nudge: weighted circular mean of candidate angles
+  let vx=0, vy=0;
+  CANDS.forEach((c,i)=>{ vx += weights[i]*Math.cos(c.ang*Math.PI/180); vy += weights[i]*Math.sin(c.ang*Math.PI/180); });
+  const targetAng = Math.atan2(vy,vx)*180/Math.PI;
+  A.ang = angleLerp(A.ang, targetAng, 0.25);
+
+  passCount++;
+  render();
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  A = { x:300, y:320, ang:90 };
+  passCount = 0;
+  render();
+});
+
+render();
+
+const svgEl = document.getElementById('svg');
+svgEl.style.cursor = 'default';
+svgEl.addEventListener('mousemove', (e)=>{
+  const rect = svgEl.getBoundingClientRect();
+  const scaleX = 600/rect.width, scaleY = 420/rect.height;
+  const mx = (e.clientX-rect.left)*scaleX, my = (e.clientY-rect.top)*scaleY;
+  let closest = null, closestDist = 28;
+  CANDS.forEach(c=>{
+    const d = Math.hypot(mx-c.x, my-c.y);
+    if(d < closestDist){ closest = c.name; closestDist = d; }
+  });
+  if(closest !== hovered){ hovered = closest; render(); }
+});
+svgEl.addEventListener('mouseleave', ()=>{
+  if(hovered){ hovered = null; render(); }
+});
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

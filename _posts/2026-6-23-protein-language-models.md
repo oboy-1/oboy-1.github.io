@@ -27,7 +27,7 @@ window.addEventListener('message', function(e) {
 });
 </script>
 
-Both models actually show a similar pattern here. Some positions are flexible — the model assigns reasonable probability to many substitutions. Some are locked — one strong opinion, everything else gets penalized. 
+Both models actually show a similar pattern here. Some positions are flexible, some substitutions make the sentence (or amino acid sequence) still work. Some are locked, replacing the word destroys the grammar of the sentence (analogously structure of the protein).
 
 Notice how this illustrates the core problem.  To make a sentence, you must choose and order words in the right way for a target meaning.  To make a protein, you must choose and order amino acids the right way for a target functionality.  The entire problem is to make a model be able to do this effectively!
 
@@ -711,6 +711,9 @@ $$
 s_{ijk} = q_{ij} \cdot k_{ik} + b_{jk}
 $$
 
+In words: 
+> Does $i \leftrightarrow k$ look compatible with $i \leftrightarrow j$, and does the third side $j \leftrightarrow k$ support that relationship?
+
 A softmax then turns those scores into weights that have to compete with each other — raise one and the rest get pushed down — which is exactly what the flat sum in triangle update doesn't do.
 
 Try it below: pick a cell, and see which triangles win the competition. The widget's "q·k" is $q_{ij}\cdot k_{ik}$ and "bias" is $b_{jk}$, so the score you see building up in each row is $s_{ijk}$ above.
@@ -762,4 +765,97 @@ Same three inputs as triangle update — $z_{ij}$, $z_{ik}$, $z_{jk}$ — but he
 
 {% include collapsible.html summary="Click here for the real math behind triangle attention" content=triangle_attention_math mermaid=true %}
 
+Everything up to this point has been the pair grid getting more confident. But confidence about which residues are close isn't a structure — it's still just a table of numbers. The Structure Module is where that table finally becomes real (x, y, z) coordinates.
 
+Every residue is represented as a **frame**: where it is, and which way it's facing. Frames start rough — barely more informed than the pair grid was at the start of this whole post — and the Structure Module's entire job is refining them into something physically real.
+
+Here's the fact that shapes everything that follows: **rotate the whole protein in space, and it's still the same protein.** Nothing about its actual structure changed. So whatever mechanism updates a frame had better not care which arbitrary way the molecule happens to be oriented — and the way AlphaFold2 guarantees that isn't by hoping the network learns it from enough examples, it's built into the math directly.
+
+<iframe id="ipa-rotation-frame" src="{{ site.baseurl }}/assets/files/protein/ipa_rotation_invariance.html"
+  style="width:100%;border:none;" scrolling="no" height="420"></iframe>
+<script>
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.iframeHeight && e.source === document.getElementById('ipa-rotation-frame').contentWindow) {
+    document.getElementById('ipa-rotation-frame').style.height = e.data.iframeHeight + 'px';
+  }
+});
+</script>
+
+Each residue generates a query point and a key point — not abstract vectors, actual 3D locations, built by taking a small learned instruction and rotating it according to that residue's own current frame. Rotate the whole molecule, and every frame rotates with it, so every query and key point rotates too — by the same amount. Distance between two points that both rotated together never changes. That's the whole proof, and it's why the mechanism reaches for **distance** here instead of the dot product every other attention step in this post has used: dot product depends on where a point sits relative to the origin, which is exactly the kind of arbitrary, meaningless fact rotating the molecule would disturb. Distance doesn't care.
+
+This is the same "how relevant is this to that" question every attention step in this post has asked, just answered with a third ingredient none of the others had access to. Content similarity, same as row attention. A bias pulled from the pair grid, same trick row attention used. And now, genuine geometry — how close two residues' real points currently sit — sitting right alongside them in one combined score.
+
+<iframe id="ipa-nudge-frame" src="{{ site.baseurl }}/assets/files/protein/ipa_nudge_interactive.html"
+  style="width:100%;border:none;" scrolling="no" height="780"></iframe>
+<script>
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.iframeHeight && e.source === document.getElementById('ipa-nudge-frame').contentWindow) {
+    document.getElementById('ipa-nudge-frame').style.height = e.data.iframeHeight + 'px';
+  }
+});
+</script>
+
+Once those scores exist, softmax turns them into weights — same as always. What's new is what the weights get used for. Every residue also proposes a third point, a **value point**: a suggestion for where the residue being updated should actually sit. Average those suggestions, weighted by relevance, and you get a target location. The gap between that target and the residue's current position is the nudge. Everywhere else in this post, attention has updated a vector. This is the one place it updates a literal point in space.
+
+> - Real IPA runs several attention heads in parallel, each with its own learned points — the widget shows one head's worth of geometry to keep the arithmetic legible.
+> - The "content similarity," "pair-grid belief," and "distance" bars are the widget's illustrative stand-ins for three real terms that get added before the softmax — the shapes are faithful, the exact numbers aren't measured in Ångströms.
+{: .prompt-warning}
+
+{% capture ipa_math %}
+AlphaFold2 calls this **Invariant Point Attention**. For residue $i$ attending over every residue $j$, one head's worth of the score is:
+
+$$
+q_i, k_j, v_j \in \mathbb{R}^{d_c} \qquad q_i^p, k_j^p, v_j^p \in \mathbb{R}^{3}
+$$
+
+$$
+s_{ij} = w_L\left[\frac{1}{\sqrt{d_c}}\,q_i^{\top}k_j \;+\; b_{ij} \;-\; \frac{\gamma}{2}\sum_{p}\big\lVert T_i \circ q_i^p - T_j \circ k_j^p \big\rVert^2\right]
+$$
+
+$$
+\alpha_{ij} = \operatorname{softmax}_j(s_{ij})
+$$
+
+$$
+o_i = \sum_j \alpha_{ij}\,v_j \qquad\qquad \tilde{o}_i^p = T_i^{-1} \circ \sum_j \alpha_{ij}\,\big(T_j \circ v_j^p\big)
+$$
+
+where $T_i$ is residue $i$'s frame (rotation + translation), $b_{ij}$ is the usual pair-grid bias, $\gamma$ is a learned per-head weight controlling how much the geometric term matters, and $w_L$ just keeps the three terms on a comparable scale.
+
+A few things worth tracing back to the widget above:
+
+- $T_i \circ q_i^p$ is exactly "rotate the instruction by residue $i$'s frame, then shift by its position" — the rotate-then-shift operation from the diagram, applied to turn a raw point into a real, shared-space location.
+- The $-\frac{\gamma}{2}\lVert \cdot \rVert^2$ term is the distance penalty: bigger distance between $i$'s query point and $j$'s key point, more negative, lower score. This is the term with no analogue anywhere else in this post.
+- $\tilde{o}_i^p$ is the actual nudge target — value points get pulled into shared space by $T_j$, averaged by $\alpha_{ij}$, then pulled back into residue $i$'s own frame by $T_i^{-1}$ so the result can update $T_i$ itself.
+- Everything here runs multiple times per Structure Module call (recycling this module specifically), and the whole module runs again after another full pass through the Evoformer — two nested loops, not one.
+
+That's Invariant Point Attention: every other mechanism in this post moves information between vectors; this is the one place where attention output is a literal point in space.
+{% endcapture %}
+
+{% include collapsible.html summary="Click here for the real math behind IPA" content=ipa_math mermaid=true %}
+
+Once frames settle, two lightweight steps close things out. Side chains attach using a handful of predicted angles per residue — cheap, compared to everything above, since a side chain only has a few bonds to rotate around. Then the confidence heads you already met run on the finished structure: pLDDT per residue, PAE per pair, the model grading its own output.
+
+That's AlphaFold2, start to finish: an MSA and a pair grid trading information for 48 blocks, three attention-and-consistency tricks doing all the real work, a Structure Module turning the result into real geometry through the one mechanism in the whole model that's guaranteed correct by construction rather than learned — recycled a handful of times before any of it counts as final.
+
+#### AlphaFold 3: same reasoning, different bets
+
+Everything above is AlphaFold2, specifically. AlphaFold3, released in 2024, is not a version bump on top of it — it's a different set of architectural bets, made by the same team, on the same underlying problem.
+
+The biggest change is scope. AlphaFold2 only ever predicted a single protein chain. AlphaFold3 predicts joint structures for proteins, DNA, RNA, ligands, ions, and modified residues, all at once. That alone forces most of the rest of the redesign.
+
+The Evoformer is gone, replaced by something called the **Pairformer** — and the MSA gets radically deprioritized to make room for it. AlphaFold2 ran 48 blocks of MSA processing, trading information with the pair grid the whole way through. AlphaFold3 runs only 4 MSA blocks, and once they finish, the MSA representation is discarded entirely — the Pairformer's remaining 48 blocks work on the single and pair representations alone, no MSA track running alongside them at all. The two-track, seven-step, MSA-informs-pair-informs-MSA loop this whole section walked through in detail is specifically an AlphaFold2 mechanism.
+
+The Structure Module is gone too, replaced by a **diffusion module** — the same denoising idea RFdiffusion uses for protein generation, borrowed here for structure prediction instead. And this is the part worth sitting with, since it reverses a specific bet this post spent real time on: Invariant Point Attention guaranteed rotation invariance by construction, provably, through the frame math in the section above. AlphaFold3 drops that guarantee and gets invariance a different way — training on the same structure shown at many random rotations, so the network *learns* to be invariant rather than being built that way. Correct and effective, but a genuinely different philosophy: guaranteed-by-math versus learned-through-exposure.
+
+> Independent benchmarking backs up a nuanced picture here, not a clean "AF3 is just better." On AlphaFold2's original task — a single chain, on its own — AF3 shows only slight gains, and even then only the local accuracy improvement reaches statistical significance, not the global one. The big, unambiguous wins are specifically for the things AF2 couldn't do at all: protein-ligand complexes, protein-nucleic acid interactions, antibody-antigen prediction. And CASP16's independent evaluation found AF3's edge on complexes mostly disappeared once AF2-based methods were given a larger sampling budget — some of AF3's advantage is really about default efficiency, not a hard ceiling AF2 couldn't reach with more compute.
+{: .prompt-info}
+
+> One practical factor that has nothing to do with accuracy: AlphaFold2 is Apache 2.0, free for any use. AlphaFold3 is restricted to non-commercial use. For a lot of real users, that alone can matter more than a benchmark number.
+{: .prompt-warning}
+
+What's worth noticing is what *didn't* change. The triangle inequality reasoning — if $i$ is close to $j$, and $j$ is close to $k$, then $i$ and $k$ are constrained too — is still the Pairformer's central idea. The pair representation is still the thing the whole architecture is organized around building confidence in. AlphaFold3 replaced the machinery that builds and refines that representation, and replaced how confident beliefs get turned into coordinates — but the actual insight that a protein's pairwise relationships must be mutually consistent, and that this consistency has to be built into the architecture rather than hoped for, survived the redesign completely intact.
+
+That's the real throughline across this entire section, and arguably the most transferable idea in it: find a fact that's true no matter what — a physical law, a geometric constraint, a symmetry — and build the architecture to respect it automatically, so gradient descent never has to spend a single training step rediscovering something that never needed data to be true in the first place. AlphaFold2 did this with triangle consistency and rotation invariance. AlphaFold3 kept the first bet and walked back the second. Neither choice is obviously correct forever — it's an active, ongoing trade-off the field is still making in both directions.
+
+Sequence to structure is only half the story, though. The other half asks the reverse question — given the shape you want, what sequence actually produces it — and that's genuinely different machinery, built for a genuinely different reason. That's next.
