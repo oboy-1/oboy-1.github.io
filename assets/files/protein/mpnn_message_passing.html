@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProteinMPNN — message passing</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --border: rgba(15,23,42,0.10);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --accent: #FF6600; --accent-bg: #fff1e6; --accent-border: #ffb374;
+    --msa: #2f6fed; --msa-bg: #eaf1ff; --msa-border: #a9c4fb;
+    --good: #16a34a; --good-bg: #f0fdf4; --good-border: #86efac;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --border: rgba(148,163,184,0.14);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --accent-bg: #3a2410; --accent-border: #a35a1a;
+      --msa: #5b9bff; --msa-bg: #0d2440; --msa-border: #1e4c8a;
+      --good: #4ade80; --good-bg: #0d2b16; --good-border: #1c6b34;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 28px 24px 40px; max-width: 920px; margin: 0 auto; }
+  .top-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+  .sub { font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 16px; }
+  .sub b { color: var(--text-primary); font-weight: 500; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.03em; background: var(--surface-1); border: 0.5px solid var(--border);
+    color: var(--text-secondary); padding: 8px 14px; border-radius: 6px; cursor: pointer;
+    transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .stage-caption {
+    font-size: 13.5px; line-height: 1.6; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; min-height: 20px;
+  }
+  .stage-caption b { color: var(--text-primary); font-weight: 500; }
+
+  .layout { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  .visual { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-1); padding: 16px; flex: 0 0 auto; }
+  .visual svg { display: block; margin: 0 auto; width: 260px; }
+  .side { flex: 1 1 340px; min-width: 280px; display: flex; flex-direction: column; gap: 8px; }
+
+  .graph-note { font-size: 11px; line-height: 1.5; color: var(--text-muted); margin-top: 10px; max-width: 260px; text-align: center; }
+  .legend-row { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
+  .legend-chip { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .chip-line { width: 14px; height: 0; border-top: 1.5px dashed var(--text-muted); flex: none; }
+  .hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 6px; }
+
+  .row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 6px; padding: 8px 10px;
+  }
+  .row b { color: var(--text-primary); }
+  .row .j-label { color: var(--msa); font-weight: 500; min-width: 44px; }
+  .row .m-val { color: var(--accent); }
+  .row.sum { border-color: var(--accent-border); background: var(--accent-bg); }
+  .row.sum b { color: var(--accent); }
+  .row.update { border-color: var(--good-border); background: var(--good-bg); }
+  .row.update b { color: var(--good); }
+  .empty-hint { color: var(--text-muted); font-size: 12.5px; padding: 10px 2px; line-height: 1.6; }
+
+  @keyframes node-pulse {
+    0% { r: 15; }
+    35% { r: 20; }
+    100% { r: 15; }
+  }
+  .pulse { animation: node-pulse 700ms ease-out; }
+</style>
+</head>
+<body>
+
+<div class="top-label">ProteinMPNN — message passing</div>
+<p class="sub">Residue <b>i</b> (orange) sits in a graph, not a line — edges connect residues that are physically close in 3D, sequence-neighbors or not. Step through the four stages below, then <b>click any other node</b> to repeat the whole thing for a different residue.</p>
+
+<div class="tabs" id="tabs"></div>
+<div class="stage-caption" id="caption"></div>
+
+<div class="layout">
+  <div>
+    <div class="visual"><svg id="svg" viewBox="0 0 240 300"></svg></div>
+    <div class="legend-row">
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--accent)"></span>target i</span>
+      <span class="legend-chip"><span class="chip-dot" style="background:var(--msa)"></span>neighbor j</span>
+      <span class="legend-chip"><span class="chip-line"></span>graph edge</span>
+    </div>
+    <p class="graph-note">Edges here aren't the sequence 1&ndash;2&ndash;3&hellip; — they connect residues within a distance cutoff in real 3D. <b style="color:var(--text-secondary)">1&ndash;8</b> and <b style="color:var(--text-secondary)">2&ndash;7</b> are neighbors because this stretch folds into a hairpin, even though they sit far apart in sequence.</p>
+    <div class="hint">click a node to make it the target</div>
+  </div>
+  <div class="side" id="panel"></div>
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+function mono(x,y,t,size,fill,anchor){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+  e.textContent = t; return e;
+}
+function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+function sigmoid(x){ return 1/(1+Math.exp(-x)); }
+
+const SUBDIGIT = {'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉'};
+function sub(n){ return String(n).split('').map(c => SUBDIGIT[c] || c).join(''); }
+function hLbl(i){ return 'h' + sub(i); }
+function eLbl(i,j){ return 'e' + sub(i) + sub(j); }
+function mLbl(i,j){ return 'm' + sub(i) + sub(j); }
+
+// Organic, non-grid layout: an 8-residue hairpin. Positions are hand-placed to fold
+// residue 1 near 8, 2 near 7, 3 near 6 — far apart in sequence, close in space.
+const N = 8;
+const POS = {
+  1:{x:64, y:32},  2:{x:44, y:104}, 3:{x:70, y:172}, 4:{x:52, y:244},
+  5:{x:172,y:250}, 6:{x:190,y:178}, 7:{x:164,y:106}, 8:{x:184,y:36},
+};
+const H0 = {1:0.62, 2:0.18, 3:0.75, 4:0.41, 5:0.88, 6:0.53, 7:0.29, 8:0.66};
+
+// The graph itself — hand-specified, not derived from pixel distance, so it can't
+// accidentally collide. Sequential pairs are close because consecutive residues always
+// are; 1–8, 2–7, 3–6 are the "surprise" edges the hairpin fold creates.
+const EDGES = [[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[1,8],[2,7],[3,6]];
+function neighborsOf(i){
+  return EDGES.filter(([a,b]) => a===i || b===i).map(([a,b]) => a===i ? b : a).sort((x,y)=>x-y);
+}
+function dist(a,b){ const A=POS[a],B=POS[b]; return Math.hypot(A.x-B.x, A.y-B.y); }
+function eFeature(i,j){ return +(dist(i,j)/140).toFixed(2); } // toy geometry feature, standing in for distance + orientation
+
+// toy stand-in for the learned functions φ_θ (message) and ψ_θ (update) — illustrative
+// only, not real ProteinMPNN weights, just enough arithmetic to make the mechanics concrete
+function messageValue(i,j,h){ return +(0.55*h[j] + 0.30*(1-eFeature(i,j)) + 0.10*h[i]).toFixed(3); }
+function updatedH(i,m,h){ return +(0.4*h[i] + 0.6*sigmoid(m)).toFixed(3); }
+
+let target = 3;
+let stage = 0;
+let h = {...H0};
+let updatedNodes = new Set();
+let renderToken = 0;
+
+const STAGES = [
+  { label: '1 · Graph', caption: (i,nb) => `Residue <b>${i}</b> is a node with representation ${hLbl(i)} = ${h[i].toFixed(2)}. Its graph neighbors — ${nb.map(j=>'<b>'+j+'</b>').join(', ')} — are whichever residues sit close to it in 3D, ${nb.some(j=>Math.abs(j-i)>1) ? 'including at least one that is far away in sequence' : 'in this case all sequence-adjacent'}.` },
+  { label: '2 · Messages', caption: (i) => `Each neighbor j sends a message ${mLbl(i,'ⱼ')} = &phi;(${hLbl(i)}, ${'h'+'ⱼ'}, ${'e'+sub(i)+'ⱼ'}) &mdash; built from what <b>j</b> knows, what <b>${i}</b> already knows, and the geometry between them.` },
+  { label: '3 · Aggregate', caption: (i) => `Residue <b>${i}</b> sums every incoming message into one vector: m${sub(i)} = &sum; over j in N(${i}) of ${mLbl(i,'ⱼ')}.` },
+  { label: '4 · Update', caption: (i) => `That sum updates the representation: ${hLbl(i)}&prime; = &psi;(${hLbl(i)}, m${sub(i)}) &mdash; residue <b>${i}</b> now carries information about its local 3D neighborhood.` },
+];
+
+const svg = document.getElementById('svg');
+
+function drawGraph(opts){
+  opts = opts || {};
+  svg.innerHTML = '';
+  const nb = neighborsOf(target);
+  const activeJ = opts.activeJ;
+
+  EDGES.forEach(([a,b]) => {
+    const A = POS[a], B = POS[b];
+    const involvesTarget = (a===target || b===target);
+    const other = a===target ? b : (b===target ? a : null);
+    const isActiveEdge = involvesTarget && activeJ && other === activeJ;
+    const isNeighborEdge = involvesTarget && !activeJ;
+    let stroke = 'var(--border)', sw = 1, dash = '3,4';
+    if (isActiveEdge) { stroke = 'var(--msa)'; sw = 2.5; dash = null; }
+    else if (isNeighborEdge) { stroke = 'var(--msa-border)'; sw = 1.5; dash = null; }
+    svg.appendChild(el('line', { x1:A.x, y1:A.y, x2:B.x, y2:B.y, stroke, 'stroke-width':sw, ...(dash ? {'stroke-dasharray':dash} : {}) }));
+  });
+
+  if (activeJ){
+    const A = POS[activeJ], B = POS[target];
+    const t = opts.travel !== undefined ? opts.travel : 0.5;
+    const mx = A.x + (B.x-A.x)*t, my = A.y + (B.y-A.y)*t;
+    svg.appendChild(el('circle', { cx:mx, cy:my, r:4.5, fill:'var(--accent)' }));
+  }
+
+  for (let k=1;k<=N;k++){
+    const p = POS[k];
+    const isTarget = k===target;
+    const isNb = nb.includes(k);
+    const isActive = k===activeJ;
+    const wasUpdated = updatedNodes.has(k) && !isTarget;
+    let fill = 'var(--surface-1)', stroke = 'var(--border)', sw = 1;
+    if (isTarget) { fill = 'var(--accent-bg)'; stroke = 'var(--accent)'; sw = 2.5; }
+    else if (isActive) { fill = 'var(--msa-bg)'; stroke = 'var(--msa)'; sw = 2.5; }
+    else if (isNb) { fill = 'var(--msa-bg)'; stroke = 'var(--msa-border)'; sw = 1.5; }
+    else if (wasUpdated) { fill = 'var(--surface-1)'; stroke = 'var(--good-border)'; sw = 1.5; }
+    const g = el('g', {});
+    g.style.cursor = 'pointer';
+    g.addEventListener('click', () => selectTarget(k));
+    const circle = el('circle', { cx:p.x, cy:p.y, r:15, fill, stroke, 'stroke-width':sw });
+    if (opts.pulseNode === k) circle.classList.add('pulse');
+    g.appendChild(circle);
+    g.appendChild(mono(p.x, p.y-2, String(k), 12, isTarget ? 'var(--accent)' : (isNb||isActive ? 'var(--msa)' : 'var(--text-secondary)'), 'middle'));
+    const valColor = opts.pulseNode === k ? 'var(--good)' : (wasUpdated ? 'var(--good)' : 'var(--text-muted)');
+    g.appendChild(mono(p.x, p.y+26, opts.transientLabel && opts.pulseNode === k ? opts.transientLabel : h[k].toFixed(2), 8.5, valColor, 'middle'));
+    svg.appendChild(g);
+  }
+}
+
+function messageRow(i,j,mval){
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.innerHTML = `<span class="j-label">j = ${j}</span>`
+    + `&phi;(${hLbl(i)}=${h[i].toFixed(2)}, ${hLbl(j)}=${h[j].toFixed(2)}, ${eLbl(i,j)}=${eFeature(i,j).toFixed(2)})`
+    + `&nbsp;=&nbsp;<b class="m-val">${mLbl(i,j)} = ${mval.toFixed(3)}</b>`;
+  return row;
+}
+
+async function render(){
+  const myToken = ++renderToken;
+  const i = target;
+  const nb = neighborsOf(i);
+  const panel = document.getElementById('panel');
+  panel.innerHTML = '';
+  document.getElementById('caption').innerHTML = STAGES[stage].caption(i, nb);
+
+  if (stage === 0){
+    drawGraph({});
+    panel.innerHTML = `<div class="empty-hint">This is one message-passing layer around residue ${i}. After several such layers, information has propagated across the whole structure.</div>`;
+    sendHeight();
+    return;
+  }
+
+  if (stage === 1){
+    drawGraph({});
+    for (let idx=0; idx<nb.length; idx++){
+      if (myToken !== renderToken) return;
+      const j = nb[idx];
+      drawGraph({ activeJ:j, travel:0 });
+      panel.appendChild(messageRow(i,j, messageValue(i,j,h)));
+      sendHeight();
+      const steps = 8;
+      for (let s=1; s<=steps; s++){
+        if (myToken !== renderToken) return;
+        drawGraph({ activeJ:j, travel:s/steps });
+        await sleep(35);
+      }
+      await sleep(280);
+    }
+    if (myToken !== renderToken) return;
+    drawGraph({});
+    return;
+  }
+
+  drawGraph({});
+  const msgs = nb.map(j => ({ j, m: messageValue(i,j,h) }));
+
+  if (stage === 2){
+    let running = 0;
+    for (let idx=0; idx<msgs.length; idx++){
+      if (myToken !== renderToken) return;
+      running += msgs[idx].m;
+      panel.appendChild(messageRow(i, msgs[idx].j, msgs[idx].m));
+      sendHeight();
+      await sleep(260);
+    }
+    const sumRow = document.createElement('div');
+    sumRow.className = 'row sum';
+    sumRow.innerHTML = `&sum; &rarr; <b>m${sub(i)} = ${msgs.map(x=>x.m.toFixed(3)).join(' + ')} = ${running.toFixed(3)}</b>`;
+    panel.appendChild(sumRow);
+    sendHeight();
+    return;
+  }
+
+  if (stage === 3){
+    const mSum = msgs.reduce((s,x)=>s+x.m, 0);
+    msgs.forEach(x => panel.appendChild(messageRow(i, x.j, x.m)));
+    const sumRow = document.createElement('div');
+    sumRow.className = 'row sum';
+    sumRow.innerHTML = `&sum; &rarr; <b>m${sub(i)} = ${mSum.toFixed(3)}</b>`;
+    panel.appendChild(sumRow);
+    await sleep(300);
+    if (myToken !== renderToken) return;
+    const oldH = h[i];
+    const newH = updatedH(i, mSum, h);
+    const updRow = document.createElement('div');
+    updRow.className = 'row update';
+    updRow.innerHTML = `&psi;(${hLbl(i)}=${oldH.toFixed(2)}, m${sub(i)}=${mSum.toFixed(3)}) &rarr; <b>${hLbl(i)}&prime; = ${oldH.toFixed(2)} &rarr; ${newH.toFixed(3)}</b>`;
+    panel.appendChild(updRow);
+    sendHeight();
+    h[i] = newH;
+    updatedNodes.add(i);
+    drawGraph({ pulseNode:i, transientLabel:`${oldH.toFixed(2)}→${newH.toFixed(2)}` });
+    await sleep(1500);
+    if (myToken !== renderToken) return;
+    drawGraph({});
+  }
+}
+
+function selectTarget(k){
+  target = k;
+  stage = 0;
+  [...document.getElementById('tabs').children].forEach((btn,idx)=> btn.classList.toggle('active', idx===0));
+  render();
+}
+
+const tabsEl = document.getElementById('tabs');
+STAGES.forEach((st,idx)=>{
+  const b = document.createElement('button');
+  b.textContent = st.label;
+  if (idx===0) b.classList.add('active');
+  b.addEventListener('click', ()=>{
+    stage = idx;
+    [...tabsEl.children].forEach((btn,i)=> btn.classList.toggle('active', i===idx));
+    render();
+  });
+  tabsEl.appendChild(b);
+});
+
+render();
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

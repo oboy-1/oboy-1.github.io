@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESM3 function tokenizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --border: rgba(15,23,42,0.10);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --accent: #FF6600; --accent-bg: #fff1e6; --accent-border: #ffb374;
+    --msa: #2f6fed; --msa-bg: #eaf1ff; --msa-border: #a9c4fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --border: rgba(148,163,184,0.14);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --accent-bg: #3a2410; --accent-border: #a35a1a;
+      --msa: #5b9bff; --msa-bg: #0d2440; --msa-border: #1e4c8a;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 28px 24px 40px; max-width: 920px; margin: 0 auto; }
+  .top-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+  .sub { font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 16px; }
+  .sub b { color: var(--text-primary); font-weight: 500; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tabs button {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.03em; background: var(--surface-1); border: 0.5px solid var(--border);
+    color: var(--text-secondary); padding: 8px 14px; border-radius: 6px; cursor: pointer;
+    transition: all 120ms ease;
+  }
+  .tabs button:hover { color: var(--text-primary); border-color: var(--accent); }
+  .tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tabs.mode-tabs { margin-bottom: 18px; }
+  .tabs.protein-tabs button { font-size: 10.5px; padding: 6px 11px; }
+
+  .stage-caption {
+    font-size: 13.5px; line-height: 1.6; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; min-height: 20px;
+  }
+  .stage-caption b { color: var(--text-primary); font-weight: 500; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .chip {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 99px; padding: 5px 11px;
+  }
+
+  .term-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary);
+    background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 6px;
+    padding: 9px 12px; margin-bottom: 6px;
+  }
+  .term-row .term-name { color: var(--text-primary); flex: 1 1 170px; min-width: 150px; }
+  .term-row .term-formula { color: var(--text-muted); font-size: 10.5px; flex: 0 0 auto; }
+  .term-row .weight-bar { flex: 1 1 70px; height: 7px; border-radius: 999px; background: var(--border); overflow: hidden; min-width: 40px; }
+  .term-row .weight-fill { display: block; height: 100%; background: var(--accent); transition: width 380ms ease; }
+  .term-row .weight-val { color: var(--accent); min-width: 34px; text-align: right; }
+
+  .layout { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  .visual { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-1); padding: 16px; flex: 0 0 auto; }
+  .visual svg { display: block; margin: 0 auto; width: 320px; }
+  .side { flex: 1 1 300px; min-width: 260px; }
+
+  .legend-row { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
+  .legend-chip { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 8px; }
+
+  .token-readout {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-primary);
+    background: var(--accent-bg); border: 0.5px solid var(--accent-border); border-radius: 8px;
+    padding: 12px 14px; margin-bottom: 10px;
+  }
+  .token-readout .bucket { color: var(--accent); font-weight: 500; }
+  .token-readout .name { color: var(--text-secondary); display: block; margin-bottom: 4px; font-family: 'Inter', sans-serif; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="top-label">ESM3 function tokenizer</div>
+<p class="sub">Neither step here is a trained network. <b>TF-IDF</b> just reweights annotations by rarity; <b>hashing</b> just checks which side of a few fixed lines a point falls on. Nothing is learned, yet proteins doing similar things still end up close together.</p>
+
+<div class="tabs mode-tabs" id="modeTabs">
+  <button data-mode="tfidf" class="active">1 · TF-IDF weighting</button>
+  <button data-mode="lsh">2 · Locality-sensitive hashing</button>
+</div>
+
+<div class="panel active" id="panel-tfidf">
+  <p class="stage-caption">Six toy proteins, each tagged with InterPro annotations from a shared vocabulary of 8 terms. Pick one to see its annotations reweighted by rarity — <b>idf = log&#8322;(N / df)</b>, where <b>df</b> is how many of the 6 proteins carry that term. Common terms shrink toward zero; rare ones dominate.</p>
+  <div class="tabs protein-tabs" id="proteinTabs"></div>
+  <div class="chips" id="chips"></div>
+  <div id="termRows"></div>
+</div>
+
+<div class="panel" id="panel-lsh">
+  <p class="stage-caption" id="lshCaption"></p>
+  <div class="layout">
+    <div>
+      <div class="visual"><svg id="lshSvg" viewBox="0 0 320 280"></svg></div>
+      <div class="legend-row">
+        <span class="legend-chip"><span class="chip-dot" style="background:var(--accent)"></span>selected protein</span>
+        <span class="legend-chip"><span class="chip-dot" style="background:var(--msa)"></span>other proteins</span>
+      </div>
+      <div class="hint">drag the orange point — watch when the bucket number changes</div>
+    </div>
+    <div class="side">
+      <div class="token-readout" id="tokenReadout"></div>
+      <button class="tabs" id="resetBtn" style="padding:8px 14px;border-radius:6px;border:0.5px solid var(--border);background:var(--surface-1);color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;">Reset positions</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+function mono(x,y,t,size,fill,anchor){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+  e.textContent = t; return e;
+}
+
+const PROTEINS = {
+  P1: { name:'Hemoglobin-like',    terms:['Nucleotide-binding','Signal peptide','Globin fold'],                              pos:{x:60, y:220} },
+  P2: { name:'Kinase A',           terms:['Nucleotide-binding','ATP-binding motif','Kinase domain','Transmembrane region'],   pos:{x:210,y:60} },
+  P3: { name:'Membrane receptor',  terms:['Signal peptide','Transmembrane region','Immunoglobulin-like fold'],               pos:{x:280,y:170} },
+  P4: { name:'Zinc-finger TF',     terms:['Nucleotide-binding','Zinc-finger CCHH-type','Signal peptide'],                    pos:{x:100,y:100} },
+  P5: { name:'Kinase B',           terms:['Nucleotide-binding','ATP-binding motif','Kinase domain'],                         pos:{x:230,y:85} },
+  P6: { name:'Antibody fragment',  terms:['Signal peptide','Immunoglobulin-like fold','Transmembrane region'],               pos:{x:260,y:195} },
+};
+const PIDS = Object.keys(PROTEINS);
+const N = PIDS.length;
+
+const VOCAB = [...new Set(PIDS.flatMap(p => PROTEINS[p].terms))];
+const DF = {};
+VOCAB.forEach(term => { DF[term] = PIDS.filter(p => PROTEINS[p].terms.includes(term)).length; });
+const IDF = {};
+VOCAB.forEach(term => { IDF[term] = Math.log2(N / DF[term]); });
+const MAX_IDF = Math.max(...Object.values(IDF));
+
+// ── TF-IDF panel ──
+let activeProtein = 'P4';
+
+function renderChips(pid){
+  const wrap = document.getElementById('chips');
+  wrap.innerHTML = '';
+  PROTEINS[pid].terms.forEach(t => {
+    const c = document.createElement('span');
+    c.className = 'chip';
+    c.textContent = t;
+    wrap.appendChild(c);
+  });
+}
+
+function renderTermRows(pid){
+  const wrap = document.getElementById('termRows');
+  wrap.innerHTML = '';
+  const terms = [...PROTEINS[pid].terms].sort((a,b) => IDF[b]-IDF[a]);
+  terms.forEach(term => {
+    const row = document.createElement('div');
+    row.className = 'term-row';
+    const pct = (IDF[term]/MAX_IDF*100).toFixed(0);
+    row.innerHTML = `
+      <span class="term-name">${term}</span>
+      <span class="term-formula">df=${DF[term]}/${N} &middot; log&#8322;(${N}/${DF[term]})</span>
+      <span class="weight-bar"><span class="weight-fill" style="width:0%"></span></span>
+      <span class="weight-val">${IDF[term].toFixed(2)}</span>
+    `;
+    wrap.appendChild(row);
+    requestAnimationFrame(() => { row.querySelector('.weight-fill').style.width = pct + '%'; });
+  });
+}
+
+function selectProtein(pid){
+  activeProtein = pid;
+  [...document.getElementById('proteinTabs').children].forEach(b => b.classList.toggle('active', b.dataset.pid === pid));
+  renderChips(pid);
+  renderTermRows(pid);
+  sendHeight();
+}
+
+const proteinTabsEl = document.getElementById('proteinTabs');
+PIDS.forEach(pid => {
+  const b = document.createElement('button');
+  b.textContent = PROTEINS[pid].name;
+  b.dataset.pid = pid;
+  if (pid === activeProtein) b.classList.add('active');
+  b.addEventListener('click', () => selectProtein(pid));
+  proteinTabsEl.appendChild(b);
+});
+selectProtein(activeProtein);
+
+// ── LSH panel ──
+// Position here stands in for the full TF-IDF weighted vector — real LSH runs in far more
+// dimensions than 2, but the mechanism (fixed hyperplanes, no learning) is identical.
+const HYPERPLANES = [
+  { label:'A', test:(x,y) => (x > 190) },
+  { label:'B', test:(x,y) => (y > 150) },
+  { label:'C', test:(x,y) => (x - y > 20) },
+];
+let LIVE_POS = {};
+function resetPositions(){ PIDS.forEach(pid => LIVE_POS[pid] = {...PROTEINS[pid].pos}); }
+resetPositions();
+
+function bitsFor(pos){ return HYPERPLANES.map(h => h.test(pos.x, pos.y) ? 1 : 0); }
+function bucketFor(bits){ return bits[0]*4 + bits[1]*2 + bits[2]; }
+
+let lshSelected = 'P4';
+let dragging = null;
+const lshSvg = document.getElementById('lshSvg');
+const VB = { w:320, h:280 };
+
+function drawLSH(){
+  lshSvg.innerHTML = '';
+  // hyperplanes as full-width/height lines derived from each test's boundary
+  lshSvg.appendChild(el('line', { x1:190, y1:0,   x2:190, y2:VB.h, stroke:'var(--border)', 'stroke-width':1, 'stroke-dasharray':'4,4' }));
+  lshSvg.appendChild(el('line', { x1:0,   y1:150, x2:VB.w,y2:150, stroke:'var(--border)', 'stroke-width':1, 'stroke-dasharray':'4,4' }));
+  lshSvg.appendChild(el('line', { x1:0,   y1:-20, x2:VB.w,y2:VB.w-20, stroke:'var(--border)', 'stroke-width':1, 'stroke-dasharray':'4,4' }));
+
+  PIDS.forEach(pid => {
+    const p = LIVE_POS[pid];
+    const isSel = pid === lshSelected;
+    const g = el('g', {});
+    g.style.cursor = 'grab';
+    g.addEventListener('mousedown', (e) => startDrag(pid, e));
+    g.addEventListener('touchstart', (e) => startDrag(pid, e), {passive:true});
+    g.appendChild(el('circle', { cx:p.x, cy:p.y, r: isSel ? 9 : 7, fill: isSel ? 'var(--accent-bg)' : 'var(--msa-bg)', stroke: isSel ? 'var(--accent)' : 'var(--msa-border)', 'stroke-width': isSel ? 2.5 : 1.5 }));
+    g.appendChild(mono(p.x, p.y - 15, PROTEINS[pid].name, 9, isSel ? 'var(--accent)' : 'var(--text-muted)'));
+    lshSvg.appendChild(g);
+  });
+}
+
+function svgPoint(evt){
+  const rect = lshSvg.getBoundingClientRect();
+  const cx = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left;
+  const cy = (evt.touches ? evt.touches[0].clientY : evt.clientY) - rect.top;
+  return { x: cx / rect.width * VB.w, y: cy / rect.height * VB.h };
+}
+
+function startDrag(pid, evt){
+  evt.preventDefault();
+  lshSelected = pid;
+  dragging = pid;
+  updateReadout();
+  drawLSH();
+}
+window.addEventListener('mousemove', onDrag);
+window.addEventListener('touchmove', onDrag, {passive:false});
+window.addEventListener('mouseup', () => dragging = null);
+window.addEventListener('touchend', () => dragging = null);
+function onDrag(evt){
+  if (!dragging) return;
+  evt.preventDefault();
+  const p = svgPoint(evt);
+  LIVE_POS[dragging] = { x: Math.max(10, Math.min(VB.w-10, p.x)), y: Math.max(10, Math.min(VB.h-10, p.y)) };
+  drawLSH();
+  updateReadout();
+}
+
+function updateReadout(){
+  const p = LIVE_POS[lshSelected];
+  const bits = bitsFor(p);
+  const bucket = bucketFor(bits);
+  document.getElementById('tokenReadout').innerHTML = `
+    <span class="name">${PROTEINS[lshSelected].name}</span>
+    side of A / B / C: <b>(${bits.join(', ')})</b> &rarr; function token bucket <span class="bucket">#${bucket}</span>
+  `;
+  document.getElementById('lshCaption').innerHTML = `Three fixed lines (A, B, C) split the plane into 8 regions — a stand-in for the real hash's many more hyperplanes producing many more buckets. A protein's <b>token</b> is just which side of each line it lands on. <b>Kinase A</b> and <b>Kinase B</b> land in the same bucket without ever being told they're both kinases; <b>Membrane receptor</b> and <b>Antibody fragment</b> do too, because they share an Ig-like fold annotation.`;
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => { resetPositions(); drawLSH(); updateReadout(); sendHeight(); });
+
+drawLSH();
+updateReadout();
+
+// ── mode switch ──
+document.getElementById('modeTabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-mode]');
+  if (!btn) return;
+  document.querySelectorAll('#modeTabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const mode = btn.dataset.mode;
+  document.getElementById('panel-tfidf').classList.toggle('active', mode === 'tfidf');
+  document.getElementById('panel-lsh').classList.toggle('active', mode === 'lsh');
+  sendHeight();
+});
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

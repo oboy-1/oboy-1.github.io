@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESM3 architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --surface-1: #f8fafc; --surface-2: #f1f5f9; --border: rgba(15,23,42,0.09);
+    --text-primary: #111827; --text-secondary: #64748b; --text-muted: #6e7684;
+    --radius: 10px; --accent: #FF6600; --accent-bg: #fff1e6; --accent-border: #ffb374;
+    --green: #16803c; --green-bg: #f0fdf4; --green-border: #86efac;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30); --surface-1: #25262b; --surface-2: #2f3137; --border: rgba(148,163,184,0.11);
+      --text-primary: #e5e7eb; --text-secondary: #94a3b8; --text-muted: #7d8694;
+      --accent-bg: #3a2410; --accent-border: #a35a1a;
+      --green: #86efac; --green-bg: #0a1f10; --green-border: #22c55e;
+    }
+  }
+  body { background: var(--bg); color: var(--text-primary); font-family:'Inter',system-ui,sans-serif; padding: 24px 20px 32px; max-width: 1040px; margin: 0 auto; }
+  .top-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .sub { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+  .sub b { color: var(--text-primary); font-weight: 500; }
+
+  .visual { border: 0.5px solid var(--border); border-radius: 12px; background: var(--surface-1); padding: 16px; max-width: 680px; margin: 0 auto; }
+  .visual svg { display: block; margin: 0 auto; }
+
+  .node-hit { cursor: pointer; }
+  .node-hit:hover rect { stroke: var(--accent); stroke-width: 1.5; }
+  .node-hit.active rect { stroke: var(--accent); stroke-width: 2; }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; font-size:11px; color:var(--text-secondary); justify-content: center; }
+  .legend span { display:flex; align-items:center; gap:5px; }
+  .legend i { width:10px; height:10px; border-radius:50%; display:inline-block; }
+
+  /* detail — floating popup, matching the model-landscape widget */
+  .detail-backdrop {
+    position:fixed; inset:0;
+    display:none; align-items:center; justify-content:center;
+    padding:24px; z-index:100; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+  }
+  .detail-backdrop.visible { display:flex; }
+  .detail {
+    position:relative; background:var(--surface-1);
+    border:0.5px solid var(--border); border-radius:var(--radius);
+    padding:18px 20px; width:100%; max-width:420px; max-height:80vh; overflow-y:auto;
+    box-shadow:0 12px 40px rgba(0,0,0,0.22);
+    animation:pop-in 0.16s cubic-bezier(0.4,0,0.2,1);
+  }
+  @keyframes pop-in {
+    from { opacity:0; transform:scale(0.96) translateY(4px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+  }
+  .d-close {
+    position:absolute; top:12px; right:12px; width:22px; height:22px;
+    border:0.5px solid var(--border); border-radius:50%; background:var(--surface-2);
+    color:var(--text-muted); font-size:13px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:all 0.12s ease;
+  }
+  .d-close:hover { color:var(--text-primary); border-color:var(--accent); }
+  .detail-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 99px; margin-bottom: 10px; letter-spacing: 0.02em; }
+  .detail-tag.geo { background: var(--accent-bg); color: var(--accent); border: 0.5px solid var(--accent-border); }
+  .detail-tag.plain { background: var(--green-bg); color: var(--green); border: 0.5px solid var(--green-border); }
+  .detail-tag.io { background: var(--surface-2); color: var(--text-muted); border: 0.5px solid var(--border); }
+  .detail-title { font-size: 15px; font-weight: 500; margin-bottom: 8px; padding-right: 20px; }
+  .detail-body { font-size: 13px; line-height: 1.65; color: var(--text-secondary); margin-bottom: 10px; }
+  .detail-body b { color: var(--text-primary); font-weight: 500; }
+  .detail-example { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-primary); background: var(--bg); border: 0.5px solid var(--border); border-radius: 6px; padding: 8px 10px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+</style>
+</head>
+<body>
+
+<div class="top-label">ESM3 architecture</div>
+<p class="sub">Click any box for detail. <b>Orange</b> is where geometry gets compressed into tokens. <b>Green</b> is mostly a plain, standard transformer — with one real exception in its first block, see that node for why.</p>
+
+<div class="visual"><svg id="svg" viewBox="0 0 640 640" width="100%" style="max-width:600px"></svg></div>
+<div class="legend">
+  <span><i style="background:var(--accent)"></i>geometry, handled once</span>
+  <span><i style="background:var(--green)"></i>plain shared transformer</span>
+</div>
+
+<div class="detail-backdrop" id="detail-backdrop" onclick="if(event.target===this) closeDetail()">
+  <div class="detail" id="detail">
+    <button class="d-close" onclick="closeDetail()" aria-label="Close">✕</button>
+    <span class="detail-tag" id="d-tag"></span>
+    <div class="detail-title" id="d-title"></div>
+    <div class="detail-body" id="d-body"></div>
+    <div class="detail-example" id="d-example"></div>
+  </div>
+</div>
+
+<script>
+const NODES = {
+  seq_in: { x:20, y:20, w:180, h:56, ramp:'io', title:'Sequence tokens', sub:'fixed vocabulary',
+    tag:'input', body:'Already discrete — 20 amino acids, a fixed dictionary. One integer per residue, no learned encoder needed, same as any text tokenizer maps "cat" to a token ID.',
+    example:'M Q I F V K T L T G\n→ [12, 5, 9, 16, 18, 8, 15, 9, 15, 6]' },
+  coord_in: { x:230, y:20, w:180, h:56, ramp:'geo', title:'3D coordinates', sub:'atom positions',
+    tag:'geometry', body:'Real, continuous atom positions. Used twice, not once: through the tokenizer below, and again directly by the transformer\'s first block (see that node for why).',
+    example:'residue 1, Cα:\n(27.34, 24.43, 2.61) Å' },
+  func_in: { x:440, y:20, w:180, h:56, ramp:'io', title:'Function tokens', sub:'fixed algorithm',
+    tag:'input', body:'Not a simple dictionary lookup — InterPro keyword annotations get TF-IDF weighted, then compressed via locality-sensitive hashing into 8 discrete tokens per residue. Still fixed in the sense that matters: no trained neural network, no learned parameters, same input always hashes to the same output.',
+    example:'InterPro keywords for residue 5\n→ TF-IDF weighting\n→ locality-sensitive hash\n→ 8 tokens: [112, 4471, 89, ...]' },
+  tokenizer: { x:230, y:120, w:180, h:56, ramp:'geo', title:'Structure tokenizer', sub:'VQ-VAE encoder',
+    tag:'geometry', body:'Encodes each residue\'s local neighborhood — its 16 nearest neighbors in 3D — and snaps that shape to the nearest of 4,096 learned codes. The only place geometry gets compressed by a trained network.',
+    example:'residue 23, its 16 nearest neighbors\n→ nearest of 4,096 codes\n→ code #1832' },
+  struct_tok: { x:230, y:220, w:180, h:56, ramp:'geo', title:'Structure tokens', sub:'discrete codes',
+    tag:'geometry', body:'One integer per residue, same shape as a sequence token now.',
+    example:'[1832, 204, 3991, 88, 1832, ...]' },
+  merged: { x:20, y:340, w:600, h:64, ramp:'plain', title:'Shared token sequence', sub:'summed per position, not concatenated',
+    tag:'shared', body:'One correction worth being precise about: this isn\'t tokens laid end to end in a longer sequence. At each residue position, the sequence, structure, and function token embeddings get summed into one combined vector for that position — same sequence length as before, richer content per position.',
+    example:'position 5:\nembed(SEQ tok 9) + embed(STRUCT tok 1832) + embed(FUNC toks)\n→ one summed vector' },
+  transformer: { x:20, y:440, w:600, h:64, ramp:'plain', title:'ESM3 transformer', sub:'plain, except block 1',
+    tag:'shared', body:'Blocks 2 through N: ordinary self-attention, same math as ESM-2, no geometry. Block 1 is a real exception — it includes an SE(3)-invariant geometric attention layer conditioning directly on raw backbone coordinates, not just the tokenized version. Structure genuinely gets touched twice: once by the tokenizer, once here.',
+    example:'block 1: geometric attention on real (x, y, z)\nblocks 2–N: plain attention, e.g. [0.31, 0.09, 0.44, 0.16]' },
+  seq_out: { x:20, y:540, w:180, h:56, ramp:'io', title:'Sequence logits', sub:'next token',
+    tag:'output', body:'Predicts the amino acid at a position.',
+    example:'P(residue 12 = Lysine) = 0.42' },
+  struct_out: { x:230, y:540, w:180, h:56, ramp:'io', title:'Structure logits', sub:'structure token',
+    tag:'output', body:'Predicts a structure code; a decoder turns it back into real coordinates.',
+    example:'predicted code #204\n→ decoder\n→ real (x, y, z)' },
+  func_out: { x:440, y:540, w:180, h:56, ramp:'io', title:'Function logits', sub:'function token',
+    tag:'output', body:'Predicts a function token at a position.',
+    example:'predicted token #4471\n→ "ATP binding"' }
+};
+
+const RAMPS = {
+  geo:   { fill:'var(--accent-bg)', stroke:'var(--accent-border)', title:'var(--accent)' },
+  plain: { fill:'var(--green-bg)',  stroke:'var(--green-border)',  title:'var(--green)'  },
+  io:    { fill:'var(--surface-1)', stroke:'var(--border)',        title:'var(--text-primary)' }
+};
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){ const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+function text(x,y,t,size,fill,anchor,weight){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"Inter,sans-serif"});
+  if(weight) e.setAttribute('font-weight',weight);
+  e.textContent = t; return e;
+}
+function mono(x,y,t,size,fill,anchor){
+  const e = el('text',{x,y,'text-anchor':anchor||'middle','dominant-baseline':'central','font-size':size,fill,'font-family':"'JetBrains Mono',monospace"});
+  e.textContent = t; return e;
+}
+function arrow(x1,y1,x2,y2){
+  return el('line',{x1,y1,x2,y2, stroke:'var(--text-muted)', 'stroke-width':1.5, opacity:0.6, 'marker-end':'url(#es-arrow)'});
+}
+
+function build(){
+  const svg = document.getElementById('svg');
+  svg.innerHTML = '';
+  const defs = el('defs',{});
+  const marker = el('marker',{id:'es-arrow', viewBox:'0 0 10 10', refX:8, refY:5, markerWidth:6, markerHeight:6, orient:'auto-start-reverse'});
+  marker.appendChild(el('path',{d:'M2 1L8 5L2 9', fill:'none', stroke:'var(--text-muted)', 'stroke-width':1.5, 'stroke-linecap':'round', 'stroke-linejoin':'round'}));
+  defs.appendChild(marker); svg.appendChild(defs);
+
+  // arrows first, so boxes sit on top
+  svg.appendChild(arrow(110,76,110,340));       // seq_in -> merged (own lane, nothing in its path)
+  svg.appendChild(arrow(320,76,320,120));       // coord_in -> tokenizer
+  svg.appendChild(arrow(320,176,320,220));      // tokenizer -> struct_tok
+  svg.appendChild(arrow(320,276,320,340));      // struct_tok -> merged
+  svg.appendChild(arrow(530,76,530,340));       // func_in -> merged (own lane, nothing in its path)
+  svg.appendChild(arrow(320,404,320,440));      // merged -> transformer
+  svg.appendChild(arrow(110,504,110,540));      // transformer -> seq_out
+  svg.appendChild(arrow(320,504,320,540));      // transformer -> struct_out
+  svg.appendChild(arrow(530,504,530,540));      // transformer -> func_out
+
+  Object.entries(NODES).forEach(([id,n])=>{
+    const r = RAMPS[n.ramp];
+    const g = el('g',{class:'node-hit'});
+    g.dataset.id = id;
+    g.addEventListener('click', () => showDetail(id));
+    g.appendChild(el('rect',{x:n.x,y:n.y,width:n.w,height:n.h,rx:8,fill:r.fill,stroke:r.stroke,'stroke-width':0.75}));
+    g.appendChild(text(n.x+n.w/2, n.y+n.h*0.4, n.title, 13, r.title, null, 500));
+    g.appendChild(mono(n.x+n.w/2, n.y+n.h*0.75, n.sub, 11, 'var(--text-secondary)'));
+    svg.appendChild(g);
+  });
+}
+
+function showDetail(id){
+  const n = NODES[id];
+  const r = RAMPS[n.ramp];
+  const tagClass = n.ramp === 'geo' ? 'geo' : (n.ramp === 'plain' ? 'plain' : 'io');
+  document.querySelectorAll('.node-hit').forEach(g => g.classList.toggle('active', g.dataset.id === id));
+  const tagEl = document.getElementById('d-tag');
+  tagEl.className = `detail-tag ${tagClass}`;
+  tagEl.textContent = n.tag;
+  const titleEl = document.getElementById('d-title');
+  titleEl.textContent = n.title;
+  titleEl.style.color = r.title;
+  document.getElementById('d-body').innerHTML = n.body;
+  document.getElementById('d-example').textContent = n.example;
+  document.getElementById('detail-backdrop').classList.add('visible');
+}
+
+function closeDetail(){
+  document.querySelectorAll('.node-hit').forEach(g => g.classList.remove('active'));
+  document.getElementById('detail-backdrop').classList.remove('visible');
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDetail(); });
+
+build();
+
+function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+window.addEventListener('load', () => setTimeout(sendHeight, 150));
+window.addEventListener('resize', sendHeight);
+</script>
+</body>
+</html>

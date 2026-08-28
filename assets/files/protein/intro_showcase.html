@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface-1: #f8fafc;
+    --border: rgba(15,23,42,0.10);
+    --text-primary: #111827;
+    --text-secondary: #64748b;
+    --accent: #FF6600;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: rgb(27,27,30);
+      --surface-1: #25262b;
+      --border: rgba(148,163,184,0.12);
+      --text-primary: #e5e7eb;
+      --text-secondary: #94a3b8;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 6px 4px 16px;
+  }
+
+  .showcase-wrap { max-width: 900px; margin: 0 auto; }
+
+  .top-tag {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .viewport {
+    position: relative;
+    width: 100%;
+    height: 800px;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface-1);
+  }
+
+  .track {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    will-change: transform;
+  }
+
+  .slide {
+    flex: 0 0 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1000px;
+    border: none;
+    pointer-events: none;
+    background: var(--bg);
+  }
+
+  /* the lysine chi-angle widget reflows into a much taller stacked layout
+     below ~820px wide, so pin it to a wider virtual width and center-crop it
+     rather than letting it triple in height at the carousel's real width */
+  .slide iframe[data-idx="1"] {
+    width: 900px;
+    min-width: 900px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .fade-bottom {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 70px;
+    background: linear-gradient(to bottom, transparent, var(--surface-1));
+    pointer-events: none;
+  }
+
+  .caption-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .dots { display: flex; gap: 6px; }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 200ms ease;
+  }
+
+  .dot.active { background: var(--accent); }
+
+  .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+    min-width: 190px;
+  }
+</style>
+</head>
+<body>
+
+<div class="showcase-wrap">
+  <div class="top-tag">auto-playing preview — every panel below is a real, click-around interactive later in this post</div>
+
+  <div class="viewport">
+    <div class="track" id="track">
+      <div class="slide"><iframe data-idx="0" src="four_levels_of_structure.html"></iframe><div class="fade-bottom"></div></div>
+      <div class="slide"><iframe data-idx="1" src="lysine_chi_angles.html"></iframe><div class="fade-bottom"></div></div>
+      <div class="slide"><iframe data-idx="2" src="rfdiffusion_motif.html"></iframe><div class="fade-bottom"></div></div>
+      <div class="slide"><iframe data-idx="3" src="ipa_real_frames.html"></iframe><div class="fade-bottom"></div></div>
+      <div class="slide"><iframe data-idx="4" src="contact_map_3d_linked.html"></iframe><div class="fade-bottom"></div></div>
+      <div class="slide clone"><iframe data-idx="0" src="four_levels_of_structure.html"></iframe><div class="fade-bottom"></div></div>
+    </div>
+  </div>
+
+  <div class="caption-row">
+    <div class="dots">
+      <span class="dot active" data-i="0"></span>
+      <span class="dot" data-i="1"></span>
+      <span class="dot" data-i="2"></span>
+      <span class="dot" data-i="3"></span>
+      <span class="dot" data-i="4"></span>
+    </div>
+    <span class="label" id="label">the four levels of structure</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  const LABELS = [
+    'the four levels of structure',
+    'sidechain rotamers — χ angles',
+    'RFdiffusion — denoising a backbone',
+    'Invariant Point Attention — real frames',
+    'contact map ↔ 3D structure'
+  ];
+  const DWELL = [7500, 6500, 6500, 9000, 7000];
+  const TRANSITION = 900;
+  const NUM_SLIDES = LABELS.length;
+
+  const track = document.getElementById('track');
+  const dots = Array.prototype.slice.call(document.querySelectorAll('.dot'));
+  const labelEl = document.getElementById('label');
+  const iframes = Array.prototype.slice.call(document.querySelectorAll('.slide iframe'));
+  const ready = new Array(iframes.length).fill(false);
+
+  iframes.forEach(function(f, i){
+    f.addEventListener('load', function(){ ready[i] = true; });
+  });
+
+  function safe(fn){ try { fn(); } catch (e) { /* widget not ready / structure changed — skip silently */ } }
+
+  function setDots(i){
+    dots.forEach(function(d, j){ d.classList.toggle('active', j === i); });
+    labelEl.textContent = LABELS[i];
+  }
+
+  let lysineTimer = null;
+  function stopLysineTimer(){
+    if (lysineTimer) { clearInterval(lysineTimer); lysineTimer = null; }
+  }
+
+  function runWidget(i){
+    stopLysineTimer();
+    const frame = iframes[i];
+    const w = frame.contentWindow;
+    const d = frame.contentDocument;
+    if (!w || !d) return;
+
+    if (i === 0) {
+      const levels = ['primary', 'secondary', 'tertiary', 'quaternary'];
+      levels.forEach(function(lv, k){
+        setTimeout(function(){
+          safe(function(){ d.querySelector('#tabs button[data-level="' + lv + '"]').click(); });
+        }, k * 1850);
+      });
+    } else if (i === 1) {
+      safe(function(){
+        const s1 = d.getElementById('chi1-slider');
+        const s2 = d.getElementById('chi2-slider');
+        const s3 = d.getElementById('chi3-slider');
+        const s4 = d.getElementById('chi4-slider');
+        if (!s1 || !s2 || !s3 || !s4) return;
+        const t0 = w.performance.now();
+        lysineTimer = setInterval(function(){
+          const t = (w.performance.now() - t0) / 1000;
+          s1.value = Math.round(70 * Math.sin(t * 0.55));
+          s2.value = Math.round(160 * Math.sin(t * 0.85 + 1.1));
+          s3.value = Math.round(130 * Math.sin(t * 1.25 + 2.3));
+          s4.value = Math.round(175 * Math.sin(t * 1.6 + 3.4));
+          [s1, s2, s3, s4].forEach(function(s){ s.dispatchEvent(new w.Event('input', { bubbles: true })); });
+        }, 90);
+      });
+    } else if (i === 2) {
+      safe(function(){ w.playSequence(); });
+    } else if (i === 3) {
+      safe(function(){ d.getElementById('resetBtn').click(); });
+      // reset's own transition can take up to ~820ms if the widget wasn't
+      // already resting on step 1 (e.g. left on a later step from the
+      // previous loop) — playBtn silently no-ops while that's in flight,
+      // so wait past it rather than racing a fixed short delay.
+      setTimeout(function(){
+        safe(function(){ d.getElementById('playBtn').click(); });
+      }, 950);
+    } else if (i === 4) {
+      const presets = ['neighbor', 'helix', 'sheet'];
+      presets.forEach(function(p, k){
+        setTimeout(function(){
+          safe(function(){ d.querySelector('#presetTabs button[data-preset="' + p + '"]').click(); });
+        }, k * 2100);
+      });
+    }
+  }
+
+  function activate(i){
+    setDots(i);
+    if (ready[i]) runWidget(i);
+    else iframes[i].addEventListener('load', function(){ runWidget(i); }, { once: true });
+  }
+
+  function setTransform(index, animate){
+    track.style.transition = animate ? ('transform ' + TRANSITION + 'ms cubic-bezier(.65,0,.35,1)') : 'none';
+    track.style.transform = 'translateX(-' + (index * 100) + '%)';
+  }
+
+  let current = 0;
+
+  function advance(){
+    current++;
+    setTransform(current, true);
+    if (current === NUM_SLIDES) {
+      setTimeout(function(){
+        setTransform(0, false);
+        current = 0;
+        activate(0);
+        setTimeout(advance, DWELL[0]);
+      }, TRANSITION);
+    } else {
+      activate(current);
+      setTimeout(advance, DWELL[current]);
+    }
+  }
+
+  activate(0);
+  setTimeout(advance, DWELL[0]);
+
+  function sendHeight(){ window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'); }
+  window.addEventListener('load', function(){ setTimeout(sendHeight, 200); setTimeout(sendHeight, 700); });
+  window.addEventListener('resize', sendHeight);
+})();
+</script>
+
+</body>
+</html>

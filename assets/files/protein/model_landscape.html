@@ -12,7 +12,7 @@
     --bg:#ffffff; --surface:#f8fafc; --surface-2:#f1f5f9;
     --border:rgba(15,23,42,0.09);
     --text-primary:#111827; --text-secondary:#64748b; --text-muted:#6e7684;
-    --radius:10px;
+    --radius:10px; --accent:#FF6600;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -32,13 +32,14 @@
   .topbar-label { font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); margin-right:4px; }
 
   .gb-btn {
-    font-size:12px; font-weight:500; padding:6px 16px;
-    border-radius:99px; border:0.5px solid var(--border);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px; font-weight:500; letter-spacing:0.03em; padding:8px 14px;
+    border-radius:6px; border:0.5px solid var(--border);
     background:var(--surface); color:var(--text-secondary);
-    cursor:pointer; transition:all 0.15s; user-select:none;
+    cursor:pointer; transition:all 0.12s ease; user-select:none;
   }
-  .gb-btn:hover { border-color:var(--text-secondary); color:var(--text-primary); }
-  .gb-btn.active { background:var(--text-primary); color:var(--bg); border-color:var(--text-primary); }
+  .gb-btn:hover { border-color:var(--accent); color:var(--text-primary); }
+  .gb-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
 
   /* section heads */
   .section-head {
@@ -116,18 +117,36 @@
   /* empty cell placeholder */
   .snake-empty { grid-column:1; visibility:hidden; }
 
-  /* detail */
-  .detail {
-    margin-top:14px; background:var(--surface);
-    border:0.5px solid var(--border); border-radius:var(--radius);
-    padding:16px 18px; display:none;
+  /* detail — floating popup */
+  .detail-backdrop {
+    position:fixed; inset:0;
+    display:none; align-items:center; justify-content:center;
+    padding:24px; z-index:100; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
   }
-  .detail.visible { display:block; }
-  .d-eyebrow { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px; }
+  .detail-backdrop.visible { display:flex; }
+  .detail {
+    position:relative; background:var(--surface);
+    border:0.5px solid var(--border); border-radius:var(--radius);
+    padding:18px 20px; width:100%; max-width:420px; max-height:80vh; overflow-y:auto;
+    box-shadow:0 12px 40px rgba(0,0,0,0.22);
+    animation:pop-in 0.16s cubic-bezier(0.4,0,0.2,1);
+  }
+  @keyframes pop-in {
+    from { opacity:0; transform:scale(0.96) translateY(4px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+  }
+  .d-close {
+    position:absolute; top:12px; right:12px; width:22px; height:22px;
+    border:0.5px solid var(--border); border-radius:50%; background:var(--surface-2);
+    color:var(--text-muted); font-size:13px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:all 0.12s ease;
+  }
+  .d-close:hover { color:var(--text-primary); border-color:var(--text-secondary); }
+  .d-eyebrow { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px; padding-right:20px; }
   .d-name { font-size:15px; font-weight:500; color:var(--text-primary); margin-bottom:4px; }
   .d-oneliner { font-size:13px; color:var(--text-secondary); font-style:italic; margin-bottom:10px; padding-bottom:10px; border-bottom:0.5px solid var(--border); }
   .d-body { font-size:13px; color:var(--text-secondary); line-height:1.65; }
-  .d-insight { margin-top:10px; font-size:12px; color:var(--text-muted); border-left:2px solid var(--border); padding-left:10px; line-height:1.5; }
+  .d-insight { margin-top:10px; font-size:12px; color:var(--accent); font-weight:500; border-left:2px solid var(--accent); padding-left:10px; line-height:1.5; }
   .d-link {
     display:inline-block; margin-top:12px; font-size:11px; font-weight:500;
     color:var(--text-muted); text-decoration:none;
@@ -148,13 +167,16 @@
 
 <div id="main"></div>
 
-<div class="detail" id="detail">
-  <div class="d-eyebrow" id="d-eyebrow"></div>
-  <div class="d-name" id="d-name"></div>
-  <div class="d-oneliner" id="d-oneliner"></div>
-  <div class="d-body" id="d-body"></div>
-  <div class="d-insight" id="d-insight"></div>
-  <a class="d-link" id="d-link" target="_blank" rel="noopener">↗ Read the paper</a>
+<div class="detail-backdrop" id="detail-backdrop" onclick="if(event.target===this) closeDetail()">
+  <div class="detail" id="detail">
+    <button class="d-close" onclick="closeDetail()" aria-label="Close">✕</button>
+    <div class="d-eyebrow" id="d-eyebrow"></div>
+    <div class="d-name" id="d-name"></div>
+    <div class="d-oneliner" id="d-oneliner"></div>
+    <div class="d-body" id="d-body"></div>
+    <div class="d-insight" id="d-insight"></div>
+    <a class="d-link" id="d-link" target="_blank" rel="noopener">↗ Read the paper</a>
+  </div>
 </div>
 
 <script>
@@ -407,20 +429,15 @@ function setView(v) {
   currentView = v;
   document.querySelectorAll('.gb-btn').forEach((btn,i) => btn.classList.toggle('active', ['problem','architecture','timeline'][i] === v));
   activeKey = null;
-  document.getElementById('detail').classList.remove('visible');
+  document.getElementById('detail-backdrop').classList.remove('visible');
 
   const buildFn = v === 'problem' ? buildProblem : v === 'architecture' ? buildArchitecture : buildTimeline;
   flipToLayout(buildFn);
 }
 
-/* ── detail ── */
+/* ── detail (floating popup) ── */
 function showDetail(key, cardEl) {
-  if (activeKey === key) {
-    activeKey = null;
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-    document.getElementById('detail').classList.remove('visible');
-    sendHeight(); return;
-  }
+  if (activeKey === key) { closeDetail(); return; }
   activeKey = key;
   document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
   cardEl.classList.add('active');
@@ -432,9 +449,15 @@ function showDetail(key, cardEl) {
   document.getElementById('d-insight').textContent   = m.insight;
   const link = document.getElementById('d-link');
   link.href = m.link; link.style.display = m.link ? 'inline-block' : 'none';
-  document.getElementById('detail').classList.add('visible');
-  sendHeight();
+  document.getElementById('detail-backdrop').classList.add('visible');
 }
+
+function closeDetail() {
+  activeKey = null;
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+  document.getElementById('detail-backdrop').classList.remove('visible');
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDetail(); });
 
 function sendHeight() {
   setTimeout(() => window.parent.postMessage({ iframeHeight: document.documentElement.scrollHeight }, '*'), 80);
