@@ -26,10 +26,10 @@ window.addEventListener('pageshow', function (e) {
 </script>
 
 <script>
-// Site-wide default Mermaid look. Individual diagrams can still override any
-// of these by adding a `%%{init: {'themeVariables': {...}}}%%` directive as
-// the first line of their own ```mermaid block — that merges over these
-// defaults for that one diagram only.
+/* Site-wide default Mermaid look. Individual diagrams can still override any
+   of these by adding a `%%{init: {'themeVariables': {...}}}%%` directive as
+   the first line of their own ```mermaid block — that merges over these
+   defaults for that one diagram only. */
 function applyGlobalMermaidTheme() {
   if (typeof mermaid === 'undefined' || typeof mermaid.initialize !== 'function') return;
 
@@ -59,10 +59,10 @@ function applyGlobalMermaidTheme() {
   var mode = (window.Theme && Theme.visualState === 'dark') ? 'dark' : 'light';
   mermaid.initialize({ theme: 'base', themeVariables: THEME_VARS[mode] });
 
-  // Reset each visible diagram back to source and re-render it with our
-  // theme. Diagrams hidden inside a collapsed <details> are skipped here —
-  // collapsible.html's own toggle listener re-renders those (using whichever
-  // theme is active by then) the first time they're opened.
+  /* Reset each visible diagram back to source and re-render it with our
+     theme. Diagrams hidden inside a collapsed <details> are skipped here —
+     collapsible.html's own toggle listener re-renders those (using whichever
+     theme is active by then) the first time they're opened. */
   var mermaidEls = document.getElementsByClassName('mermaid');
   var toRender = [];
   Array.prototype.forEach.call(mermaidEls, function (el) {
@@ -75,16 +75,16 @@ function applyGlobalMermaidTheme() {
   if (toRender.length) mermaid.init(null, toRender);
 }
 
-// Initial paint: Chirpy already auto-rendered every diagram once (with its
-// own default palette) before this runs, so re-render with our theme on top.
+/* Initial paint: Chirpy already auto-rendered every diagram once (with its
+   own default palette) before this runs, so re-render with our theme on top. */
 window.addEventListener('load', applyGlobalMermaidTheme);
 
-// Chirpy re-renders every `.mermaid` diagram with its own default/dark preset
-// whenever the OS-level color scheme flips (broadcast via a self-targeted
-// `postMessage` carrying `Theme.ID`), which would otherwise stomp our custom
-// theme right after the switch. Listen for the same broadcast and reapply
-// ours; the `setTimeout` pushes our re-render after Chirpy's own same-event
-// handler regardless of which of the two was registered first.
+/* Chirpy re-renders every `.mermaid` diagram with its own default/dark preset
+   whenever the OS-level color scheme flips (broadcast via a self-targeted
+   `postMessage` carrying `Theme.ID`), which would otherwise stomp our custom
+   theme right after the switch. Listen for the same broadcast and reapply
+   ours; the `setTimeout` pushes our re-render after Chirpy's own same-event
+   handler regardless of which of the two was registered first. */
 window.addEventListener('message', function (e) {
   if (e.source === window && e.data && window.Theme && e.data.id === Theme.ID) {
     setTimeout(applyGlobalMermaidTheme, 0);

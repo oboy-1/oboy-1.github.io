@@ -126,6 +126,38 @@
     letter-spacing: 0.02em;
     min-width: 190px;
   }
+
+  .replay-overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15,23,42,0.28);
+    backdrop-filter: blur(2px);
+    z-index: 5;
+  }
+
+  .replay-overlay.visible { display: flex; }
+
+  .replay-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    background: var(--bg);
+    color: var(--accent);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transition: transform 150ms ease, background 150ms ease;
+  }
+
+  .replay-btn:hover { transform: scale(1.04); background: var(--surface-1); }
 </style>
 </head>
 <body>
@@ -141,6 +173,9 @@
       <div class="slide"><iframe data-idx="3" src="ipa_real_frames.html"></iframe><div class="fade-bottom"></div></div>
       <div class="slide"><iframe data-idx="4" src="contact_map_3d_linked.html"></iframe><div class="fade-bottom"></div></div>
       <div class="slide clone"><iframe data-idx="0" src="four_levels_of_structure.html"></iframe><div class="fade-bottom"></div></div>
+    </div>
+    <div class="replay-overlay" id="replayOverlay">
+      <button class="replay-btn" id="replayBtn">↻ Replay</button>
     </div>
   </div>
 
@@ -168,12 +203,16 @@
   const DWELL = [7500, 6500, 6500, 9000, 7000];
   const TRANSITION = 900;
   const NUM_SLIDES = LABELS.length;
+  const MAX_LOOPS = 2;
 
   const track = document.getElementById('track');
   const dots = Array.prototype.slice.call(document.querySelectorAll('.dot'));
   const labelEl = document.getElementById('label');
   const iframes = Array.prototype.slice.call(document.querySelectorAll('.slide iframe'));
   const ready = new Array(iframes.length).fill(false);
+  const replayOverlay = document.getElementById('replayOverlay');
+  const replayBtn = document.getElementById('replayBtn');
+  let loopCount = 0;
 
   iframes.forEach(function(f, i){
     f.addEventListener('load', function(){ ready[i] = true; });
@@ -263,6 +302,13 @@
       setTimeout(function(){
         setTransform(0, false);
         current = 0;
+        loopCount++;
+        if (loopCount >= MAX_LOOPS) {
+          stopLysineTimer();
+          setDots(0);
+          replayOverlay.classList.add('visible');
+          return;
+        }
         activate(0);
         setTimeout(advance, DWELL[0]);
       }, TRANSITION);
@@ -271,6 +317,14 @@
       setTimeout(advance, DWELL[current]);
     }
   }
+
+  replayBtn.addEventListener('click', function(){
+    replayOverlay.classList.remove('visible');
+    loopCount = 0;
+    current = 0;
+    activate(0);
+    setTimeout(advance, DWELL[0]);
+  });
 
   activate(0);
   setTimeout(advance, DWELL[0]);

@@ -31,6 +31,9 @@ window.addEventListener('message', function(e) {
 > - Want the one model that does everything at once? Go to [ESM3](#esm3-one-model-three-modalities).
 {: .prompt-tip}
 
+> **Best viewed on a computer.** The interactive widgets throughout this post are click-and-drag heavy and assume a real cursor and a wide screen — they'll be cramped or hard to use on a phone.
+{: .prompt-warning}
+
 ### Proteins are just like sentences
 
 Proteins are sequences of amino acids, and every protein in living things is simply a unique sequence of these amino acids.  The ordering alone determines the shape and functionality of these proteins.  Now when ML researchers came across this domain, they figured, if we have transformers that create sentences--i.e. sequences of words--why can't we have transformers create proteins, which are sequences of amino acids.
