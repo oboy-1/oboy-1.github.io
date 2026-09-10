@@ -58,7 +58,11 @@ Therefore, there are $72$ Melakarta ragas.
 
 Click on a raga name and a sidebar will open.  You can click on the buttons to play the notes and also view the graph below to visualize the relative distance between the notes.
 
-<iframe src="{{ site.baseurl }}/assets/files/raga/raga.html" title="Raga Interactive" style="width: 100%; height: 750px;" scrolling="no"></iframe>
+{% include interactive.html
+  src="/assets/files/raga/raga.html"
+  title="Raga Interactive"
+  height=750
+  alt="Click a raga name to open its sidebar, play its notes, and view the graph of relative distances between them." %}
 
 ### Melakarta Numbers
 
