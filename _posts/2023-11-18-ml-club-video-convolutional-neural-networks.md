@@ -19,7 +19,7 @@ When you look at a face, what do you see? You see eyes, ears, a nose, and other 
 
 These CNNs are used everywhere – they are the very foundation of today’s computer vision models, being used in applications from facial recognition to self-driving cars!
 
-![Image]({{ site.baseurl }}/assets/images/2023/11/image.png)
+![Diagram of the VGG-16 CNN architecture, showing an input cat photo passing through stacked convolution, max pooling, and fully connected layers]({{ site.baseurl }}/assets/images/2023/11/image.png)
 <figcaption>image from <a href="https://learnopencv.com/understanding-convolutional-neural-networks-cnn/">learnopencv.com</a></figcaption>
 
 

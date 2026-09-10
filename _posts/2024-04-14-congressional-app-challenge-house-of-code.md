@@ -22,11 +22,11 @@ Previously, my school used licensed, commercial (and expensive) software for sys
 
 This motivated me to propose and lead the development of our app LunaSim, a free, open-source alternative that can be accessed from any computer with a standard browser, allowing students to use both the desktop computers and Chromebooks to build their simulations. Today over 60 students in our school are using the app.
 
-![Image]({{ site.baseurl }}/assets/images/2024/04/2023_App_Challenge_Winners-1024x749.jpg)
+![The LunaSim team posing with Congressman David Trone outside his Capitol office]({{ site.baseurl }}/assets/images/2024/04/2023_App_Challenge_Winners-1024x749.jpg)
 
 While at the capitol, my team had the opportunity to meet our Congressman David Trone in person. Sincere thanks to Congressman Trone and his team for their support!
 
-![Image]({{ site.baseurl }}/assets/images/2024/04/IMG_1941-1024x768.jpg)
+![The LunaSim team standing in front of their poster board explaining the app at the House of Code event]({{ site.baseurl }}/assets/images/2024/04/IMG_1941-1024x768.jpg)
 
 At the event, we presented our app to fellow students and people of the industry, along with attending the wonderful seminars and panel sessions from experts. Thank you to Congressional App Challenge for making all this happen!
 

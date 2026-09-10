@@ -16,7 +16,7 @@ tags:
     - 'Time Series'
 ---
 
-![Image]({{ site.baseurl }}/assets/images/2024/02/image-598x1024.png){: w="250"}
+![Optimus Prime, the Transformers movie robot, as a joke reference to the post's actual topic: the transformer neural network architecture]({{ site.baseurl }}/assets/images/2024/02/image-598x1024.png){: w="250"}
 
 No, not that kind of transformer (sorry Optimus)!
 

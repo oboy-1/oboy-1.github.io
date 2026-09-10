@@ -23,7 +23,7 @@ The ML Club was born out of a simple belief: **the best way to learn is to teach
 
 Experience in ML Club opened up so many other opportunities.  I had the wonderful opportunity to teach (along with some amazing coaches) these AI lectures to the [NorthSouth Foundation](https://www.northsouth.org) Learning Journey Program, reaching over 120 students and raised funds for 50 college scholarships in India.
 
-![Image]({{ site.baseurl }}/assets/images/2025/08/club_photo.jpeg){: width="500"}
+![Group photo of the 2024-25 ML Club members and coaches]({{ site.baseurl }}/assets/images/2025/08/club_photo.jpeg){: width="500"}
 <figcaption>ML Club 2024-25 club photo</figcaption>
 
 > All of the ML Club videos are now all compiled in chronological order in the [**Videos**]({{ site.baseurl }}/videos) tab on the sidebar.
