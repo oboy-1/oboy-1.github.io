@@ -126,7 +126,11 @@ We simply must perform the same updates to the coefficients but in the reverse d
 
 Below is a [Desmos](https://www.desmos.com/) embedding that demonstrates how weights can get updated.  The top row in the left sidebar gives the current raw prediction (**no sign function**) of the perceptron $Ax + By + C$.  Increase or decrease the coefficients $A, B,$ and $C$ by moving the sliders underneath.  Suppose the point $(7,9)$ was misclassified.  That means that the point should be on the other side of the line (notice the orange and blue sides of the line below).  In this case when the coefficients increase, the line moves so that eventually the point is on the other side of the line.  If you make the point with negative values, the direction in which the various coefficients will have to change will be different (and be according to the algorithm stated earlier).
 
-<iframe src="https://www.desmos.com/calculator/0mq9bcyou9" width="100%" height="800" style="border: 1px solid #ccc" frameborder=0></iframe>
+{% include interactive.html
+  src="https://www.desmos.com/calculator/0mq9bcyou9"
+  title="Desmos: Perceptron Weight Update Demo"
+  height=800
+  caption="Move the A, B, and C sliders to see how the perceptron's line shifts to correct a misclassified point, matching the sign-based update rule described above." %}
 
 ##### Learning Rate
 
@@ -155,7 +159,11 @@ Click on different locations on the graph to generate datapoints.  Click on the 
 
 The yellow highlighted point during training represents the current point from which the coefficients of the line are being updated by.  Click "Reset" or reload the page to reset to get a new initial plane.
 
-<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis.html" title="Demo of the Perceptron Learning Algorithm" style="width: 100%; height: 650px;" scrolling="no"></iframe>
+{% include interactive.html
+  src="/assets/images/perceptronVis_files/plotlyPerceptronVis.html"
+  title="Demo of the Perceptron Learning Algorithm"
+  height=650
+  caption="Click on the graph to generate datapoints, switch colors between groups, and train the perceptron -- the yellow-highlighted point is the one currently updating the line's coefficients." %}
 
 ### "Neuron" Representation of the Perceptron
 
@@ -171,7 +179,11 @@ where on one side $Ax + By + Cz + D > 0$ and on the other $Ax + By + Cz + D < 0$
 
 Click and drag the mouse around to view the data from different angles and scroll to zoom.  Click on the "Train Perceptron" button to view the animation.  Click "Reset" or reload the page to reset to get a new initial plane.
 
-<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis3D.html" title="Demo of the Perceptron Learning Algorithm in 3D" style="width: 100%; height: 650px;" scrolling="no"></iframe>
+{% include interactive.html
+  src="/assets/images/perceptronVis_files/plotlyPerceptronVis3D.html"
+  title="Demo of the Perceptron Learning Algorithm in 3D"
+  height=650
+  caption="Drag to rotate and scroll to zoom, then train the perceptron to see the separating plane converge on 3D data." %}
 
 ##### Vectors for beyond 3D
 
@@ -218,7 +230,11 @@ One caveat with the perceptron learning algorithm is that it cannot separate any
 > Find a proof that the algorithm converges on linearly separable data [here](http://www.cs.columbia.edu/~mcollins/courses/6998-2012/notes/perc.converge.pdf).
 {:.prompt-info}
 
-<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyPerceptronVis_circle.html" title="Demo of the Perceptron Learning Algorithm (circle data)" style="width: 100%; height: 550px;" scrolling="no"></iframe>
+{% include interactive.html
+  src="/assets/images/perceptronVis_files/plotlyPerceptronVis_circle.html"
+  title="Demo of the Perceptron Learning Algorithm (circle data)"
+  height=550
+  caption="Non-linearly-separable circle data causes the perceptron's line to bounce around indefinitely instead of converging." %}
 
 ### Extending from Perceptrons
 
@@ -226,7 +242,11 @@ One caveat with the perceptron learning algorithm is that it cannot separate any
 
 You can use activation functions other than the $\text{sgn}$ function.  Check out the examples below:
 
-<iframe src="{{ site.baseurl }}/assets/images/perceptronVis_files/plotlyActivations.html" title="Graphs of different activation functions" style="width: 100%; height: 620px;" scrolling="no"></iframe>
+{% include interactive.html
+  src="/assets/images/perceptronVis_files/plotlyActivations.html"
+  title="Graphs of different activation functions"
+  height=620
+  caption="Activation functions other than sgn let the perceptron output a continuous, scaled value instead of just a discrete +1/-1." %}
 
 These different activation functions can allow prediction to not just be a discrete value (e.g. $1$ or $-1$) but rather be a specifically scaled, continuous set of numbers that could be the output.
 
