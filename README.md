@@ -1,4 +1,4 @@
-# <img src="./assets/img/favicons/android-chrome-192x192.png" alt="drawing" width="35"/> Karthik's Blog -- www.karthikvedula.com
+# <img src="./assets/img/favicons/favicon.svg" alt="drawing" width="20"/> Karthik's Blog -- www.karthikvedula.com
 
 > (also oboy-1.github.io)
 
