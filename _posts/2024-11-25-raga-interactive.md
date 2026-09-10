@@ -94,7 +94,7 @@ Each melakarta is assigned a number, defined by the algorithm below:
 {: .prompt-warning }
 
 This algorithm yields the ordering below ([image from Wikimedia](https://commons.wikimedia.org/wiki/Melakarta_ragams#/media/File:Melakarta.katapayadi.sankhya.72.png))
-![png]({{ site.baseurl }}/assets/images/2024/11/melakarta.png){: width="500"}
+![Circular chart of all 72 Melakarta ragas numbered 1-12 per chakra, split into Suddha madhyama and prati madhyama halves, with concentric rings showing each chakra's name and the R/G and D/N note pairs for each raga]({{ site.baseurl }}/assets/images/2024/11/melakarta.png){: width="500"}
 
 One other awesome property of this system is that the first two syllables of the names of melakartas correspond to their numbers.  This means that by knowing just the name of the raga, you can deduce the notes that comprise it!  This is done through the *Katapayadi system*, where syllables are assigned digits.  As an example, for the raga *Dheerasankarabharanam*, *dha* corresponds to $9$ and *ra* corresponds to $2$.  Therefore, the raga number is $29$. You can read more about this [here](https://en.wikipedia.org/wiki/Katapayadi_system#Carnatic_music).
 
