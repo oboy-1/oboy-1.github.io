@@ -1,0 +1,25 @@
+<div class="interactive-embed">
+  <iframe
+    {% if include.id %}id="{{ include.id }}"{% endif %}
+    src="{% unless include.src contains '://' %}{{ site.baseurl }}{% endunless %}{{ include.src }}"
+    title="{{ include.title }}"
+    style="width: 100%; height: {{ include.height | default: 800 }}px; border: none;"
+    scrolling="no"
+    loading="lazy">
+  </iframe>
+  {% if include.caption %}
+  <figcaption class="interactive-caption">{{ include.caption }}</figcaption>
+  {% endif %}
+</div>
+{% if include.autoresize %}
+<script>
+(function() {
+  var frame = document.getElementById('{{ include.id }}');
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.iframeHeight && frame && e.source === frame.contentWindow) {
+      frame.style.height = e.data.iframeHeight + 'px';
+    }
+  });
+})();
+</script>
+{% endif %}

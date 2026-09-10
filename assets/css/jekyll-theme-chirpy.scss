@@ -94,6 +94,12 @@ figcaption {
   text-align: center;
 }
 
+/* Interactive iframe embeds (see _includes/interactive.html) reuse the
+   figcaption styling above for their caption text. */
+.interactive-embed {
+  margin: 1.5rem 0;
+}
+
 @media (prefers-color-scheme: dark) {
   #sidebar {
     background-color: #333;
