@@ -7,8 +7,8 @@
     scrolling="no"
     loading="lazy">
   </iframe>
-  {% if include.caption %}
-  <figcaption class="interactive-caption">{{ include.caption }}</figcaption>
+  {% if include.alt %}
+  <p class="visually-hidden">{{ include.alt }}</p>
   {% endif %}
 </div>
 {% if include.autoresize %}
