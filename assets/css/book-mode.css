@@ -1,0 +1,81 @@
+#book-mode-toggle.active {
+  background-color: var(--btn-active-bg, #FF6600);
+  color: #fff;
+  border-color: var(--btn-active-bg, #FF6600);
+}
+
+.book-nav .book-prev:disabled,
+.book-nav .book-next:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.book-toc-wrapper {
+  position: relative;
+}
+
+/* Posts using the collapsible.html include emit an unscoped `details { ... }`
+   rule (gray box, padding, margin) that would otherwise bleed onto this
+   details element too — override it back to nothing. */
+.book-toc-wrapper .book-toc {
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.book-toc-wrapper .book-toc summary {
+  list-style: none;
+}
+
+.book-toc-wrapper .book-toc summary::-webkit-details-marker {
+  display: none;
+}
+
+.book-toc-wrapper .book-toc summary::after {
+  content: '\25BE';
+  display: inline-block;
+  margin-left: 0.35rem;
+  transition: transform 0.15s ease;
+}
+
+.book-toc-wrapper .book-toc[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.book-toc-list {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 15rem;
+  max-width: 20rem;
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: 0.4rem;
+  border: 1px solid var(--main-border-color, #e9ecef);
+  border-radius: 0.5rem;
+  background-color: var(--main-bg, white);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+}
+
+.book-toc-list .book-toc-link {
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.35rem;
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 0.85rem;
+  white-space: normal;
+}
+
+.book-toc-list .book-toc-link:hover {
+  background-color: var(--btn-border-color, #e9ecef);
+}
+
+.book-toc-list .book-toc-link.active {
+  color: var(--link-color, #0056b2);
+  font-weight: 600;
+}
