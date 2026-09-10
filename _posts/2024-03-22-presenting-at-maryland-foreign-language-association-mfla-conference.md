@@ -15,11 +15,11 @@ tags:
 ---
 
 :-------------------------:|:-------------------------:
-![Image]({{ site.baseurl }}/assets/images/2024/03/IMG_1922-1024x602.jpg) | ![Image]({{ site.baseurl }}/assets/images/2024/03/3C7CA637-FE6A-4B6A-81D7-764C1AC79D27-1024x768.jpeg)
+![Karthik presenting a "Text Summarization Demo" slide to a seated audience in a conference room]({{ site.baseurl }}/assets/images/2024/03/IMG_1922-1024x602.jpg) | ![Karthik gesturing while presenting a "Why now?" slide about data prevalence, computational power, and transformer architecture]({{ site.baseurl }}/assets/images/2024/03/3C7CA637-FE6A-4B6A-81D7-764C1AC79D27-1024x768.jpeg)
 
 Last weekend I had the wonderful opportunity of presenting with my Spanish teacher Sr. DeValoes at the [Maryland Foreign Language Association (MFLA)](https://www.mflamd.org/#/) Spring Conference. MFLA is a professional organization of world language educators and professionals of the state of Maryland. Among many other roles, MFLA hosts professional development opportunities for its members to disseminate the insights/knowledge regarding the field of world language education.
 
-![Image]({{ site.baseurl }}/assets/images/2024/03/IMG_3646-768x1024.jpeg){: w="500"}
+![Karthik and his Spanish teacher Sr. DeValoes posing together at the conference]({{ site.baseurl }}/assets/images/2024/03/IMG_3646-768x1024.jpeg){: w="500"}
 <figcaption>Me and my Spanish Teacher, Sr. DeValoes</figcaption>
 
 We presented on how AI tools such as language models like [ChatGPT](https://chat.openai.com/) and image generation models like [Stable Diffusion](https://stability.ai/) can be used in the K-12 educational field, specifically in the subject of world languages. For example, we showed how ChatGPT can be used for generating lesson plans (from brainstorming topics to extracting information from transcripts to making assignments). From the students’ perspective, we showed how students can use ChatGPT to practice their conversational skills and ask for explanations on questions they have on the content. In addition, since image generation models like stable diffusion can take Spanish prompts as well, we showed an activity in which students can practice their Spanish through prompting stable diffusion to make a certain image.

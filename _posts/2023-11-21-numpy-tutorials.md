@@ -17,13 +17,13 @@ tags:
 
 Numpy is a Python library that serves as the backbone for Machine Learning. Machine Learning can be described as the confluence of three giant fields of mathematics – Calculus, Statistics, and **Linear Algebra.** And Numpy is **all about** Linear Algebra.
 
-![Image]({{ site.baseurl }}/assets/images/2023/11/image-1.png){:w="500"}
+![Diagram of a 3D numpy array's axes and shape, showing how reshape, ravel, and axis-based slicing relate to a flat array]({{ site.baseurl }}/assets/images/2023/11/image-1.png){:w="500"}
 <figcaption>image from https://duchesnay.github.io/pystatsml/auto_gallery/scipy_numpy.html</figcaption>
 
 
 In Neural Networks, the weights of the neural network are represented as vectors. Input data and output result are also represented as vectors. Numpy allows the representation of these vectors and matrices along with facilitating the computation between these mathematical objects as well. What makes Numpy exceptional, however, is its speed.
 
-![Image]({{ site.baseurl }}/assets/images/2023/11/Screen-Shot-2023-11-20-at-8.05.10-PM-1024x207.png)
+![Screenshot of a Jupyter Notebook benchmark comparing Numpy array operations against builtin Python loops, showing Numpy an order of magnitude faster]({{ site.baseurl }}/assets/images/2023/11/Screen-Shot-2023-11-20-at-8.05.10-PM-1024x207.png)
 
 As seen above, Numpy is **an order of magnitude** faster than builtin Python!
 

@@ -38,23 +38,23 @@ for item in tqdm(range(1000)):
 
 This yields:
 
-![Image]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-12-at-7.49.35-PM-1024x105.png)
+![Terminal screenshot of a basic tqdm progress bar iterating through range(1000)]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-12-at-7.49.35-PM-1024x105.png)
 
 ### 2. Description
 
 You can also customize the progress bar to have a description, with the `desc` parameter.
 
-![Image]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-12-at-8.30.08-PM-1024x67.png)
+![Terminal screenshot of a tqdm progress bar with a custom description label set via the desc parameter]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-12-at-8.30.08-PM-1024x67.png)
 
 ### 3. Nested `for` Loops
 
 If you just use `tqdm` when using multiple `for` loops, you get the following result:
 
-![Image]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-9.05.00-AM-1024x156.png)
+![Terminal screenshot of nested tqdm progress bars, with leftover completed inner-loop bars still cluttering the output]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-9.05.00-AM-1024x156.png)
 
 This leaves a lot of previously finished inner-loop progress bars on the screen, making it a bit messy. To counteract this, just put `leave=False` as one of the parameters in the inner loop. This will make the inner loop bar disappear once it is done.
 
-![Image]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-9.40.30-AM-1024x156.png)
+![Terminal screenshot of nested tqdm progress bars with leave=False, showing only the active inner-loop bar instead of leftover completed ones]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-9.40.30-AM-1024x156.png)
 
 ### 4. More control of the progress bar
 
@@ -94,7 +94,7 @@ In the example above, we are training an ML model in PyTorch. There are two `for
 
 This is the output of that code:
 
-![Image]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-10.07.43-AM-1024x156.png)
+![Terminal screenshot of a PyTorch training loop's tqdm progress bar, showing the epoch description and running loss via set_postfix]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-10.07.43-AM-1024x156.png)
 
 ### 5. `tqdm` in Jupyter Notebooks
 
@@ -102,9 +102,9 @@ You can make `tqdm` look much better in [Jupyter Notebooks](https://jupyter.org/
 
 This is how it looks like:
 
-![Image]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-10.17.49-AM-1024x181.png)
+![Jupyter notebook screenshot of tqdm.auto's widget-based progress bar mid-run, shown in blue at 82%]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-10.17.49-AM-1024x181.png)
 
-![Image]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-10.17.52-AM-1024x181.png)
+![Jupyter notebook screenshot of tqdm.auto's widget-based progress bar after completing, shown in green at 100%]({{ site.baseurl }}/assets/images/2024/04/Screen-Shot-2024-04-13-at-10.17.52-AM-1024x181.png)
 
 ### 6. More information
 
