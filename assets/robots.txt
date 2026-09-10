@@ -1,0 +1,13 @@
+---
+permalink: /robots.txt
+# The robots rules
+---
+
+User-agent: *
+
+Disallow: /norobots/
+Disallow: /assets/files/
+Disallow: /assets/images/perceptronVis_files/
+Disallow: /assets/images/2023/11/NNSimple-1.html
+
+Sitemap: {{ '/sitemap.xml' | absolute_url }}

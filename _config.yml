@@ -96,7 +96,7 @@ avatar: ./assets/images/profile.jpg
 
 # The URL of the site-wide social preview image used in SEO `og:image` meta tag.
 # It can be overridden by a customized `page.image` in front matter.
-social_preview_image: # string, local or CORS resources
+social_preview_image: /assets/images/profile.jpg # string, local or CORS resources
 
 # boolean type, the global switch for TOC in posts.
 toc: true
@@ -168,6 +168,21 @@ collections:
     output: true
 
 defaults:
+  # These are standalone interactive visualizations embedded via <iframe> in
+  # posts, not standalone articles -- keep them out of sitemap.xml so Google
+  # doesn't index bare widgets as thin, context-free pages.
+  - scope:
+      path: "assets/files"
+    values:
+      sitemap: false
+  - scope:
+      path: "assets/images/perceptronVis_files"
+    values:
+      sitemap: false
+  - scope:
+      path: "assets/images/2023/11/NNSimple-1.html"
+    values:
+      sitemap: false
   - scope:
       path: "" # An empty string here means all files in the project
       type: posts
