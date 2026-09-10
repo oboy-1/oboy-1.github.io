@@ -62,7 +62,7 @@ Click on a raga name and a sidebar will open.  You can click on the buttons to p
   src="/assets/files/raga/raga.html"
   title="Raga Interactive"
   height=750
-  caption="Click a raga name to open its sidebar, play its notes, and view the graph of relative distances between them." %}
+  alt="Click a raga name to open its sidebar, play its notes, and view the graph of relative distances between them." %}
 
 ### Melakarta Numbers
 

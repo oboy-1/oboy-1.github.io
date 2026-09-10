@@ -18,7 +18,7 @@ This isn't just a wall of text — nearly every section below has something you 
   title="Preview"
   height=900
   autoresize=true
-  caption="A preview of the kind of interactive widgets used throughout this post, playing on its own." %}
+  alt="A preview of the kind of interactive widgets used throughout this post, playing on its own." %}
 
 > **Not trying to read all 60 minutes of this in order?** Jump to whatever you're actually here for:
 > - New to proteins? Start with the [crash course](#crash-course) on amino acids and structure.
@@ -46,7 +46,7 @@ Below are two sequences: an English sentence and the first 15 residues of ubiqui
   title="Mutation Explorer"
   height=600
   autoresize=true
-  caption="Click any token in an English sentence or the first 15 residues of ubiquitin to see what BERT and ESM predict as substitutes." %}
+  alt="Click any token in an English sentence or the first 15 residues of ubiquitin to see what BERT and ESM predict as substitutes." %}
 
 Both models actually show a similar pattern here. Some positions are flexible, some substitutions make the sentence (or amino acid sequence) still work. Some are locked — replacing the word destroys the grammar of the sentence (analogously, the structure of the protein).
 
@@ -82,7 +82,7 @@ Here's what that skeleton actually looks like in 3D. Drag to rotate the molecule
   title="Anatomy of an amino acid"
   height=500
   autoresize=true
-  caption="Drag to rotate the amino acid skeleton and see how the amino group, alpha-carbon, and carboxyl group form a fixed backbone, with only the R group free to change." %}
+  alt="Drag to rotate the amino acid skeleton and see how the amino group, alpha-carbon, and carboxyl group form a fixed backbone, with only the R group free to change." %}
 
 > These protein models are rendered via [3Dmol.js](https://academic.oup.com/bioinformatics/article/31/8/1322/213186?login=false) -- super cool library!  Drag around with your mouse to rotate, right click and drag to pan.
 {: .prompt-tip}
@@ -95,7 +95,7 @@ For example, some R groups are hydrophobic ("water-fearing") and prefer to be bu
   title="What's a side chain?"
   height=900
   autoresize=true
-  caption="Explore how different R groups vary in hydrophobicity, charge, and hydrogen-bonding ability -- the local interactions that together determine how a protein folds." %}
+  alt="Explore how different R groups vary in hydrophobicity, charge, and hydrogen-bonding ability -- the local interactions that together determine how a protein folds." %}
 
 Put together, a protein looks like this:
 
@@ -131,7 +131,7 @@ Below is an interactive showing the different levels.  Click the top buttons to 
   title="Four Levels of Protein Structure — Hemoglobin"
   height=750
   autoresize=true
-  caption="Click the top buttons to view hemoglobin's primary, secondary, tertiary, and quaternary structure." %}
+  alt="Click the top buttons to view hemoglobin's primary, secondary, tertiary, and quaternary structure." %}
 
 The key thing to take away: each level emerges from the level below, but in a way that's not locally predictable. The sequence determines everything — but you can't read off the 3D shape by looking at any short stretch of it. You need to understand the whole thing at once. That's why this problem is hard, and you'll see why it's surprising that protein language models learn anything about tertiary structure from sequence statistics alone.
 
@@ -164,7 +164,7 @@ See below for an animation of how ESM-2 generates embeddings.
   title="PLM Embedding Explorer"
   height=400
   autoresize=true
-  caption="An animation of how ESM-2 generates embeddings for a sequence." %}
+  alt="An animation of how ESM-2 generates embeddings for a sequence." %}
 
 Just like BERT, each vector isn't just "what amino acid is this" — it captures context. The three T residues at positions 7, 9, and 12 all get different vectors, even though they're the same character. Same token, different neighbors, different embedding.
 
@@ -195,7 +195,7 @@ There are only 20 amino acids in nature.  So every single protein is a sequence 
   title="Vocabulary Comparison"
   height=350
   autoresize=true
-  caption="Comparing the 20-token amino acid vocabulary against GPT-4's vocabulary of hundreds of thousands of tokens." %}
+  alt="Comparing the 20-token amino acid vocabulary against GPT-4's vocabulary of hundreds of thousands of tokens." %}
 
 > Technically 22 amino acids occur naturally — selenocysteine and pyrrolysine are rare, genetically-encoded exceptions found in a handful of organisms — and most models also reserve a token for unknown/non-standard residues (often X). The "20" convention holds for the vast majority of sequence data and is what virtually all PLMs are trained on.
 {: .prompt-warning}
@@ -210,7 +210,7 @@ A single swap of an amino acid from Glutamate to Valine causes the hemoglobin pr
   title="One Mutation, Different World"
   height=450
   autoresize=true
-  caption="A single Glutamate-to-Valine substitution causes hemoglobin to lose its ability to carry oxygen, as seen in sickle cell disease." %}
+  alt="A single Glutamate-to-Valine substitution causes hemoglobin to lose its ability to carry oxygen, as seen in sickle cell disease." %}
 
 #### 3. No ground truth at scale
 
@@ -324,7 +324,7 @@ To smoothen this out, this $d_i / d_0(L_{target})$ is put as input in the $y = 1
   title="TM-score Per-Residue Weighting Curve"
   height=520
   autoresize=true
-  caption="The per-residue weighting curve y = 1/(1+x^2) used in TM-score: it approaches 1 as distance error goes to 0, and approaches 0 as the error grows large." %}
+  alt="The per-residue weighting curve y = 1/(1+x^2) used in TM-score: it approaches 1 as distance error goes to 0, and approaches 0 as the error grows large." %}
 
 Notice how this curve reaches 1 when the distance (error) approaches 0, and approaches 0 when the distance gets large.  The curve also doesn't blow up with large inputs.  Together,
 
@@ -370,7 +370,7 @@ Here's a real AlphaFold2 prediction — human lysozyme C — with its pLDDT scor
   title="AlphaFold pLDDT Confidence Viewer — Lysozyme C"
   height=700
   autoresize=true
-  caption="A real AlphaFold2 prediction of human lysozyme C colored by pLDDT. Toggle between AlphaFold DB's four confidence bins and a continuous gradient to see which parts of the structure the model is least sure about." %}
+  alt="A real AlphaFold2 prediction of human lysozyme C colored by pLDDT. Toggle between AlphaFold DB's four confidence bins and a continuous gradient to see which parts of the structure the model is least sure about." %}
 
 ##### PAE: Predicted Aligned Error
 
@@ -421,7 +421,7 @@ where:
   title="DOPE Distance Scoring Curve"
   height=520
   autoresize=true
-  caption="The DOPE statistical potential curve, built from how often pairs of atom types are observed at each distance across thousands of solved protein structures." %}
+  alt="The DOPE statistical potential curve, built from how often pairs of atom types are observed at each distance across thousands of solved protein structures." %}
 
 > Remember: proteins want to be at the most stable state, meaning at the lowest energy level.  Predicted configurations with high energies are likely not possible in nature.
 {: .prompt-tip}
@@ -449,7 +449,7 @@ You'd think two continuous angles, each free to spin 360°, would give you a hug
   title="Ramachandran Plot — φ/ψ Explorer"
   height=900
   autoresize=true
-  caption="Drag a point around phi/psi space and watch a real backbone fragment twist to match -- most combinations are geometrically impossible, and allowed conformations cluster into a few tight islands, with glycine and proline as outliers." %}
+  alt="Drag a point around phi/psi space and watch a real backbone fragment twist to match -- most combinations are geometrically impossible, and allowed conformations cluster into a few tight islands, with glycine and proline as outliers." %}
 
 ##### Sidechain rotamer outliers
 
@@ -461,7 +461,7 @@ Side chains (i.e. R groups) rotate too.  Lysine, for example, has a whole tail o
   title="Lysine side chain — χ1–χ4"
   height=650
   autoresize=true
-  caption="Lysine's side chain has a tail of rotatable chi angles (χ1, χ2, ...), counting outward from the Cα." %}
+  alt="Lysine's side chain has a tail of rotatable chi angles (χ1, χ2, ...), counting outward from the Cα." %}
 
 Here's the interesting part: those bonds don't spin freely. Same idea as φ/ψ — they cluster into a few preferred positions, roughly three per bond, about 120° apart. A side chain sitting in one of those preferred spots is called a rotamer, and — like the Ramachandran regions — the "preferred" list isn't derived from theory, it's just what shows up over and over in real, solved structures.
 
@@ -476,7 +476,7 @@ A **rotamer outlier** is a side chain that missed all of those spots. Nothing's 
   title="PLM Model Landscape"
   height=500
   autoresize=true
-  caption="An overview of protein language models and how they relate to each other." %}
+  alt="An overview of protein language models and how they relate to each other." %}
 
 #### ESM-1b: what does masked language modeling learn from protein sequences?
 
@@ -504,7 +504,7 @@ What matters is whether a head's attention shows up **off the diagonal**. On-dia
   title="ESM-1b Attention vs. Real Contacts — Ubiquitin"
   height=750
   autoresize=true
-  caption="A real ESM-1b forward pass over ubiquitin, no fine-tuning, with attention heads ranked by how well they predict real physical contacts -- some heads land startlingly close to the true contact map." %}
+  alt="A real ESM-1b forward pass over ubiquitin, no fine-tuning, with attention heads ranked by how well they predict real physical contacts -- some heads land startlingly close to the true contact map." %}
 
 Now it might be a bit confusing visualizing what the contact map on the left actually means.  See below for how to interpret the graph.
 
@@ -516,7 +516,7 @@ Look at the real contact map on the left of that widget. Cell $i,j$ indicates wh
   title="Contact Map ↔ 3D Structure — Ubiquitin"
   height=850
   autoresize=true
-  caption="Cell (i,j) in the contact map shows whether residues i and j are in contact; try \"Helix turn\" and \"Sheet pairing\" to see how local and long-range folding patterns show up as bands off the main diagonal." %}
+  alt="Cell (i,j) in the contact map shows whether residues i and j are in contact; try \"Helix turn\" and \"Sheet pairing\" to see how local and long-range folding patterns show up as bands off the main diagonal." %}
 
 #### ESM-2 & ESM-C: do scaling laws hold for proteins?
 
@@ -530,7 +530,7 @@ But does scaling actually work here? Drag the slider through all six real checkp
   title="ESM-2 Scaling Laws — 8M to 15B"
   height=600
   autoresize=true
-  caption="Drag the slider through ESM-2's six real checkpoints (8M to 15B parameters) to see contact precision and structure quality improve early, then flatten out." %}
+  alt="Drag the slider through ESM-2's six real checkpoints (8M to 15B parameters) to see contact precision and structure quality improve early, then flatten out." %}
 Maybe the 15B ESM-2 model didn't actually hit a limit—it just didn't see enough data. Researchers at BioMap and Tsinghua University [(paper)](https://proceedings.neurips.cc/paper_files/paper/2024/file/8066ae1446b2bbccb5159587cc3b3bcc-Paper-Conference.pdf) tested this. Every ESM-2 size was trained on the same ~1 trillion tokens: roughly 22 billion unique tokens repeated 45 times. Their analysis suggested that compute would've been better spent on a larger model with fresher data. They trained a **10.7B model on ~260B mostly fresh tokens**, which beat ESM-2 3B and matched or beat ESM-2 15B on most benchmarks.
 
 The ESM team later took a similar approach with **ESM C**, released in December 2024, training each size on **6.2T tokens** instead of ESM-2's ~1T. The result is essentially the flattening curve from above, fixed: ESM C 300M matches ESM-2 650M, 600M rivals 3B, and 6B beats every ESM-2 model. In other words, **ESM-2 may not have hit a model-size limit—it may have hit a data limit.** ESM C also deliberately overtrained its smaller models, since spending more on training a cheap-to-run model can be worthwhile in practice.
@@ -558,7 +558,7 @@ Everything in this section is these two forms trading information back and forth
   title="Two data forms — MSA and pair grid"
   height=550
   autoresize=true
-  caption="AlphaFold2's two core representations: the Multiple Sequence Alignment (MSA) and the pair grid, which repeatedly trade information." %}
+  alt="AlphaFold2's two core representations: the Multiple Sequence Alignment (MSA) and the pair grid, which repeatedly trade information." %}
 
 Let's start with the MSA. A residue's letter on its own doesn't say much. Knowing position 1 is Methionine doesn't tell you what role it plays. What matters is how position 1 relates to the residues around it, and those relationships aren't all equally informative — some carry real signal, some are close to noise.
 
@@ -570,7 +570,7 @@ This is what attention computes: for a given residue, how relevant is each other
   title="Row attention — why first"
   height=650
   autoresize=true
-  caption="Row attention scores how relevant each position in a sequence is to a given position, biased by the pair grid's existing opinion about that pair." %}
+  alt="Row attention scores how relevant each position in a sequence is to a given position, biased by the pair grid's existing opinion about that pair." %}
 
 Column attention looks at the same alignment along the other axis. Fix one position, and compare what every species has there. Dog has a K at position 2. On its own, that tells us nothing. What tells us something is what the other species have at that exact same spot: if they agree, the agreement is itself a signal that this position is constrained; if they vary freely, the position probably isn't under much selective pressure. Column attention compares every species' version of a position to every other, and uses how much they agree to decide how much each one should inform the rest.
 
@@ -580,7 +580,7 @@ Column attention looks at the same alignment along the other axis. Fix one posit
   title="Column attention — why first"
   height=700
   autoresize=true
-  caption="Column attention compares what every species has at one fixed position, using how much they agree to decide how much each one should inform the rest." %}
+  alt="Column attention compares what every species has at one fixed position, using how much they agree to decide how much each one should inform the rest." %}
 
 Row and column attention update the MSA, using the MSA. The pair grid is still sitting there almost empty. Outer product mean is the first mechanism that actually writes real values into it.
 
@@ -594,7 +594,7 @@ The mechanism: take each pair of positions' vectors, multiply them together spec
   title="Outer product mean — why first"
   height=800
   autoresize=true
-  caption="Outer product mean multiplies each pair of positions' vectors together species by species and averages the results, concentrating scattered coevolutionary signal into the pair grid." %}
+  alt="Outer product mean multiplies each pair of positions' vectors together species by species and averages the results, concentrating scattered coevolutionary signal into the pair grid." %}
 
 Row attention, column attention, and outer product mean all move information between the MSA and the pair grid. None of them let two pair grid cells check each other. Triangle update is where that happens — a cell gets updated using other cells, not the MSA.
 
@@ -623,7 +623,7 @@ Explore this below: pick a cell, and see how it is updated through triangle upda
   title="Triangle update — a sweep over the pair grid"
   height=900
   autoresize=true
-  caption="Pick a pair grid cell (i,j) and see how it's updated by summing messages from every third residue k, forming a triangle i-k-j." %}
+  alt="Pick a pair grid cell (i,j) and see how it's updated by summing messages from every third residue k, forming a triangle i-k-j." %}
 
 > - Each cell above is one number, but a real pair grid cell is a 128-dimensional vector — nothing here is literally measured in Ångströms.
 > - The triangle inequality is why this update exists, not what it computes: there's no distance check, just cell (i,k) and cell (k,j) combined through learned weights and summed into cell (i,j).
@@ -704,7 +704,7 @@ Try it below: pick a cell, and see which triangles win the competition. The widg
   title="Triangle attention — why first"
   height=700
   autoresize=true
-  caption="Pick a cell and see which candidate triangles win the competition -- unlike triangle update's sum, triangle attention lets candidates compete for influence via softmax." %}
+  alt="Pick a cell and see which candidate triangles win the competition -- unlike triangle update's sum, triangle attention lets candidates compete for influence via softmax." %}
 
 > - q&middot;k in the widget stands in for a real dot product between projected vectors; here both are simplified to one scalar, so it's just their product.
 > - The query doesn't gate the result after the fact — it drives the competition up front. $(i,j)$'s own value decides what gets compared against, which is why q&middot;k depends on the target too, not just the candidate.
@@ -790,7 +790,7 @@ None of this is abstract — it runs on real atoms. Step through it on an actual
   title="Real frames on a real backbone"
   height=700
   autoresize=true
-  caption="Step through Invariant Point Attention on an actual protein structure, comparing learned query and key points placed into 3D space via each residue's local frame." %}
+  alt="Step through Invariant Point Attention on an actual protein structure, comparing learned query and key points placed into 3D space via each residue's local frame." %}
 
 This geometric information becomes a third term in the attention score:
 
@@ -911,7 +911,7 @@ The interesting part is **conditioning**. We usually don't want just any protein
   title="Diffusion in 3D — noise to helix"
   height=680
   autoresize=true
-  caption="A known binding motif stays fixed in place while the rest of the backbone diffuses from noise around it." %}
+  alt="A known binding motif stays fixed in place while the rest of the backbone diffuses from noise around it." %}
 
 We encode the known motif as a condition $c$, containing information about its structure and position. The network now receives both the noisy protein and this condition:
 
@@ -981,7 +981,7 @@ Step through it below — pick a residue, watch its neighbors send messages, wat
   title="ProteinMPNN — message passing"
   height=620
   autoresize=true
-  caption="Pick a residue and watch its neighbors send messages, sum them together, and update its representation -- the basic message-passing idea behind ProteinMPNN." %}
+  alt="Pick a residue and watch its neighbors send messages, sum them together, and update its representation -- the basic message-passing idea behind ProteinMPNN." %}
 
 After several layers, information about the local 3D environment has propagated through the graph. Each $h_i$ therefore contains information about the structural environment surrounding position $i$.
 
@@ -1050,7 +1050,7 @@ Click through the architecture below, then the sections after walk through each 
   title="ESM3 architecture"
   height=780
   autoresize=true
-  caption="Click through ESM3's architecture, where sequence, structure, and function all enter the same model and any modality can predict any other." %}
+  alt="Click through ESM3's architecture, where sequence, structure, and function all enter the same model and any modality can predict any other." %}
 
 ##### Structure tokenizer
 
@@ -1102,7 +1102,7 @@ Both steps are simple enough to run by hand on a toy example. Pick a protein bel
   title="ESM3 function tokenizer"
   height=620
   autoresize=true
-  caption="Pick a protein to see its InterPro annotations reweighted by TF-IDF rarity, then switch to the hashing tab to see when locality-sensitive hashing changes a token." %}
+  alt="Pick a protein to see its InterPro annotations reweighted by TF-IDF rarity, then switch to the hashing tab to see when locality-sensitive hashing changes a token." %}
 
 The important distinction from the structure tokenizer is that this process is **not a learned neural tokenizer**. There is no encoder network being trained to discover a function vocabulary. The TF-IDF weighting and hashing procedure is a fixed preprocessing algorithm.
 

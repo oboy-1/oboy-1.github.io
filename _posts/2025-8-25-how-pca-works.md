@@ -38,7 +38,7 @@ Let's focus on an example of converting 2-dimensional data to 1 dimension.  Real
   src="/assets/files/pca/projection.html"
   title="Interactive Projection Visualization"
   height=800
-  caption="Rotate the line with the orange slider to see 2D points projected onto it — watch how the spread of the projected (orange) points changes as the line angle changes." %}
+  alt="Rotate the line with the orange slider to see 2D points projected onto it — watch how the spread of the projected (orange) points changes as the line angle changes." %}
 
 Now I want you to think, **what line angle preserved the most information**?  If you are having trouble answering that, then here's a clue: when two orange points overlap/cover each other on the projection, we consider that as *information lost* (since two points in different 2D space deceivingly appear as the same on 1D).
 
@@ -80,7 +80,7 @@ $$
   src="/assets/files/pca/centering.html"
   title="Interactive Centering Visualization"
   height=800
-  caption="Centering the data shifts it so the mean of the projected points is zero, which simplifies the variance calculation." %}
+  alt="Centering the data shifts it so the mean of the projected points is zero, which simplifies the variance calculation." %}
 
 Now since the data is now centered, we can say that $\bar{y}_{\text{proj}} = 0$.  This means that 
 
@@ -149,7 +149,7 @@ $$
   src="/assets/files/pca/trees.html"
   title="Trees Plot"
   height=900
-  caption="Centered tree height vs. trunk diameter data: diameter tends to increase as height increases." %}
+  alt="Centered tree height vs. trunk diameter data: diameter tends to increase as height increases." %}
 
 We can plot the data (and center it using the method we previously showed) as seen in the graphs above.  As the graph illustrates, diameter tends to increase as height increases.  But how do we measure that?
 
@@ -164,7 +164,7 @@ What does this value equal?  Lets look at each term individually.  When $x_i$ an
   src="/assets/files/pca/trees_red_green.html"
   title="Trees Plot Red and Green"
   height=400
-  caption="Points in the green regions add to the covariance sum, while points in the red regions would subtract from it." %}
+  alt="Points in the green regions add to the covariance sum, while points in the red regions would subtract from it." %}
 
 This means that, as seen in the graph above, points in the green areas add to the sum, while points in the red areas (if there) would subtract from the sum.
 
@@ -172,7 +172,7 @@ This means that, as seen in the graph above, points in the green areas add to th
   src="/assets/files/pca/try_covariance.html"
   title="Trees Plot Covariance Yourself"
   height=670
-  caption="Click on the graph to generate points of your own and explore how covariance changes depending on where the points are placed." %}
+  alt="Click on the graph to generate points of your own and explore how covariance changes depending on where the points are placed." %}
 
 Click on the graph above to generate points of your own and explore how covariance changes depending on where the points are placed.
 
@@ -375,7 +375,7 @@ Try out the interactive below to further understand this!
   src="/assets/files/pca/eigen.html"
   title="Interactive Eigenvector Visualization"
   height=1200
-  caption="Eigenvectors, when multiplied by their corresponding matrix, don't change direction — they only scale by their eigenvalue." %}
+  alt="Eigenvectors, when multiplied by their corresponding matrix, don't change direction — they only scale by their eigenvalue." %}
 
 Now you probably can see that the equation $\mathbf{C}\mathbf{u} = \lambda \mathbf{u}$ also is an eigenvector problem: $\mathbf{u}$ is the eigenvector, and $\lambda$ is the eigenvalue.
 
@@ -491,7 +491,7 @@ This indicates that the greater the eigenvalue $\lambda$, the greater the varian
   src="/assets/files/pca/projection_pca_always_show.html"
   title="Interactive Projection Visualization"
   height=800
-  caption="Align the line with either principal component (shown in red) to see one maximize and the other minimize the projected variance." %}
+  alt="Align the line with either principal component (shown in red) to see one maximize and the other minimize the projected variance." %}
 
 ### In Practice
 
@@ -623,7 +623,7 @@ Checkout the 3D to 2D example below!
   src="/assets/files/pca/projection_3d.html"
   title="Interactive 3D Projection Visualization"
   height=900
-  caption="A 3D-to-2D example: each data point is projected onto the top two eigenvectors, reducing its dimensionality from 3 to 2." %}
+  alt="A 3D-to-2D example: each data point is projected onto the top two eigenvectors, reducing its dimensionality from 3 to 2." %}
 
 And that's really it!  Hope you got a deeper understanding of PCA!
 

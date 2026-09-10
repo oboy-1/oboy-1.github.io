@@ -130,7 +130,7 @@ Below is a [Desmos](https://www.desmos.com/) embedding that demonstrates how wei
   src="https://www.desmos.com/calculator/0mq9bcyou9"
   title="Desmos: Perceptron Weight Update Demo"
   height=800
-  caption="Move the A, B, and C sliders to see how the perceptron's line shifts to correct a misclassified point, matching the sign-based update rule described above." %}
+  alt="Move the A, B, and C sliders to see how the perceptron's line shifts to correct a misclassified point, matching the sign-based update rule described above." %}
 
 ##### Learning Rate
 
@@ -163,7 +163,7 @@ The yellow highlighted point during training represents the current point from w
   src="/assets/images/perceptronVis_files/plotlyPerceptronVis.html"
   title="Demo of the Perceptron Learning Algorithm"
   height=650
-  caption="Click on the graph to generate datapoints, switch colors between groups, and train the perceptron -- the yellow-highlighted point is the one currently updating the line's coefficients." %}
+  alt="Click on the graph to generate datapoints, switch colors between groups, and train the perceptron -- the yellow-highlighted point is the one currently updating the line's coefficients." %}
 
 ### "Neuron" Representation of the Perceptron
 
@@ -183,7 +183,7 @@ Click and drag the mouse around to view the data from different angles and scrol
   src="/assets/images/perceptronVis_files/plotlyPerceptronVis3D.html"
   title="Demo of the Perceptron Learning Algorithm in 3D"
   height=650
-  caption="Drag to rotate and scroll to zoom, then train the perceptron to see the separating plane converge on 3D data." %}
+  alt="Drag to rotate and scroll to zoom, then train the perceptron to see the separating plane converge on 3D data." %}
 
 ##### Vectors for beyond 3D
 
@@ -234,7 +234,7 @@ One caveat with the perceptron learning algorithm is that it cannot separate any
   src="/assets/images/perceptronVis_files/plotlyPerceptronVis_circle.html"
   title="Demo of the Perceptron Learning Algorithm (circle data)"
   height=550
-  caption="Non-linearly-separable circle data causes the perceptron's line to bounce around indefinitely instead of converging." %}
+  alt="Non-linearly-separable circle data causes the perceptron's line to bounce around indefinitely instead of converging." %}
 
 ### Extending from Perceptrons
 
@@ -246,7 +246,7 @@ You can use activation functions other than the $\text{sgn}$ function.  Check ou
   src="/assets/images/perceptronVis_files/plotlyActivations.html"
   title="Graphs of different activation functions"
   height=620
-  caption="Activation functions other than sgn let the perceptron output a continuous, scaled value instead of just a discrete +1/-1." %}
+  alt="Activation functions other than sgn let the perceptron output a continuous, scaled value instead of just a discrete +1/-1." %}
 
 These different activation functions can allow prediction to not just be a discrete value (e.g. $1$ or $-1$) but rather be a specifically scaled, continuous set of numbers that could be the output.
 
