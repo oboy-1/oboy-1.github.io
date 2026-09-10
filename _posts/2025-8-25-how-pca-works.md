@@ -50,8 +50,8 @@ One could reasonably say that the more the projected points are spread out, the 
 We are going to call the unit vector (magnitude of 1) that points in the same direction of the line $\mathbf{u}$.  We will denote each point as a vector $\mathbf{x_i}$, where elements in the vector are its coordinates.
 
 
-![Image]({{ site.baseurl }}/assets/images/2025/08/projection.svg){:.light width="600"}
-![Image]({{ site.baseurl }}/assets/images/2025/08/projection_dark.svg){:.dark width="600"}
+![Diagram of a 2D point's vector x_i, the unit direction vector u drawn as a line, and the projection of x_i onto u shown as a separate vector, connected by a dotted perpendicular line]({{ site.baseurl }}/assets/images/2025/08/projection.svg){:.light width="600"}
+![Diagram of a 2D point's vector x_i, the unit direction vector u drawn as a line, and the projection of x_i onto u shown as a separate vector, connected by a dotted perpendicular line]({{ site.baseurl }}/assets/images/2025/08/projection_dark.svg){:.dark width="600"}
 <figcaption>Vector representation of projection</figcaption>
 
 A projected point is (since we assume $\mathbf{u}$ is a unit vector)
