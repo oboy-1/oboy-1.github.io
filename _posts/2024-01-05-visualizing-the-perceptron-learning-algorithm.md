@@ -21,14 +21,14 @@ pin: true
 
 The perceptron is an early innovation made in the field of machine learning.  Designed to mimic the neurons in the human brain, it went on to build the foundations of today's neural networks.  The perceptron was developed by Frank Rosenblatt at the Cornell Aeronautical Laboratory ([source](https://www.ling.upenn.edu/courses/cogs501/Rosenblatt1958.pdf)). 
 
-![png]({{ site.baseurl }}/assets/images/2024/07/perceptron.jpeg){: width="500"}
+![Black-and-white archival photo of a man in a shirt and tie operating the Mark 1 Perceptron machine, a large device with photocell lenses, patch cables, and vacuum-tube racks, with a large letter "C" board used as visual input beside it]({{ site.baseurl }}/assets/images/2024/07/perceptron.jpeg){: width="500"}
 <figcaption>Mark 1 Perceptron Machine, the first implementation of the perceptron learning algorithm (<a href="https://www.flickr.com/photos/127906254@N06/20897323365/">source</a>)</figcaption>
 
 
 To truly understand how the perceptron works, we must first view it from a geometrical perspective before getting into the "neural" aspect of it. A single perceptron is a linear classifier -- it separates two groups using a line.  Given a training dataset, the perceptron **learns** by readjusting itself based on points it misclassified (points on the wrong side of the line) at every timestep.
 
-![png]({{ site.baseurl }}/assets/images/2024/07/perceptronVisLine.png){:.light width="500"}
-![png]({{ site.baseurl }}/assets/images/2024/07/perceptronVisLine_dark.png){:.dark width="500"}
+![Scatter plot titled "Dogs vs. Cats" with speed on the y-axis and time spent sleeping on the x-axis: a diagonal orange line separates teal dog points in the upper-left from navy cat points in the lower-right]({{ site.baseurl }}/assets/images/2024/07/perceptronVisLine.png){:.light width="500"}
+![Scatter plot titled "Dogs vs. Cats" with speed on the y-axis and time spent sleeping on the x-axis: a diagonal orange line separates teal dog points in the upper-left from navy cat points in the lower-right]({{ site.baseurl }}/assets/images/2024/07/perceptronVisLine_dark.png){:.dark width="500"}
 <figcaption>The perceptron aims to split data into two groups using a line</figcaption>
 
 
@@ -55,8 +55,8 @@ will let us know if the point $(x_a, y_a)$ is above the line.
 
 Intuitively, we know that the equation of the line is $Ax + By + C = 0$.  That means that if the point $(x_a, y_a)$ were on the line, then $Ax_a + By_a + C = 0$.  If the point $(x_a, y_b)$ is above the line, we know that $y_b > y_a$ and since the $x$-values are the same for both points, we know that $Ax_a + By_b + C > 0$. Similarly, we can see how a point $(x_a, y_c)$ under the line would have $Ax_a + By_b + C < 0$.
 
-![png]({{ site.baseurl }}/assets/images/2024/07/lineCoords.png){:.light width="600"}
-![png]({{ site.baseurl }}/assets/images/2024/07/lineCoords_dark.png){:.dark width="600"}
+![Diagram of the line Ax+By+C=0 splitting the plane into a blue region above where Ax+By+C>0 and a green region below where Ax+By+C<0, with three points at the same x-coordinate x_a but different y-values (y_b above the line, y_a on the line, y_c below the line)]({{ site.baseurl }}/assets/images/2024/07/lineCoords.png){:.light width="600"}
+![Diagram of the line Ax+By+C=0 splitting the plane into a blue region above where Ax+By+C>0 and a green region below where Ax+By+C<0, with three points at the same x-coordinate x_a but different y-values (y_b above the line, y_a on the line, y_c below the line)]({{ site.baseurl }}/assets/images/2024/07/lineCoords_dark.png){:.dark width="600"}
 
 > Note: This is assuming that the coefficients are **positive**.  If not, the top region could perhaps be where $Ax + By + C < 0$ instead and the bottom be $Ax + By + C > 0$.  You will see this as you interact with a model later in the post.
 {: .prompt-warning }
@@ -216,8 +216,8 @@ This vector can extend to any dimensions needed, meaning that our perceptron can
 
 #### Anatomy of a Perceptron
 
-![png]({{ site.baseurl }}/assets/images/2024/07/anatomyPerceptron.png){:.light width="600"}
-![png]({{ site.baseurl }}/assets/images/2024/07/anatomyPerceptron_dark.png){:.dark width="600"}
+![Diagram of a perceptron as a neuron: inputs x0 through x3 (with x0=1) each multiplied by a weight w0-w3, summed together, passed through the sgn() activation function, and producing a single output]({{ site.baseurl }}/assets/images/2024/07/anatomyPerceptron.png){:.light width="600"}
+![Diagram of a perceptron as a neuron: inputs x0 through x3 (with x0=1) each multiplied by a weight w0-w3, summed together, passed through the sgn() activation function, and producing a single output]({{ site.baseurl }}/assets/images/2024/07/anatomyPerceptron_dark.png){:.dark width="600"}
 <figcaption>Different parts of a perceptron</figcaption>
 
 
@@ -254,8 +254,8 @@ These different activation functions can allow prediction to not just be a discr
 
 **Multi-layered perceptrons** are sets of perceptrons linked together to form more complex models.  These perceptrons have non-linear activation functions, allowing the model to be able to handle data that are **not linearly separable**.
 
-![png]({{ site.baseurl }}/assets/images/2024/07/mlp.png){:.light width="600"}
-![png]({{ site.baseurl }}/assets/images/2024/07/mlp_dark.png){:.dark width="600"}
+![Diagram of a fully-connected feed-forward neural network with a 10-node input layer, two hidden layers of 9 and 8 nodes, and a single-node output layer, all layers connected by dense lines]({{ site.baseurl }}/assets/images/2024/07/mlp.png){:.light width="600"}
+![Diagram of a fully-connected feed-forward neural network with a 10-node input layer, two hidden layers of 9 and 8 nodes, and a single-node output layer, all layers connected by dense lines]({{ site.baseurl }}/assets/images/2024/07/mlp_dark.png){:.dark width="600"}
 <figcaption>Generated from <a href="http://alexlenail.me/NN-SVG/index.html">http://alexlenail.me/NN-SVG/index.html</a></figcaption>
 
 
@@ -311,8 +311,8 @@ plt.show()
 
 
     
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_4_0.png){:.light}
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_4_0.png){:.dark}
+![Scatter plot of two linearly separable clusters of points, red on the left and blue on the right, before any rotation is applied]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_4_0.png){:.light}
+![Scatter plot of two linearly separable clusters of points, red on the left and blue on the right, before any rotation is applied]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_4_0.png){:.dark}
     
 
 
@@ -351,8 +351,8 @@ plt.show()
 
 
     
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_6_0.png){:.light}
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_6_0.png){:.dark}
+![Scatter plot of the same two clusters after a random rotation: red and blue points now form diagonal bands instead of separating vertically]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_6_0.png){:.light}
+![Scatter plot of the same two clusters after a random rotation: red and blue points now form diagonal bands instead of separating vertically]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_6_0.png){:.dark}
     
 
 
@@ -431,8 +431,8 @@ plt.show()
 
 
     
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_16_0.png){:.light}
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_16_0.png){:.dark}
+![Scatter plot of red and blue points with a steep downward-sloping line from the random initial weights, missing the boundary between the two clusters]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_16_0.png){:.light}
+![Scatter plot of red and blue points with a steep downward-sloping line from the random initial weights, missing the boundary between the two clusters]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_16_0.png){:.dark}
     
 
 
@@ -481,8 +481,8 @@ plt.show()
 
 
     
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_19_0.png){:.light}
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_19_0.png){:.dark}
+![Scatter plot of red and blue points with the trained perceptron's final line now correctly separating the blue cluster above from the red cluster below]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_19_0.png){:.light}
+![Scatter plot of red and blue points with the trained perceptron's final line now correctly separating the blue cluster above from the red cluster below]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_19_0.png){:.dark}
     
 
 
@@ -520,8 +520,8 @@ plt.show()
 
 
     
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_23_0.png){:.light}
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_23_0.png){:.dark}
+![Scatter plot titled "Test data" showing the trained line correctly separating solid red/blue test points, with translucent red/blue training points shown for reference]({{ site.baseurl }}/assets/images/perceptronVis_files/perceptronVis_23_0.png){:.light}
+![Scatter plot titled "Test data" showing the trained line correctly separating solid red/blue test points, with translucent red/blue training points shown for reference]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/perceptronVis_23_0.png){:.dark}
     
 
 
@@ -642,5 +642,5 @@ with contextlib.ExitStack() as stack:
 
 **Results are in the 'animations' folder in the same directory as this notebook.  'out.gif' is the animation of the perceptron learning**
 
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files/out.gif){:.light}
-![png]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/out.gif){:.dark}
+![Animated GIF of the perceptron's separating line adjusting frame by frame as it trains on the red and blue data points]({{ site.baseurl }}/assets/images/perceptronVis_files/out.gif){:.light}
+![Animated GIF of the perceptron's separating line adjusting frame by frame as it trains on the red and blue data points]({{ site.baseurl }}/assets/images/perceptronVis_files_dark/out.gif){:.dark}
