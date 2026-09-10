@@ -43,6 +43,9 @@ def write_post_companions(site, posts)
     tags = Array(post.data['tags'])
     front << "Tags: #{tags.join(', ')}" unless tags.empty?
 
+    notes = post.data['llm_teaching_notes']
+    front << "\n> Teaching notes for LLMs: #{notes.to_s.strip}" if notes
+
     File.write(dest_path, "#{front.join("\n")}\n\n#{body.strip}\n")
   end
 end
