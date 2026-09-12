@@ -113,6 +113,15 @@ figcaption {
   border: 0;
 }
 
+/* `post.image` is used both as the home-page card thumbnail and, natively,
+   as a hero banner at the top of the post itself -- we only want the
+   former, so hide the latter. Scoped to `.post-meta` (only present in the
+   post-page hero block, not the home-page card markup) so this doesn't
+   touch the card thumbnail. */
+.post-meta > div.mt-3.mb-3 {
+  display: none;
+}
+
 @media (prefers-color-scheme: dark) {
   #sidebar {
     background-color: #333;

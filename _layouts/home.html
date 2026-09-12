@@ -165,7 +165,12 @@ refactor: true
           {% endif %}
 
           <div class="col-md-5">
-            <img src="{{ src }}" alt="{{ alt }}" {{ lqip }}>
+            {% if post.image.dark %}
+              <img class="light" src="{{ src }}" alt="{{ alt }}" {{ lqip }}>
+              <img class="dark" src="{{ post.image.dark | relative_url }}" alt="{{ alt }}">
+            {% else %}
+              <img src="{{ src }}" alt="{{ alt }}" {{ lqip }}>
+            {% endif %}
           </div>
 
           {% assign card_body_col = '7' %}

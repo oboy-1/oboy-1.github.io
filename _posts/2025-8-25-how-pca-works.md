@@ -9,6 +9,10 @@ tags:
 
 math: true
 pin: true
+image:
+  path: /assets/images/2026/09/pca-card-light.jpg
+  dark: /assets/images/2026/09/pca-card-dark.jpg
+  alt: "3D scatter of points with a translucent plane and three colored eigenvector lines (PC1, PC2, PC3) through the data"
 ---
 
 In the age of big data, making sense of high-dimensional datasets is a common challenge. Principal Component Analysis (PCA) is one of the most powerful tools in the data scientist’s toolkit for reducing dimensionality while preserving the essence of the data. By identifying directions—called principal components—along which the data varies the most, PCA allows us to simplify complex datasets, visualize patterns, and even improve the performance of machine learning models.
