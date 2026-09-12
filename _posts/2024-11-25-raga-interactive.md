@@ -8,6 +8,10 @@ tags:
     - Ragas
 
 math: true
+image:
+  path: /assets/images/2026/09/raga-card-light.jpg
+  dark: /assets/images/2026/09/raga-card-dark.jpg
+  alt: "Melakarta raga wheel showing all 72 melakarta ragas arranged by chakra and swara"
 ---
 
 In Carnatic (and in Hindustani, though this blog post will focus on Carnatic) music, there is the concept of **raga**.  At face value, a raga is just a scale or a collection of notes.  Think of it as a subset of 16 possible notes:

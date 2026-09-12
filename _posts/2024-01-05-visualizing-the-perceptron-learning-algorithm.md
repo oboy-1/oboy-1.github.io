@@ -15,6 +15,10 @@ tags:
     - 'Programming'
 math: true
 pin: true
+image:
+  path: /assets/images/2026/09/perceptron-card-light.jpg
+  dark: /assets/images/2026/09/perceptron-card-dark.jpg
+  alt: "Diagram of a perceptron: four inputs feeding into a summing node, followed by an activation function and output"
 ---
 
 ### Introduction

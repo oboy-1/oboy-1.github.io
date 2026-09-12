@@ -6,6 +6,10 @@ categories:
 mermaid: true
 math: true
 pin: true
+image:
+  path: /assets/images/2026/09/protein-post-card-light.jpg
+  dark: /assets/images/2026/09/protein-post-card-dark.jpg
+  alt: "3D ribbon structure of hemoglobin (PDB 4HHB): two alpha chains in blue, two beta chains in green, four orange heme groups"
 ---
 
 Proteins fold, function, and evolve according to rules written into their amino acid sequence — and it turns out transformers are shockingly good at learning those rules. This post walks through how models like ESM, AlphaFold, and RFdiffusion actually work, from first principles up to the real architectures.
