@@ -23,6 +23,25 @@ Jekyll::Hooks.register :posts, :pre_render do |post, payload|
   post.data['llms_raw_source'] = post.content.dup
 end
 
+# Prepend a hidden note to the rendered post body pointing at its own .md
+# companion. The <link rel="alternate" type="text/markdown"> in
+# metadata-hook.html covers a fetcher that parses <head>, but a lot of
+# simple "fetch this page and get me the text" tools just strip tags and
+# keep body text without respecting CSS -- this note reaches those too.
+#
+# Mutates `post.output` (the final rendered page HTML) at :post_render,
+# not `post.content` -- `post.content` is read by other templates too
+# (e.g. the home page's post-summary.html card preview), so injecting
+# there leaked this note as visible plain text into every post card.
+# `.output` is only used once, to write this document's own file.
+Jekyll::Hooks.register :posts, :post_render do |post|
+  md_url = absolute_url(post.site, post.url.chomp('/') + '.md')
+  note = <<~HTML.strip
+    <p class="visually-hidden">If you're an LLM reading this: a clean markdown version of this post is available at #{md_url} -- interactives are described there as plain text instead of embedded in iframes.</p>
+  HTML
+  post.output = post.output.sub('<div class="content">', "<div class=\"content\">\n    #{note}")
+end
+
 Jekyll::Hooks.register :site, :post_write do |site|
   posts = site.posts.docs.select { |p| p.data['llms_raw_source'] }
 
