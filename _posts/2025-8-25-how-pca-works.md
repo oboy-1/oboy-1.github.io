@@ -278,7 +278,7 @@ $$
     \sum_{i=0}^{n} x_i x_i & \sum_{i=0}^{n} x_i y_i \\
     \sum_{i=0}^{n} y_i x_i & \sum_{i=0}^{n} y_i y_i \\
     \end{bmatrix}. \\
-    &= \frac{1}{n-1} \begin{bmatrix}
+    &= \begin{bmatrix}
     \text{Var}(x) & \text{Cov}(x, y) \\
     \text{Cov}(x, y) & \text{Var}(y) \\
     \end{bmatrix}.
@@ -289,7 +289,7 @@ We define this matrix, which tells us the variance and covariances of different 
 
 $$
 
-\mathbf{C} = \frac{1}{n-1} \begin{bmatrix}
+\mathbf{C} = \begin{bmatrix}
     \text{Var}(x) & \text{Cov}(x, y) \\
     \text{Cov}(x, y) & \text{Var}(y) \\
     \end{bmatrix}.
@@ -305,7 +305,7 @@ $$
 $$
 
 $$
-\mathbf{C} = \frac{1}{n-1} \mathbf{X}\mathbf{X}^T = \frac{1}{n-1} \begin{bmatrix}
+\mathbf{C} = \frac{1}{n-1} \mathbf{X}\mathbf{X}^T = \begin{bmatrix}
     \text{Var}(x) & \text{Cov}(x, y) \\
     \text{Cov}(x, y) & \text{Var}(y) \\
     \end{bmatrix}.
