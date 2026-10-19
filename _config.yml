@@ -236,6 +236,7 @@ exclude:
   - "*.config.js"
   - package*.json
   - _temp
+  - scripts # build and precompute scripts, not part of the site
 
 jekyll-archives:
   enabled: [categories, tags]

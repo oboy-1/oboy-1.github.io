@@ -25,3 +25,6 @@ _sass/dist
 assets/js/dist
 *.DS_Store
 tools/
+
+# Local Claude Code settings
+.claude/

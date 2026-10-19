@@ -10,7 +10,7 @@ Usage:
     python3 precompute_nlp.py
 
 Output:
-    nlp_scores.json — place in same folder as mutation-explorer.html
+    nlp_scores.json — copy it to assets/files/protein/, next to mutation_explorer.html
 """
 
 import json, math, torch
