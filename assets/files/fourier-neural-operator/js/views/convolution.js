@@ -220,7 +220,7 @@ function buildConvWave() {
       vD.textContent = Math.abs(shift) < 0.005 ? "no shift" : `a shift of ${fmt(Math.abs(shift), 2)} points to the ${shift > 0 ? "right" : "left"}`;
       p.check = { y, R, PHI, k, shift };
       proof.hidden = st.part !== 4;
-      if (st.part === 4) drawOut(cv, { y, R, k, PHI, shift });
+      if (st.part === 4) drawOut(cv, { y, R, k, PHI, shift, taps, name: KERNELS[st.kernel].label });
       else drawWave(cv, { x, y, taps, R, k, PHI, stage: st.part, n: st.n, seen: st.seen, pos: sw.pos, done: sw.done() });
     },
   };
@@ -307,13 +307,30 @@ function drawWave(cv, { x, y, taps, R, k, PHI, stage, n, seen, pos, done }) {
   }
 }
 
-/** The result, on its own: the sine wave going in, the sine wave coming out, and how they differ. */
-function drawOut(cv, { y, R, k, PHI, shift }) {
-  const f = fit(cv, cv.clientWidth < 560 ? 340 : 320);
+/** The result, on its own: the kernel, the sine wave going in, the sine wave coming out, and how they differ. */
+function drawOut(cv, { y, R, k, PHI, shift, taps, name }) {
+  const kTop = cv.clientWidth < 560 ? 72 : 56, kH = 96;
+  const f = fit(cv, (cv.clientWidth < 560 ? 340 : 320) + kH + 8);
   if (!f) return;
   const { ctx, w, h } = f, T = tokens();
-  const L = 20, Rt = w - 20, top = w < 560 ? 78 : 58, bot = h - 34;
-  const X = (t) => L + (t / (N - 1)) * (Rt - L);
+  const L = 20, Rt = w - 20, top = kTop + kH + 30, bot = h - 34;
+  const X = (t) => L + (t / (N - 1)) * (Rt - L), dx = (Rt - L) / (N - 1);
+
+  // the kernel, at the same point spacing as the waves below, so its width reads against one wavelength.
+  // κ(u) reads the sample u points back, so positive u is drawn to the left of the output point.
+  const kl = Math.max(...taps.map(([, wt]) => Math.abs(wt))), neg = taps.some(([, wt]) => wt < 0);
+  const kBase = neg ? kTop + 18 + (kH - 18) / 2 : kTop + kH - 4, kAmp = neg ? (kH - 18) / 2 - 6 : kH - 30;
+  const c0 = (N - 1) / 2, Kx = (u) => X(c0 - u), Ky = (wt) => kBase - (wt / kl) * kAmp;
+  label(ctx, cv.clientWidth < 560 ? `kernel: ${name}` : `kernel: ${name}, centred on the dashed line (the output point)`, L, kTop + 4, T.ink, "left", 11);
+  ctx.strokeStyle = T.rule; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, kBase); ctx.lineTo(Rt, kBase); ctx.stroke();
+  ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(X(c0), kBase - kAmp - 4); ctx.lineTo(X(c0), kBase + (neg ? kAmp + 4 : 4)); ctx.stroke(); ctx.setLineDash([]);
+  for (const [u, wt] of taps) {
+    ctx.strokeStyle = T.sp; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(Kx(u), kBase); ctx.lineTo(Kx(u), Ky(wt)); ctx.stroke();
+    dot(ctx, Kx(u), Ky(wt), 3.2, T.sp);
+    if (dx >= 22 && wt !== 0) label(ctx, n2(wt), Kx(u), wt >= 0 ? Ky(wt) - 7 : Ky(wt) + 14, T.sp, "center", 10);
+  }
+
   const lim = Math.max(1, R.mag) * 1.08, Y = (v) => (top + bot) / 2 - (v / lim) * ((bot - top) / 2);
   const wave = (a, ph, color, lw) => {
     ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.beginPath();
@@ -348,7 +365,7 @@ function drawOut(cv, { y, R, k, PHI, shift }) {
     ctx.beginPath(); ctx.moveTo(a, ya); ctx.lineTo(b, ya); ctx.lineTo(b - dir * 6, ya - 4); ctx.moveTo(b, ya); ctx.lineTo(b - dir * 6, ya + 4); ctx.stroke();
     label(ctx, `moved ${fmt(Math.abs(shift), 2)} points`, (a + b) / 2, ya - 7, T.sp, "center", 11);
   }
-  label(ctx, w < 560 ? "dots: the convolution's output, all on the orange wave" : `dots: the convolution's output at each of the ${N} points, all on the orange wave`, L, h - 8, T.ink3, "left", 10.5);
+  label(ctx, w < 560 ? "dots: the output, all on the orange wave" : `dots: the convolution's output at each of the ${N} points, all on the orange wave`, L, h - 8, T.ink3, "left", 10.5);
 }
 
 // ---------- convsum … convadd: any signal is a sum of waves, so change each wave ----------
