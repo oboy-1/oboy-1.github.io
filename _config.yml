@@ -237,6 +237,7 @@ exclude:
   - package*.json
   - _temp
   - scripts # build and precompute scripts, not part of the site
+  - assets/files/fourier-neural-operator/README.md
 
 jekyll-archives:
   enabled: [categories, tags]

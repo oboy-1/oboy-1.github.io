@@ -26,5 +26,8 @@ assets/js/dist
 *.DS_Store
 tools/
 
+# The FNO explainer ships its own vendored JS libraries
+!/assets/files/fourier-neural-operator/vendor/
+
 # Local Claude Code settings
 .claude/
