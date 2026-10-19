@@ -42,7 +42,7 @@ Proteins are sequences of amino acids, and every protein in living things is sim
 
 Essentially, we could just swap **words → amino acids**!
 
-Below are two sequences: an English sentence and the first 15 residues of ubiquitin, one of the most studied proteins in biology. Click any token to see what a language model (BERT) and a protein language model (ESM) think about swapping it out.
+Below are two sequences: an English sentence and the first 15 residues of ubiquitin, one of the most studied proteins in biology. Click any token to see what a language model (BERT) and a protein language model (ESM C 300M) think about swapping it out.
 
 {% include interactive.html
   id="mutation-frame-1"
@@ -50,7 +50,7 @@ Below are two sequences: an English sentence and the first 15 residues of ubiqui
   title="Mutation Explorer"
   height=600
   autoresize=true
-  alt="Click any token in an English sentence or the first 15 residues of ubiquitin to see what BERT and ESM predict as substitutes." %}
+  alt="Click any token in an English sentence or the first 15 residues of ubiquitin to see what BERT and ESM C 300M predict as substitutes." %}
 
 Both models actually show a similar pattern here. Some positions are flexible, some substitutions make the sentence (or amino acid sequence) still work. Some are locked — replacing the word destroys the grammar of the sentence (analogously, the structure of the protein).
 
@@ -160,7 +160,7 @@ flowchart LR
 
 Now a much simpler problem is the **representation problem**.  Before we even try to predict structure, we want to be able to represent amino acid sequences in a rich manner (embeddings).  Just like we have models like BERT for natural language, the protein domain has the same basic requirement: representing these amino acid sequences in a meaningful way that encodes important information about them.  Then we can use this model for downstream tasks, such as folding or function prediction, so they don't have to deal with understanding *what a sequence here means* and instead focus on *what to do with it*.
 
-See below for an animation of how ESM-2 generates embeddings.
+See below for an illustration of how ESM-2 turns a sequence into embeddings — the vectors shown are illustrative, not real ESM-2 activations.
 
 {% include interactive.html
   id="embedding-frame"
@@ -168,7 +168,7 @@ See below for an animation of how ESM-2 generates embeddings.
   title="PLM Embedding Explorer"
   height=400
   autoresize=true
-  alt="An animation of how ESM-2 generates embeddings for a sequence." %}
+  alt="An illustration of how ESM-2 turns a sequence into embeddings for a sequence, using illustrative (not real) vector values." %}
 
 Just like BERT, each vector isn't just "what amino acid is this" — it captures context. The three T residues at positions 7, 9, and 12 all get different vectors, even though they're the same character. Same token, different neighbors, different embedding.
 

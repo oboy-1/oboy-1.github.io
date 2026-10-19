@@ -45,6 +45,7 @@
   .noise-bar-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
   .noise-bar-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
   .noise-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 250ms linear; }
+  .disclosure { font-size: 10.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -68,6 +69,8 @@
   <button class="act" id="playBtn">▶ Play</button>
   <span class="status" id="status">step 0 / 16</span>
 </div>
+
+<div class="disclosure">This is a scripted interpolation from noise to the real ubiquitin helix, not a real RFdiffusion model run — it's meant to illustrate what motif-conditioned denoising looks like geometrically, not to reproduce actual RFdiffusion output.</div>
 
 <script>
 // real Cα positions, residues 20-36 of 1UBQ — the actual α-helix (23-34) plus flanking context

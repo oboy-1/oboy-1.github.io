@@ -321,7 +321,7 @@
 
     <!-- Protein panel -->
     <div class="panel">
-      <div class="panel-label">Protein — ESM (Ubiquitin 1–15)</div>
+      <div class="panel-label">Protein — ESM C 300M (Ubiquitin 1–15)</div>
       <div class="token-row" id="prot-tokens"></div>
       <div class="result-area" id="prot-result">
         <div class="result-prompt">← click a residue</div>
@@ -367,7 +367,7 @@ const AA_ORDER = "ACDEFGHIKLMNPQRSTVWY".split('');
 // Both sides use real log-probs. Bar width normalised per-position.
 // delta = candidate_score - wildtype_score (always ≤ 0 for non-wt if model is confident)
 // NLP thresholds (BERT, ~6 candidates):  tolerated > -3.68, disruptive < -6.81
-// Protein thresholds (ESM, 20 AAs):      tolerated > -8.50, disruptive < -10.22
+// Protein thresholds (ESM C 300M, 20 AAs): tolerated > -8.50, disruptive < -10.22
 function renderBars(container, items, wtKey, thresholds, footnote) {
   // items: [{ label, score, color? }]
   const wtScore = items.find(x => x.label === wtKey)?.score ?? 0;
@@ -474,7 +474,7 @@ fetch('mutation_scores.json')
         protResult.innerHTML = posDisplay;
         const barsDiv = document.createElement('div');
         protResult.appendChild(barsDiv);
-        renderBars(barsDiv, items, aa, PROT_THRESHOLDS, 'ESM log-probabilities · colored by chemical class');
+        renderBars(barsDiv, items, aa, PROT_THRESHOLDS, 'ESM C 300M log-probabilities · colored by chemical class');
       });
       protRow.appendChild(t);
     });
