@@ -84,8 +84,8 @@ const HALF = N / 2;
 const KERNELS = {
   blur: { label: "blur", taps: [[-2, 1 / 16], [-1, 4 / 16], [0, 6 / 16], [1, 4 / 16], [2, 1 / 16]],
     about: "Five weights that add up to 1. The middle sample counts most and its neighbours less, so each output is an average of a sample and the ones around it." },
-  edge: { label: "edge", taps: [[-1, -1], [0, 0], [1, 1]],
-    about: "Weights −1 and +1 on either side of the middle. Each output is the sample on one side minus the sample on the other, so it is large where the signal changes fast." },
+  edge: { label: "edge", taps: [[-1, 1], [0, 0], [1, -1]],
+    about: "Weights −1 and +1 on either side of the middle. Each output is the sample ahead minus the sample behind, so it is large where the signal changes fast: positive going up, negative going down." },
   shift: { label: "shift by 3", taps: [[3, 1]],
     about: "A single weight of 1, three samples back. Each output just copies the input from three samples earlier." },
   lopsided: { label: "lopsided blur", taps: [[0, 0.5], [1, 0.3], [2, 0.15], [3, 0.05]],
@@ -229,7 +229,7 @@ function buildConvWave() {
 
 function drawWave(cv, { x, y, taps, R, k, PHI, stage, n, seen, pos, done }) {
   const mid3 = stage === 1 || stage === 2 || (stage === 3 && !done);
-  const rows = [["input", 96], ...(mid3 ? [["kernel", 78]] : []), ...(mid3 && stage >= 2 ? [["products", 78]] : []), ...(stage >= 2 ? [["output", 110]] : [])];
+  const rows = [["input", 96], ...(mid3 ? [["kernel", 78]] : []), ...(mid3 && stage >= 2 ? [["products", 78]] : []), ...(stage >= 2 ? [["output", 110]] : []), ...(stage === 1 ? [["block", 110]] : [])];
   const f = fit(cv, rows.reduce((a, [, h]) => a + h + 22, 6));
   if (!f) return;
   const { ctx, w } = f, T = tokens();
@@ -270,6 +270,20 @@ function drawWave(cv, { x, y, taps, R, k, PHI, stage, n, seen, pos, done }) {
         if (dx >= 26) label(ctx, n2(wt), X(cols[i]), wt >= 0 ? Yk(wt) - 7 : Yk(wt) + 15, T.sp, "center", 10);
       });
     }
+  }
+
+  // the same kernel on a block with sharp sides, where the names make sense: blur rounds the corners,
+  // edge spikes at the two jumps, shift moves the block, lopsided blur smears only one side
+  if (top.block) {
+    const xb = Float64Array.from({ length: N }, (_, i) => (i >= 10 && i <= 21 ? 1 : 0)), yb = convolve(xb, taps);
+    const Yb = scaleY("block", 1.15);
+    head("block", w < 560 ? "on a block: grey in, orange out" : "the same kernel on a block (grey), and what comes out (orange)");
+    axis("block");
+    ctx.strokeStyle = T.ink3; ctx.lineWidth = 1.6; ctx.beginPath();
+    for (let i = 0; i < N; i++) { const a = X(i) - dx / 2, b = X(i) + dx / 2; i ? ctx.lineTo(a, Yb(xb[i])) : ctx.moveTo(a, Yb(xb[i])); ctx.lineTo(b, Yb(xb[i])); }
+    ctx.stroke();
+    ctx.strokeStyle = T.sp; ctx.lineWidth = 2; plotLine(ctx, yb, X, Yb);
+    for (let i = 0; i < N; i++) dot(ctx, X(i), Yb(yb[i]), 2.6, T.sp);
   }
 
   if (top.products) {

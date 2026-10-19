@@ -193,7 +193,7 @@ export const STEPS = [
       return [
         el("p", {}, "Let's see this in action. For starters, what is a kernel?"),
         el("p", {}, "A kernel is just a short list of weights. You slide it along the signal, and at every spot it looks at a few neighbouring samples, multiplies each one by its weight, and adds them up. Different weights do different things: a blur kernel averages a point with its neighbours, and an edge kernel picks out where the signal changes fast."),
-        el("p", {}, "For our input, we'll use a single wave measured at 32 points. On the right, the kernel sits under it, with one weight lined up under each sample it reads."),
+        el("p", {}, "For our input, we'll use a single wave measured at 32 points. On the right, the kernel sits under it, with one weight lined up under each sample it reads. At the bottom, the same kernel runs over a block with sharp sides, so you can see where each name comes from: blur rounds off the corners, edge lights up only at the two jumps, and shift just moves the block over."),
       ];
     },
   },
