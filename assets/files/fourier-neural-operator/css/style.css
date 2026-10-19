@@ -915,9 +915,12 @@ table.mini tr.on td { color: var(--ink); font-weight: 600; }
 .hero-flow { margin: 4px 0 0; position: relative; height: 138px; border-radius: 12px; overflow: hidden; background: var(--panel); box-shadow: 0 0 0 1px var(--rule); }
 .hero-flow canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .hero-flow figcaption { position: absolute; left: 10px; bottom: 9px; z-index: 2; font: 600 11.5px/1 var(--font-sans); color: var(--ink-2); padding: 5px 9px; border-radius: 999px; background: color-mix(in srgb, var(--ground) 78%, transparent); box-shadow: 0 0 0 1px var(--rule); }
-.hero-3d { display: grid; }
-.hero-3d .arch3d, .arch3d[data-size="hero"] { height: 100%; min-height: 380px; }
-@media (max-width: 900px) { .hero-3d .arch3d, .arch3d[data-size="hero"] { height: 300px; min-height: 0; } }
+/* The scene is taken out of flow so its size never depends on its own canvas.
+   Safari otherwise grows the hero a little on every resize, forever. */
+.hero-3d { position: relative; min-height: 380px; }
+.hero-3d .arch3d, .arch3d[data-size="hero"] { position: absolute; inset: 0; height: auto; min-height: 0; margin: 0; transition: none; }
+.hero-3d .arch3d canvas { position: absolute; inset: 0; }
+@media (max-width: 900px) { .hero-3d { min-height: 300px; } }
 
 /* ---------- convolution slides 9–19 (js/views/convolution.js) ---------- */
 /* shared controls */
