@@ -87,7 +87,7 @@ export const STEPS = [
     state: { dataset: "ns", view: "waves", flowMode: "plain", layer: 2, node: null, focus: null, draw: false },
     prose(app) {
       return [
-        el("p", {}, "The way we do this is with something called the Fourier transform. If you haven't seen it before, start here: [resource: link to add]."),
+        el("p", {}, "The way we do this is with something called the Fourier transform. If you haven't seen it before, start here: ", el("a", { href: "https://www.youtube.com/watch?v=spUNpyF58BY", target: "_blank", rel: "noopener" }, "3Blue1Brown's visual introduction to the Fourier transform"), "."),
         el("p", {}, "Say we have an image, the picture of our forcing. Normally we express it as pixels, where each pixel value contributes one small portion of the image. Instead, what if we express the image as a sum of waves that span the entire image?"),
         el("p", {}, "Some of those waves are fast (high frequency) and some are slow (low frequency). Each one spans the whole image, so together they build up broad brush strokes of how the image looks: the slow ones lay down the broad shape, and the fast ones fill in finer detail. Given enough of them, we can adequately represent the original image."),
         el("p", {}, "Now, none of these waves have anything to do with how big the image is. To describe a single wave, all I need is its frequency, its phase and its amplitude. So I can express an image without going pixel by pixel and without depending on its dimensions, using a set of waves with certain frequencies, phases and amplitudes."),
@@ -375,7 +375,7 @@ export const STEPS = [
   },
   {
     id: "widget",
-    eyebrow: "Draft · The same cut, in one dimension",
+    eyebrow: "The same cut, in one dimension",
     title: "Keeping most of the energy can still lose the shape",
     state: { dataset: "ns", view: "layer", layer: 2, focus: "widget", node: null, draw: false },
     prose() {
@@ -413,7 +413,7 @@ export const STEPS = [
   },
   {
     id: "paths",
-    eyebrow: "Draft · The two paths, measured",
+    eyebrow: "The two paths, measured",
     title: "The spectral path carries almost none of the sharp detail",
     state: { dataset: "darcy", view: "layer", layer: 2, focus: "paths", node: null, draw: false },
     prose(app) {
@@ -434,7 +434,7 @@ export const STEPS = [
   },
   {
     id: "block",
-    eyebrow: "Draft · The rest of the layer",
+    eyebrow: "The rest of the layer",
     title: "The rest of the layer",
     state: { dataset: "darcy", view: "block", focus: null, node: null, draw: false },
     prose(app) {
@@ -452,7 +452,7 @@ export const STEPS = [
   },
   {
     id: "flow",
-    eyebrow: "Draft · Stacking four layers",
+    eyebrow: "Stacking four layers",
     title: "Stacking four layers: where the answer appears",
     state: { dataset: "darcy", view: "flow", flowMode: "counts", layer: 2, node: null, focus: null, draw: false },
     prose(app) {
@@ -476,7 +476,7 @@ export const STEPS = [
   },
   {
     id: "project",
-    eyebrow: "Draft · Projection",
+    eyebrow: "Projection",
     title: "Projection: 32 channels back to one",
     state: { dataset: "darcy", view: "flow", flowMode: "plain", layer: 2, node: null, focus: null, draw: false },
     prose() {
@@ -487,7 +487,7 @@ export const STEPS = [
   },
   {
     id: "resolution",
-    eyebrow: "Draft · Resolution, checked",
+    eyebrow: "Resolution, checked",
     title: "The same weights run on grids they never saw",
     state: { dataset: "ns", view: "resolution", focus: null, node: null, draw: false },
     prose(app) {
@@ -507,7 +507,7 @@ export const STEPS = [
   },
   {
     id: "stillfails",
-    eyebrow: "Draft · Where it still fails",
+    eyebrow: "Where it still fails",
     title: "Where the fluid still goes wrong",
     state: { dataset: "ns", view: "stillfails", focus: null, node: null, draw: false },
     prose(app) {
@@ -524,7 +524,7 @@ export const STEPS = [
   },
   {
     id: "draw",
-    eyebrow: "Draft · Your turn",
+    eyebrow: "Your turn",
     title: "Paint a forcing the model has never seen",
     state: { dataset: "ns", view: "flow", flowMode: "plain", focus: null, node: null, draw: true },
     prose(app) {
@@ -539,7 +539,7 @@ export const STEPS = [
   },
   {
     id: "limits",
-    eyebrow: "Draft · Where it breaks",
+    eyebrow: "Where it breaks",
     title: "What this does not show",
     state: { dataset: "ns", view: "limits", flowMode: "plain", layer: 2, node: null, focus: null, draw: false },
     prose(app) {

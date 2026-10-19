@@ -516,10 +516,14 @@ table.mini tr.on td { color: var(--ink); font-weight: 600; }
   margin: 0 0 18px; padding: 12px 2px 11px; background: var(--ground); border-bottom: 1px solid var(--rule);
 }
 .progress-now { font-size: 11px; color: var(--ink-3); }
-.dots { display: flex; flex: 1; justify-content: space-between; gap: 0; min-width: 0; }
-.dot { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 1px solid var(--rule-strong); background: transparent; cursor: pointer; transition: background-color 200ms, border-color 200ms, transform 200ms; }
-.dot:hover { border-color: var(--ink-2); }
-.dot[aria-current="true"] { background: var(--brand); border-color: var(--brand); transform: scale(1.25); }
+/* One thin vertical tick per slide. The button is wider than its tick so it stays easy to click;
+   slides already passed are darker, and the current one is a taller orange tick. */
+.dots { display: flex; flex: 1; justify-content: space-between; align-items: center; gap: 0; min-width: 0; height: 20px; }
+.dot { position: relative; flex: 1 1 0; max-width: 14px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer; }
+.dot::before { content: ""; position: absolute; left: 50%; top: 50%; width: 2px; height: 10px; border-radius: 1px; background: var(--rule-strong); transform: translate(-50%, -50%); transition: height 200ms, background-color 200ms; }
+.dot:has(~ .dot[aria-current="true"])::before { background: var(--ink-3); }
+.dot:hover::before { background: var(--ink-2); height: 14px; }
+.dot[aria-current="true"]::before { background: var(--brand); width: 3px; height: 18px; }
 
 /* ---------- appendix: released after the last step ---------- */
 .appendix { max-width: 68ch; margin: 0 auto; padding-block: 48px 96px; display: grid; gap: 12px; }
@@ -589,9 +593,8 @@ table.mini tr.on td { color: var(--ink); font-weight: 600; }
   .paths-row .ftile.big .tile, .paths-row .ftile .tile { width: min(150px, 38vw); height: min(150px, 38vw); }
   .flow { grid-auto-flow: column; min-width: max-content; --tile: 40px; }
   /* The rail joins the pinned control bar; the article keeps its full width. */
-  .progress { position: static; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; width: auto; }
-  .dots { flex: none; gap: 6px; justify-content: flex-start; }
-  .dot { width: 8px; height: 8px; }
+  .progress { position: static; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; width: auto; flex-basis: 100%; }
+  .dots { flex: 1; }
   /* Channel picking is optional depth, and on a phone it costs the whole panel. */
   .chpick-wrap { display: none; }
   .viz { max-height: 62vh; }
