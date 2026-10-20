@@ -384,8 +384,14 @@ function pathsStage(viz, app) {
   const lc = splitAtCutoff(F.local, res, m);
   const hiMax = Math.max(maxAbs(sp.high), maxAbs(lc.high)) || 1;
 
+  const sS = spatialStd(F.spectral), sL = spatialStd(F.local);
+  const bigger = sS >= sL
+    ? `The spectral path is the bigger signal here: its values spread ${fmt(sS / sL, 1)}× as wide as the local path's (standard deviation ${fmt(sS, 2)} against ${fmt(sL, 2)}).`
+    : `In this channel the local path is actually the bigger signal (standard deviation ${fmt(sL, 2)} against ${fmt(sS, 2)}). Try a few other channels above.`;
   viz.append(...layerHeader(app));
   viz.append(el("div", { class: "paths-grid" },
+    el("h4", { class: "drill-sub" }, "1 · Both paths, side by side"),
+    el("p", { class: "lead-in" }, `Here's channel ${c} of layer ${l} coming out of each path, all on one colour scale. ${bigger}`),
     el("div", { class: "paths-row" },
       fieldTile(F.spectral, res, shared, { big: true, label: "Spectral path", sub: `std ${fmt(spatialStd(F.spectral), 2)}`, path: "spectral" }),
       fieldTile(F.local, res, shared, { big: true, label: "Local path", sub: `std ${fmt(spatialStd(F.local), 2)}`, path: "local" }),
@@ -393,10 +399,13 @@ function pathsStage(viz, app) {
       fieldTile(F.sum, res, shared, { big: true, label: "Sum", sub: "what the layer carries on" })),
     el("div", { class: "scale-note" }, el("span", { class: "grad", "aria-hidden": "true" }),
       el("span", {}, `All three on one colour scale: ±${fmt(shared, 2)}. Red positive, blue negative.`)),
-    el("h4", { class: "drill-sub" }, "The same two fields, keeping only what lies above the cutoff"),
+    el("h4", { class: "drill-sub" }, "2 · Only what's above the cutoff"),
+    el("p", { class: "lead-in" }, "Now strip both of them down to just the fast waves, everything above the cutoff. That's the sharp detail. The spectral tile comes out blank, because the cutoff already removed all of it. The local tile is what's left of the detail, and it sits along the edges of the rock."),
     el("div", { class: "paths-row" },
       fieldTile(sp.high, res, hiMax, { label: "Spectral, above cutoff", sub: "nothing to draw", path: "spectral" }),
       fieldTile(lc.high, res, hiMax, { label: "Local, above cutoff", sub: `shared scale ±${fmt(hiMax, 3)}`, path: "local" })),
+    el("h4", { class: "drill-sub" }, "3 · Measured over every channel"),
+    el("p", { class: "lead-in" }, `Those tiles are one channel. The bars below add up the energy above the cutoff over all 32 channels of layer ${l}, for each path.`),
     readout(app, l, stats)));
 }
 
