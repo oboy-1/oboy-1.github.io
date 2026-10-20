@@ -152,35 +152,51 @@ function buildConvWave() {
   // live numbers for the kernel being shown, so the algebra lands on the plot above it
   const vC = el("span", { class: "cv-live" }), vS = el("span", { class: "cv-live" });
   const vA = el("span", { class: "cv-live" }), vD = el("span", { class: "cv-live" });
-  const step = (n, title, ...body) => el("p", {}, el("strong", {}, `${n} · ${title}. `), ...body);
-  const proof = el("div", { class: "cv-proof" },
+  // Each step: a number on a thin timeline, its text and equations, and (for some) a small live diagram.
+  const minis = {};
+  const fig = (key, h, cap) => { const c = el("canvas", { class: "pf-cv", role: "img", "aria-label": cap }), read = el("div", { class: "pf-read mono" }); minis[key] = { cv: c, h, read }; return el("figure", { class: "pf-fig" }, c, read, el("figcaption", {}, cap)); };
+  const step = (n, title, body, figure = null) => el("li", { class: `pf-step${figure ? " has-fig" : ""}` },
+    el("span", { class: "pf-num", "aria-hidden": "true" }, String(n)),
+    el("div", { class: "pf-body" }, el("div", { class: "pf-text" }, el("h6", {}, ...[title].flat()), ...body), figure));
+  const proof = el("section", { class: "cv-proof" },
     el("h5", {}, "Why a sine wave always comes out"),
-    step(1, "The input", "Our input is one cosine wave. It repeats ", M(tex`k`), " times across the ", M(tex`N`), " points, so its frequency is ", M(tex`\omega = 2\pi k/N`), ". The angle ", M(tex`\varphi`), " says where it starts:"),
-    D(tex`x(n) = \cos(\omega n + \varphi)`),
-    step(2, "The kernel", "The kernel is a short list of weights. We'll call the weight that sits ", M(tex`u`), " points back from the output point ", M(tex`\kappa(u)`), ". The average kernel, for example, has ", M(tex`\kappa(0) = 0.375`), " on the point itself, ", M(tex`\kappa(\pm 1) = 0.25`), " one point to either side, and ", M(tex`\kappa(\pm 2) = 0.0625`), " two points out."),
-    step(3, "The convolution", "To get the output at point ", M(tex`n`), ", multiply each weight by the sample it sits on, then add everything up:"),
-    D(tex`y(n) = \sum_u \kappa(u)\, x(n-u)`),
-    step(4, "Plug in the wave", "The sample ", M(tex`u`), " points back is the same cosine, read at ", M(tex`n - u`), " instead of ", M(tex`n`), ". So its angle is just ", M(tex`\omega u`), " smaller:"),
-    D(tex`y(n) = \sum_u \kappa(u) \cos(\omega n + \varphi - \omega u)`),
-    step(5, "Split each cosine in two", "Inside that cosine, ", M(tex`\omega n + \varphi`), " depends only on ", M(tex`n`), ", and ", M(tex`\omega u`), " depends only on ", M(tex`u`), ". We want to pull those apart. The angle-difference rule does exactly that:"),
-    D(tex`\cos(a - b) = \cos a \cos b + \sin a \sin b`),
-    el("p", {}, "With ", M(tex`a = \omega n + \varphi`), " and ", M(tex`b = \omega u`), ", every term in the sum splits in two:"),
-    D(tex`\begin{aligned} y(n) = \sum_u \kappa(u)\big[&\cos(\omega n + \varphi)\cos\omega u \\ +\, &\sin(\omega n + \varphi)\sin\omega u\big] \end{aligned}`),
-    step(6, "Pull the n part out of the sum", M(tex`\cos(\omega n + \varphi)`), " and ", M(tex`\sin(\omega n + \varphi)`), " are the same in every term, so they move outside the sums:"),
-    D(tex`\begin{aligned} y(n) = \;&\cos(\omega n + \varphi)\sum_u \kappa(u)\cos\omega u \\ +\; &\sin(\omega n + \varphi)\sum_u \kappa(u)\sin\omega u \end{aligned}`),
-    el("p", {}, "What's left inside the two sums doesn't involve ", M(tex`n`), " at all. Each is just a number, set by the kernel's weights and the wave's frequency. Call them ", M(tex`C`), " and ", M(tex`S`), ":"),
-    D(tex`C = \sum_u \kappa(u)\cos\omega u`),
-    D(tex`S = \sum_u \kappa(u)\sin\omega u`),
-    D(tex`y(n) = C\cos(\omega n + \varphi) + S\sin(\omega n + \varphi)`),
-    el("p", {}, "For the kernel shown above, ", vC, " and ", vS, "."),
-    step(7, "Fold it back into one wave", "Treat ", M(tex`(C, S)`), " as a point and describe it by its distance ", M(tex`A`), " from the origin and its angle ", M(tex`\theta`), ":"),
-    D(tex`C = A\cos\theta, \qquad S = A\sin\theta`),
-    D(tex`A = \sqrt{C^2 + S^2}`),
-    el("p", {}, "Substitute those in, and the angle-difference rule from step 5, run backwards, turns the two terms into one:"),
-    D(tex`\begin{aligned} y(n) &= A\big[\cos\theta\cos(\omega n + \varphi) \\ &\qquad + \sin\theta\sin(\omega n + \varphi)\big] \\ &= A\cos(\omega n + \varphi - \theta) \end{aligned}`),
-    step(8, "What it means", "That's the input wave again, with the same frequency ", M(tex`\omega`), ". It's ", M(tex`A`), " times as tall and shifted along by ", M(tex`\theta/\omega`), " points. For the kernel shown above that's ", vA, " and ", vD, ", which is exactly the orange wave in the plot."),
-    el("p", { class: "note" }, "Sliding a wave along by one whole wavelength, ", M(tex`N/k`), " points, gives back the exact same wave. So a shift is only pinned down up to whole wavelengths, and the plot shows whichever one sits closest to the kernel's weights. That's why the shift-by-3 kernel reads as 3 points for every ", M(tex`k`), ", even where ", M(tex`\theta/\omega`), " itself comes out as a different number."),
-    );
+    el("p", { class: "pf-lead" }, "Eight short steps, using the kernel and the wave picked above."),
+    el("ol", { class: "pf-steps" },
+      step(1, "The input", [
+        el("p", {}, "Our input is one cosine wave. It repeats ", M(tex`k`), " times across the ", M(tex`N`), " points, so its frequency is ", M(tex`\omega = 2\pi k/N`), ". The angle ", M(tex`\varphi`), " says where it starts:"),
+        D(tex`x(n) = \cos(\omega n + \varphi)`)]),
+      step(2, "The kernel", [
+        el("p", {}, "The kernel is a short list of weights. We'll call the weight that sits ", M(tex`u`), " points back from the output point ", M(tex`\kappa(u)`), ". The average kernel, for example, has ", M(tex`\kappa(0) = 0.375`), " on the point itself, ", M(tex`\kappa(\pm 1) = 0.25`), " one point to either side, and ", M(tex`\kappa(\pm 2) = 0.0625`), " two points out.")]),
+      step(3, "The convolution", [
+        el("p", {}, "To get the output at point ", M(tex`n`), ", multiply each weight by the sample it sits on, then add everything up:"),
+        D(tex`y(n) = \sum_u \kappa(u)\, x(n-u)`)],
+        fig("conv", 170, "Top: the samples under the kernel. Middle: the weights. Bottom: each product, added up into y(n).")),
+      step(4, "Plug in the wave", [
+        el("p", {}, "The sample ", M(tex`u`), " points back is the same cosine, read at ", M(tex`n - u`), " instead of ", M(tex`n`), ". So its angle is just ", M(tex`\omega u`), " smaller:"),
+        D(tex`y(n) = \sum_u \kappa(u) \cos(\omega n + \varphi - \omega u)`)]),
+      step(5, "Split each cosine in two", [
+        el("p", {}, "Inside that cosine, ", M(tex`\omega n + \varphi`), " depends only on ", M(tex`n`), ", and ", M(tex`\omega u`), " depends only on ", M(tex`u`), ". The angle-difference rule pulls them apart:"),
+        D(tex`\cos(a - b) = \cos a \cos b + \sin a \sin b`),
+        el("p", {}, "With ", M(tex`a = \omega n + \varphi`), " and ", M(tex`b = \omega u`), ", every term in the sum splits in two:"),
+        D(tex`\begin{aligned} y(n) = \sum_u \kappa(u)\big[&\cos(\omega n + \varphi)\cos\omega u \\ +\, &\sin(\omega n + \varphi)\sin\omega u\big] \end{aligned}`)]),
+      step(6, ["Pull the ", M(tex`n`), " part out of the sum"], [
+        el("p", {}, M(tex`\cos(\omega n + \varphi)`), " and ", M(tex`\sin(\omega n + \varphi)`), " are the same in every term, so they move outside the sums:"),
+        D(tex`\begin{aligned} y(n) = \;&\cos(\omega n + \varphi)\sum_u \kappa(u)\cos\omega u \\ +\; &\sin(\omega n + \varphi)\sum_u \kappa(u)\sin\omega u \end{aligned}`),
+        el("p", {}, "What's left inside the two sums doesn't involve ", M(tex`n`), " at all. Each is just a number, set by the kernel's weights and the wave's frequency. Call them ", M(tex`C`), " and ", M(tex`S`), ":"),
+        D(tex`C = \sum_u \kappa(u)\cos\omega u`),
+        D(tex`S = \sum_u \kappa(u)\sin\omega u`),
+        D(tex`y(n) = C\cos(\omega n + \varphi) + S\sin(\omega n + \varphi)`),
+        el("p", {}, "For the kernel shown above, ", vC, " and ", vS, ".")]),
+      step(7, "Fold it back into one wave", [
+        el("p", {}, "Treat ", M(tex`(C, S)`), " as a point and describe it by its distance ", M(tex`A`), " from the origin and its angle ", M(tex`\theta`), ":"),
+        D(tex`C = A\cos\theta, \qquad S = A\sin\theta`),
+        D(tex`A = \sqrt{C^2 + S^2}`),
+        el("p", {}, "Substitute those in, and the angle-difference rule from step 5, run backwards, turns the two terms into one:"),
+        D(tex`\begin{aligned} y(n) &= A\big[\cos\theta\cos(\omega n + \varphi) \\ &\qquad + \sin\theta\sin(\omega n + \varphi)\big] \\ &= A\cos(\omega n + \varphi - \theta) \end{aligned}`)],
+        fig("polar", 220, "Each weight adds a small arrow, κ(u)·(cos ωu, sin ωu). Laid tip to tail, they end at the point (C, S). That point's distance A from the origin is how tall the output is, and its angle θ sets the shift.")),
+      step(8, "What it means", [
+        el("p", {}, "That's the input wave again, with the same frequency ", M(tex`\omega`), ". It's ", M(tex`A`), " times as tall and shifted along by ", M(tex`\theta/\omega`), " points. For the kernel shown above that's ", vA, " and ", vD, ", which is exactly the orange wave in the plot."),
+        el("p", { class: "pf-note" }, "Sliding a wave along by one whole wavelength, ", M(tex`N/k`), " points, gives back the exact same wave. So a shift is only pinned down up to whole wavelengths, and the plot shows whichever one sits closest to the kernel's weights. That's why the shift-by-3 kernel reads as 3 points for every ", M(tex`k`), ", even where ", M(tex`\theta/\omega`), " itself comes out as a different number.")])));
   // the live bits that belong to each part: what the kernel is, the sum at one spot, replay, the result
   const live = el("div", { class: "cs-live" });
   const LIVE = [[], [about], [math, nav], [replay], [verdict]];
@@ -227,7 +243,7 @@ function buildConvWave() {
       vD.textContent = Math.abs(shift) < 0.005 ? "no shift" : `a shift of ${fmt(Math.abs(shift), 2)} points to the ${shift > 0 ? "right" : "left"}`;
       p.check = { y, R, PHI, k, shift };
       proof.hidden = st.part !== 4;
-      if (st.part === 4) drawOut(cv, { y, R, k, PHI, shift, taps, name: KERNELS[st.kernel].label });
+      if (st.part === 4) { drawOut(cv, { y, R, k, PHI, shift, taps, name: KERNELS[st.kernel].label }); drawMinis(minis, { x, taps, k, R, n: 8, PHI }); }
       else drawWave(cv, { x, y, taps, R, k, PHI, stage: st.part, n: st.n, seen: st.seen, pos: sw.pos, done: sw.done() });
     },
   };
@@ -326,6 +342,100 @@ function drawWave(cv, { x, y, taps, R, k, PHI, stage, n, seen, pos, done }) {
       if (stage === 2) label(ctx, n2(y[at]), X(at) + (X(at) > w - 60 ? -10 : 10), Yo(y[at]) - 8, T.sp, X(at) > w - 60 ? "right" : "left", 11);
     }
   }
+}
+
+// ---------- the proof's small diagrams (slide 13) ----------
+/** An arrow from (x0, y0) to (x1, y1) with a small head. */
+function arrowTo(ctx, x0, y0, x1, y1, color, lw = 1.6) {
+  const a = Math.atan2(y1 - y0, x1 - x0), len = Math.hypot(x1 - x0, y1 - y0), hd = Math.min(7, len * 0.45);
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lw;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  if (len < 2) return;
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 - hd * Math.cos(a - 0.45), y1 - hd * Math.sin(a - 0.45));
+  ctx.lineTo(x1 - hd * Math.cos(a + 0.45), y1 - hd * Math.sin(a + 0.45));
+  ctx.closePath(); ctx.fill();
+}
+function drawMinis(m, { x, taps, k, R, n, PHI }) {
+  const T = tokens(), w0 = (TAU * k) / N;
+  const reach = Math.max(2, ...taps.map(([u]) => Math.abs(u)));
+  const live = taps.filter(([, wt]) => wt !== 0);
+  const kmax = Math.max(...taps.map(([, wt]) => Math.abs(wt))) || 1;
+
+  // 3 · one output point: samples under the kernel, weights, products, and their sum
+  { const f = fit(m.conv.cv, m.conv.h); if (f) {
+    const { ctx, w, h } = f, W = reach + 2, step = (w - 70) / (2 * W), cx = 14 + W * step;
+    const X = (j) => cx + j * step; // j = sample index relative to n
+    const rows = { x: 30, k: 84, p: 138 }, half = 18;
+    label(ctx, "x", 2, rows.x + 4, T.ink3, "left", 10); label(ctx, "κ", 2, rows.k + 4, T.ink3, "left", 10); label(ctx, "κ·x", 2, rows.p + 4, T.ink3, "left", 9.5);
+    for (const r of Object.values(rows)) { ctx.strokeStyle = T.rule; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(-W) - 4, r); ctx.lineTo(X(W) + 4, r); ctx.stroke(); }
+    // the window under the kernel
+    ctx.fillStyle = T.soft;
+    for (const [u] of live) ctx.fillRect(X(-u) - step / 2 + 1, rows.x - half - 4, step - 2, rows.p + half + 4 - (rows.x - half - 4));
+    ctx.strokeStyle = T.ink3; ctx.lineWidth = 1; ctx.globalAlpha = 0.5; ctx.beginPath();
+    for (let j = -W; j <= W; j += 0.25) { const v = Math.cos(w0 * (n + j) + PHI); j === -W ? ctx.moveTo(X(j), rows.x - v * half) : ctx.lineTo(X(j), rows.x - v * half); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+    for (let j = -W; j <= W; j++) { const on = live.some(([u]) => -u === j); dot(ctx, X(j), rows.x - x[mod(n + j, N)] * half, on ? 3.2 : 2.2, on ? T.ink : T.ink3); }
+    const prods = live.map(([u, wt]) => wt * x[mod(n - u, N)]), total = prods.reduce((a, v) => a + v, 0);
+    const pmax = Math.max(...prods.map(Math.abs), Math.abs(total)) || 1;
+    for (const [u, wt] of live) {
+      const j = -u, v = x[mod(n + j, N)], pr = wt * v;
+      ctx.strokeStyle = T.sp; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(j), rows.k); ctx.lineTo(X(j), rows.k - (wt / kmax) * half); ctx.stroke();
+      dot(ctx, X(j), rows.k - (wt / kmax) * half, 2.8, T.sp);
+      ctx.strokeStyle = T.ink; ctx.lineWidth = Math.max(3, step * 0.38); ctx.lineCap = "butt";
+      ctx.beginPath(); ctx.moveTo(X(j), rows.p); ctx.lineTo(X(j), rows.p - (pr / pmax) * half); ctx.stroke(); ctx.lineCap = "round";
+    }
+    // the sum lands as one dot on the right
+    const sx = w - 26;
+    arrowTo(ctx, X(W) + 8, rows.p, sx - 12, rows.p, T.ink3, 1.2);
+    label(ctx, "Σ", (X(W) + sx) / 2 - 2, rows.p - 6, T.ink3, "center", 11);
+    ctx.strokeStyle = T.sp; ctx.lineWidth = Math.max(3, step * 0.38); ctx.lineCap = "butt";
+    ctx.beginPath(); ctx.moveTo(sx, rows.p); ctx.lineTo(sx, rows.p - (total / pmax) * half); ctx.stroke(); ctx.lineCap = "round";
+    label(ctx, "y(n)", sx, h - 6, T.sp, "center", 10);
+    label(ctx, "n", X(0), h - 6, T.ink, "center", 10);
+  } }
+
+  // 6 and 7 · arrows in the (C, S) plane
+  const pts = [[0, 0]];
+  for (const [u, wt] of live) { const [a, b] = pts[pts.length - 1]; pts.push([a + wt * Math.cos(w0 * u), b + wt * Math.sin(w0 * u)]); }
+  const plane = (f, extra) => {
+    const { ctx, w, h } = f, xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    const lo = Math.min(-0.15, ...xs, ...ys), hi = Math.max(0.15, ...xs, ...ys), pad = 26;
+    const sc = Math.min((w - 2 * pad) / (Math.max(...xs, 0.15) - Math.min(...xs, -0.15)), (h - 2 * pad) / (Math.max(...ys, 0.15) - Math.min(...ys, -0.15)));
+    const ox = pad - Math.min(...xs, -0.15) * sc + ((w - 2 * pad) - (Math.max(...xs, 0.15) - Math.min(...xs, -0.15)) * sc) / 2;
+    const oy = pad + Math.max(...ys, 0.15) * sc + ((h - 2 * pad) - (Math.max(...ys, 0.15) - Math.min(...ys, -0.15)) * sc) / 2;
+    const P = ([a, b]) => [ox + a * sc, oy - b * sc];
+    ctx.strokeStyle = T.rule; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(6, oy); ctx.lineTo(w - 6, oy); ctx.moveTo(ox, 6); ctx.lineTo(ox, h - 6); ctx.stroke();
+    label(ctx, "C", w - 8, oy - 6, T.ink3, "right", 10); label(ctx, "S", ox + 6, 14, T.ink3, "left", 10);
+    extra(ctx, P, sc, lo, hi);
+  };
+  // 7 · the weights' arrows, tip to tail, end at (C, S); its length is A and its angle is θ
+  { const f = fit(m.polar.cv, m.polar.h); if (f) plane(f, (ctx, P) => {
+    const [ox, oy] = P([0, 0]), [ex, ey] = P(pts[pts.length - 1]);
+    for (let i = 1; i < pts.length; i++) {
+      const [x0, y0] = P(pts[i - 1]), [x1, y1] = P(pts[i]), len = Math.hypot(x1 - x0, y1 - y0) || 1;
+      arrowTo(ctx, x0, y0, x1, y1, T.ink3, 1.3);
+      // label each arrow on its outer side, away from the line to (C, S)
+      let nx = -(y1 - y0) / len, ny = (x1 - x0) / len;
+      const side = (ex - ox) * ((y0 + y1) / 2 - oy) - (ey - oy) * ((x0 + x1) / 2 - ox);
+      if (side * ((ex - ox) * ny - (ey - oy) * nx) < 0) { nx = -nx; ny = -ny; }
+      if (len > 18 && pts.length > 2) label(ctx, `u=${live[i - 1][0]}`, (x0 + x1) / 2 + nx * 10, (y0 + y1) / 2 + ny * 10 + 3, T.ink3, "center", 9);
+    }
+    const A = Math.hypot(ex - ox, ey - oy), th = Math.atan2(R.S, R.C);
+    arrowTo(ctx, ox, oy, ex, ey, T.sp, 2.4); dot(ctx, ex, ey, 3.6, T.sp);
+    const r = Math.max(14, Math.min(30, A * 0.35));
+    if (Math.abs(th) > 0.02) { ctx.strokeStyle = T.ink; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(ox, oy, r, 0, -th, th > 0); ctx.stroke(); }
+    // only the symbols go on the drawing; the numbers go in the line under it
+    const ux = (ex - ox) / (A || 1), uy = (ey - oy) / (A || 1);
+    let nx = -uy, ny = ux;
+    const cx = pts.reduce((t, q) => t + P(q)[0], 0) / pts.length, cy = pts.reduce((t, q) => t + P(q)[1], 0) / pts.length;
+    if (pts.length > 2 && (cx - (ox + ex) / 2) * nx + (cy - (oy + ey) / 2) * ny > 0) { nx = -nx; ny = -ny; }
+    label(ctx, "A", (ox + ex) / 2 + nx * 12, (oy + ey) / 2 + ny * 12 + 4, T.sp, "center", 12);
+    if (Math.abs(th) > 0.02) label(ctx, "θ", ox + r * 0.55 * Math.cos(-th / 2), oy + r * 0.55 * Math.sin(-th / 2) + 4, T.ink, "center", 11);
+    const nb = (t) => t.replace(/ /g, "\u00a0");
+    m.polar.read.textContent = [nb(`(C, S) = (${fmt(R.C, 2)}, ${fmt(R.S, 2)})`), nb(`A = ${fmt(R.mag, 2)}`), nb(`θ = ${fmt(th, 2)}`)].join(" · ");
+  }); }
 }
 
 /** The result, on its own: the kernel, the sine wave going in, the sine wave coming out, and how they differ. */
