@@ -554,15 +554,16 @@ export const STEPS = [
   },
 ];
 
-/** Footer notes. Numbers from both manifests; nothing typed in. */
+/** Footer notes. Numbers from both manifests, except the fluid model's extra checks, which come from
+ *  fno-probe/ns/analysis/sanity.json (all 2,000 test samples, leakage, linear baseline). */
 export function notes(app) {
   const ns = app.ds.ns.manifest, dc = app.ds.darcy.manifest;
   const q = (m) => Math.max(...Object.values(m.weights.max_abs_pred_change_from_quantization));
   const sp = Math.max(ns.stats.outside_cutoff_share_spectral_max, dc.stats.outside_cutoff_share_spectral_max);
   return [
-    el("p", {}, `Both models on this page are the trained ones. Their weights are stored at half precision, and the forward pass in your browser runs at double precision. Rounding the weights moves a prediction by at most ${q(ns).toExponential(1)} (fluid) and ${q(dc).toExponential(1)} (rock).`),
-    el("p", {}, `The local path supplies all of the energy above the cutoff and the spectral path supplies none. That's true in every layer, sample and grid size we checked, on both problems (the largest spectral share anywhere was ${sp.toExponential(1)}).`),
-    el("p", {}, "We also tested the fluid model on all 2,000 test samples (the page shows 200), checked that none of them appear in the training data, and compared it with the best linear per-wave filter, which it beats by 18×. It's a 0.6M-parameter model trained for 100 epochs on 6,000 samples at 64×64. Published FNOs on what appears to be the same dataset are larger and more accurate."),
-    el("p", { class: "mono" }, `Data — fluid: ${ns.problem.source} Rock: Darcy flow, Zenodo 12784353.`),
+    el("p", {}, `Both models on this page are the real trained models. Their weights are stored at half precision to keep the download small, and your browser runs the forward pass at double precision. On the samples shown here, rounding the weights moves a prediction by at most ${q(ns).toExponential(1)} for the fluid and ${q(dc).toExponential(1)} for the rock.`),
+    el("p", {}, `We checked the fluid model a few more ways. On all 2,000 test samples, not just the 200 the page uses, its error is 2.84%. None of the test inputs is a near-copy of a training input: the closest pair has a cosine similarity of 0.80. And the best linear filter that scales each wave on its own gets 52% error, about 18× worse than the model. It's a small model, with ${(ns.model.params / 1e6).toFixed(1)}M parameters, trained for ${ns.problem.epochs} epochs on ${ns.problem.n_train.toLocaleString("en-US")} samples at 64×64. Published FNOs on what appears to be the same dataset are larger and more accurate.`),
+    el("p", {}, `One check on the code itself: the spectral path's share of the energy above the cutoff should be exactly zero. The largest we saw, in any layer, sample or grid size on either problem, was ${sp.toExponential(1)}, which is rounding.`),
+    el("p", {}, "Data: the fluid is Zenodo 12825163, a 2-D incompressible Navier\u2013Stokes flow on a square whose edges wrap around, at Reynolds number 500. It was simulated at 1024\u00d71024 and is shipped at 128\u00d7128, and our 64\u00d764 and 32\u00d732 grids take every 2nd and every 4th point of that. The rock is Darcy flow, Zenodo 12784353."),
   ];
 }
