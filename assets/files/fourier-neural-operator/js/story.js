@@ -52,7 +52,7 @@ export const STEPS = [
     state: { dataset: "ns", view: "problem", flowMode: "plain", node: null, focus: null, draw: false },
     prose(app) {
       return [
-        el("p", {}, "We start with a Navier-Stokes problem: a fluid sitting at rest, a pattern of forces that starts stirring it, and the question of what the swirl looks like a little while later."),
+        el("p", {}, "Let's start with a Navier-Stokes problem. Picture a fluid that's just sitting still. We push on it with some pattern of forces, and that starts stirring it up. What we want to know is what the swirl looks like a little while later."),
         el("p", {}, "The normal way to answer that is to simulate it. But simulating it is tedious. It's computationally expensive, and you have to redo the whole thing for every single forcing pattern you want to try."),
         el("p", {}, "So the idea is this: what if we train a network that can simulate the problem for us, given any kind of input?"),
         app.sample.live?.error != null
