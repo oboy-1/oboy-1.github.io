@@ -363,7 +363,7 @@ export const STEPS = [
     prose() {
       return [
         el("p", {}, "So we've kept a fixed set of waves. Now we want to apply a learned weight to each one \u2013 but what does that actually look like in math? Each wave, recall, is a complex number: its size is the amplitude, its angle is the phase. The network learns its own complex number for that wave, call it ", M(tex`R`), ", and applying the weight just means multiplying the two:"),
-        D(tex`a_k \cdot R_k = \big(h_k e^{i\varphi_k}\big) \cdot \big(r_k e^{i\theta_k}\big) = h_k r_k\, e^{i(\varphi_k + \theta_k)}`),
+        D(tex`\begin{aligned} a_k \cdot R_k &= \big(h_k e^{i\varphi_k}\big) \cdot \big(r_k e^{i\theta_k}\big) \\ &= h_k r_k\, e^{i(\varphi_k + \theta_k)} \end{aligned}`),
         el("p", {}, "Multiplying complex numbers multiplies their sizes and adds their angles \u2013 so ", M(tex`R_k`), " scales the wave's amplitude by ", M(tex`r_k`), ", and rotates its phase by ", M(tex`\theta_k`), ". Of those four numbers, only ", M(tex`r_k`), " and ", M(tex`\theta_k`), " are learned: they come out of training and stay fixed afterward, the same for every image. ", M(tex`h_k`), " and ", M(tex`\varphi_k`), " aren't learned at all \u2013 they're just whatever the FFT measured for that particular image. There's one ", M(tex`R`), " per wave, per input-output channel pair, all learned during training, and the paper itself calls this weight tensor ", M(tex`R`), "."),
       ];
     },
@@ -440,7 +440,7 @@ export const STEPS = [
         el("p", {}, "Then we do a channel MLP. That's a small network that works on the 32 channels at each pixel on its own, and it's built out of 1\u00d71 convolutions (32 down to 16 and back up to 32, with a GELU in between)."),
         el("p", {}, "Last is a skip connection. In every layer, the layer's own input comes back around, scaled by one learned number per channel, and gets added to what the MLP produced. Then one more GELU, except in the last layer."),
         el("p", {}, "Written out, as implemented in ", el("span", { class: "mono" }, m.model.library), ":"),
-        D(tex`v_{\ell+1} \;=\; \sigma\Big(\,\mathrm{MLP}\big(\sigma(\mathcal{S}v_\ell + W v_\ell)\big) \;+\; g\odot v_\ell\Big),`),
+        D(tex`\begin{aligned} v_{\ell+1} = \sigma\Big(&\,\mathrm{MLP}\big(\sigma(\mathcal{S}v_\ell + W v_\ell)\big) \\ &+ g\odot v_\ell\Big), \end{aligned}`),
         el("p", {}, "where ", M(tex`\mathcal{S}`), " is the spectral path, ", M(tex`\sigma`), " is a GELU, and ", M(tex`g`), " is one learned number per channel. The circle with a dot, ", M(tex`\odot`), ", means multiply channel by channel: each channel of ", M(tex`v_\ell`), " is scaled by its own number from ", M(tex`g`), ". Layer 4 skips the last GELU."),
       ];
     },
