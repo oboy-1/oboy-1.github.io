@@ -404,27 +404,7 @@ function pathsStage(viz, app) {
     el("div", { class: "paths-row" },
       fieldTile(sp.high, res, hiMax, { label: "Spectral, above cutoff", sub: "nothing to draw", path: "spectral" }),
       fieldTile(lc.high, res, hiMax, { label: "Local, above cutoff", sub: `shared scale ±${fmt(hiMax, 3)}`, path: "local" })),
-    el("h4", { class: "drill-sub" }, "3 · Measured over every channel"),
-    el("p", { class: "lead-in" }, `Those tiles are one channel. The bars below add up the energy above the cutoff over all 32 channels of layer ${l}, for each path.`),
-    readout(app, l, stats)));
-}
-
-function readout(app, l, stats) {
-  const s = stats.outside_cutoff_share_spectral;
-  return el("div", { class: "readout wide" },
-    el("div", { class: "ro-head" }, "Energy above the cutoff",
-      el("span", {}, `all 32 channels of layer ${l}, both paths, this sample`)),
-    bar("Local path", stats.outside_cutoff_share_local, "local", "all of it"),
-    bar("Spectral path", s, "spectral", s === 0 ? "exactly 0" : `${s.toExponential(1)} — rounding error, not signal`),
-    el("p", { class: "ro-foot" }, `Truncation keeps ${pct(stats.truncation_kept_excl_mean, 1)} of this layer input's energy, excluding the mean. The missing ${pct(1 - stats.truncation_kept_excl_mean, 1)} is the sharp part, and only the local path still has it.`));
-}
-
-function bar(label, share, path, note) {
-  return el("div", { class: `ro-bar p-${path}` },
-    el("span", { class: "ro-lab" }, label),
-    el("span", { class: "ro-track" }, el("span", { class: "ro-fill", style: `width:${Math.max(0, Math.min(1, share)) * 100}%` })),
-    el("span", { class: "ro-val mono" }, share < 0.0005 ? "0.0%" : pct(share, 1)),
-    el("span", { class: "ro-note" }, note));
+    el("p", { class: "cap-s" }, `Across all 32 channels, ${pct(1 - stats.truncation_kept_excl_mean, 1)} of the energy coming into layer ${l} sits above the cutoff (not counting the flat average). That's the sharp part, and of the two paths, only the local one passes it on.`)));
 }
 
 // ---------- the spectral path, first node: every wave of the real input, the block we keep, the cut ----------
