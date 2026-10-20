@@ -82,13 +82,13 @@ const N = 32;
 const HALF = N / 2;
 /** Kernel taps as [u, κ(u)]: y(n) = Σ_u κ(u) x(n − u), indices wrapping around. */
 const KERNELS = {
-  blur: { label: "blur", taps: [[-2, 1 / 16], [-1, 4 / 16], [0, 6 / 16], [1, 4 / 16], [2, 1 / 16]],
+  average: { label: "average", taps: [[-2, 1 / 16], [-1, 4 / 16], [0, 6 / 16], [1, 4 / 16], [2, 1 / 16]],
     about: "Five weights that add up to 1. The middle sample counts most and its neighbours less, so each output is an average of a sample and the ones around it." },
-  edge: { label: "edge", taps: [[-1, 1], [0, 0], [1, -1]],
+  difference: { label: "difference", taps: [[-1, 1], [0, 0], [1, -1]],
     about: "Weights −1 and +1 on either side of the middle. Each output is the sample ahead minus the sample behind, so it is large where the signal changes fast: positive going up, negative going down." },
   shift: { label: "shift by 3", taps: [[3, 1]],
     about: "A single weight of 1, three samples back. Each output just copies the input from three samples earlier." },
-  lopsided: { label: "lopsided blur", taps: [[0, 0.5], [1, 0.3], [2, 0.15], [3, 0.05]],
+  onesided: { label: "one-sided average", taps: [[0, 0.5], [1, 0.3], [2, 0.15], [3, 0.05]],
     about: "Four weights that add up to 1, all on one side. Each output is an average of a sample and the ones just before it." },
 };
 const KOPTS = Object.entries(KERNELS).map(([k, v]) => [k, v.label]);
@@ -134,7 +134,7 @@ export const WAVE_PARTS = ["convwave", "convkernel", "convone", "convslide", "co
 
 function buildConvWave() {
   const PHI = 0.6;
-  const st = { kernel: "blur", k: 4, n: 8, seen: new Set([8]), part: 0 };
+  const st = { kernel: "average", k: 4, n: 8, seen: new Set([8]), part: 0 };
   const cv = el("canvas", { class: "cv-canvas", role: "img", "aria-label": "A wave, the kernel lined up under it, the products, and the output" });
   const kLab = el("b", { class: "mono" });
   const slider = el("input", { type: "range", min: "1", max: "12", step: "1", value: String(st.k), "aria-label": "How many times the wave repeats, k" });
@@ -156,7 +156,7 @@ function buildConvWave() {
     el("h5", {}, "Why a sine wave always comes out"),
     el("p", {}, el("strong", {}, "The input. "), "The grey wave repeats k times across N points, so its frequency is ", M(tex`\omega = 2\pi k/N`), ". ", M(tex`\varphi`), " is where it starts:"),
     D(tex`x(n) = \cos(\omega n + \varphi)`),
-    el("p", {}, el("strong", {}, "The convolution. "), "Call the kernel's weights ", M(tex`\kappa(u)`), ": ", M(tex`\kappa(u)`), " is the weight that multiplies the sample u points back from the output point. So ", M(tex`\kappa(0)`), " sits on the point itself, ", M(tex`\kappa(1)`), " one point back, and ", M(tex`\kappa(-1)`), " one point ahead. The blur kernel, for example, is ", M(tex`\kappa(0) = 0.375`), ", ", M(tex`\kappa(\pm 1) = 0.25`), ", ", M(tex`\kappa(\pm 2) = 0.0625`), ". The output at point n multiplies each weight by its sample and adds them up. Going u points back only subtracts ", M(tex`\omega u`), " from the angle:"),
+    el("p", {}, el("strong", {}, "The convolution. "), "Call the kernel's weights ", M(tex`\kappa(u)`), ": ", M(tex`\kappa(u)`), " is the weight that multiplies the sample u points back from the output point. So ", M(tex`\kappa(0)`), " sits on the point itself, ", M(tex`\kappa(1)`), " one point back, and ", M(tex`\kappa(-1)`), " one point ahead. The average kernel, for example, is ", M(tex`\kappa(0) = 0.375`), ", ", M(tex`\kappa(\pm 1) = 0.25`), ", ", M(tex`\kappa(\pm 2) = 0.0625`), ". The output at point n multiplies each weight by its sample and adds them up. Going u points back only subtracts ", M(tex`\omega u`), " from the angle:"),
     D(tex`\begin{aligned} y(n) &= \sum_u \kappa(u)\,x(n-u) \\ &= \sum_u \kappa(u)\cos(\omega n + \varphi - \omega u) \end{aligned}`),
     el("p", {}, el("strong", {}, "Pull n out of the sum. "), "Expand each cosine with the angle-difference rule, ", M(tex`\cos(\alpha - \beta) = \cos\alpha\cos\beta + \sin\alpha\sin\beta`), ", using ", M(tex`\alpha = \omega n + \varphi`), " and ", M(tex`\beta = \omega u`), ":"),
     D(tex`\begin{aligned} y(n) &= \sum_u \kappa(u)\big[\cos(\omega n + \varphi)\cos\omega u \\ &\qquad\qquad + \sin(\omega n + \varphi)\sin\omega u\big] \end{aligned}`),
@@ -272,8 +272,8 @@ function drawWave(cv, { x, y, taps, R, k, PHI, stage, n, seen, pos, done }) {
     }
   }
 
-  // the same kernel on a block with sharp sides, where the names make sense: blur rounds the corners,
-  // edge spikes at the two jumps, shift moves the block, lopsided blur smears only one side
+  // the same kernel on a block with sharp sides: average rounds the corners, difference spikes at the
+  // two jumps, shift moves the block, one-sided average smears only one side
   if (top.block) {
     const xb = Float64Array.from({ length: N }, (_, i) => (i >= 10 && i <= 21 ? 1 : 0)), yb = convolve(xb, taps);
     const Yb = scaleY("block", 1.15);
@@ -387,10 +387,10 @@ function drawOut(cv, { y, R, k, PHI, shift, taps, name }) {
 const PARTS3 = [[1, 1.0, 0.3], [3, 0.6, 1.0], [8, 0.5, 0.4]];
 const signal3 = () => Float64Array.from({ length: N }, (_, n) => PARTS3.reduce((s, [k, a, ph]) => s + a * Math.cos((TAU * k * n) / N + ph), 0));
 const SUM_SAYS = {
-  blur: "Blur barely touches the slow wave and almost wipes out the fast one.",
-  edge: "Edge does the opposite: it almost wipes out the slow wave and doubles the fast one.",
+  average: "Average barely touches the slow wave and almost wipes out the fast one.",
+  difference: "Difference does the opposite: it almost wipes out the slow wave and doubles the fast one.",
   shift: "Shift by 3 leaves every height alone and moves every wave 3 points along.",
-  lopsided: "Lopsided blur shrinks the fast wave most and nudges each wave along a little.",
+  onesided: "One-sided average shrinks the fast wave most and nudges each wave along a little.",
 };
 const fft = new FFT(N);
 function spectrum(x) {
@@ -423,7 +423,7 @@ function waves(x) {
 export const SUM_PARTS = ["convsum", "convsplit", "convchange", "convadd"];
 
 function buildConvSum() {
-  const st = { kernel: "blur", part: 0 };
+  const st = { kernel: "average", part: 0 };
   const cv = el("canvas", { class: "cv-canvas", role: "img", "aria-label": "A signal, the three waves it is made of, each wave after the kernel, and their sum" });
   const diff = el("span", { class: "v" });
   const morph = sweeper(1, 2400, () => p.draw(), () => cv.isConnected);
@@ -503,10 +503,11 @@ function drawSum(cv, { x, W, direct, stage, tau, added, done }) {
   W.forEach((wv, r) => {
     const top = y0 + r * ROW, c = top + 12 + ROW / 2 - 6, Y = (v) => c - (v / big) * half;
     const on = stage === 3 && share(r) > 0 && share(r) < 1;
-    label(ctx, `${NAMES[r] ?? ""} wave · repeats ${wv.k}×${on ? "  ← adding" : ""}`, L, top + 4, on ? T.sp : T.ink3, "left", 10.5);
+    const narrow = w < 560;
+    label(ctx, `${NAMES[r] ?? ""} wave${narrow ? "" : ` · repeats ${wv.k}×`}${on ? "  ← adding" : ""}`, L, top + 4, on ? T.sp : T.ink3, "left", 10.5);
     if (stage >= 2) {
-      const moved = Math.abs(wv.shift) < 0.05 ? "" : ` · moved ${fmt(Math.abs(wv.shift), 1)} points ${wv.shift > 0 ? "right" : "left"}`;
-      label(ctx, `×${wv.R.mag.toFixed(2)} as tall${moved}`, Rt, top + 4, tau > 0.02 ? T.sp : T.ink3, "right", 10.5);
+      const moved = Math.abs(wv.shift) < 0.05 ? "" : ` · moved ${fmt(Math.abs(wv.shift), 1)} ${narrow ? "pts" : "points"} ${wv.shift > 0 ? "right" : "left"}`;
+      label(ctx, `×${wv.R.mag.toFixed(2)}${narrow ? "" : " as tall"}${moved}`, Rt, top + 4, tau > 0.02 ? T.sp : T.ink3, "right", 10.5);
     }
     zero(c);
     ctx.strokeStyle = stage >= 2 ? T.ink3 : T.ink; ctx.lineWidth = stage >= 2 ? 1.2 : 1.8; ctx.globalAlpha = stage >= 2 ? 0.45 : 1;
