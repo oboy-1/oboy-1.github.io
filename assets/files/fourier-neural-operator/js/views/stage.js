@@ -533,7 +533,8 @@ function stillFailsStage(viz, app) {
         el("tr", {}, el("td", {}, "error as trained"), el("td", { class: "num" }, pct(A("ns").baseline.mean, 2)), el("td", { class: "num" }, pct(A("darcy").baseline.mean, 2))),
         el("tr", { class: "on" }, el("td", {}, "local path's above-cutoff part removed"), el("td", { class: "num" }, pct(A("ns").local_above_cutoff_removed.mean, 2)), el("td", { class: "num" }, pct(A("darcy").local_above_cutoff_removed.mean, 2))),
         el("tr", {}, el("td", {}, "whole local path removed"), el("td", { class: "num" }, pct(A("ns").local_removed.mean, 1)), el("td", { class: "num" }, pct(A("darcy").local_removed.mean, 1))))),
-    el("p", { class: "cap-s" }, `Over ${A("ns").n} test samples per problem at 64×64. "Removed" means that part of the local path's output is replaced by nothing in all four layers, in the trained PyTorch model.`)));
+    el("p", { class: "cap-s" }, `Over ${A("ns").n} test samples per problem at 64×64. "Removed" means that part of the local path's output is replaced by nothing in all four layers, in the trained PyTorch model.`),
+    el("p", { class: "cap-s" }, "Error is the size of the prediction's mistake relative to the size of the true field, so it can go past 100%. Predicting all zeros would score exactly 100%. With the whole local path removed, the fluid model still draws roughly the right swirl, but about 2.5× too strong, so its mistake ends up bigger than the swirl itself.")));
 }
 
 // ---------- the whole layer as implemented: the two paths plus everything around them ----------
