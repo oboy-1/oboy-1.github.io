@@ -375,10 +375,10 @@ export const STEPS = [
     state: { dataset: "ns", view: "layer", layer: 2, focus: "widget", node: null, draw: false },
     prose() {
       return [
-        el("p", {}, "Back to the cut. Let's see what it does in one dimension, where you can see everything. Take a single slice instead of an image: a square step that sits at 0, jumps up to 1, and jumps back down. Build it out of waves, then drop every wave above a cutoff and see what survives."),
-        el("p", {}, "Drag the slider to this model's cutoff, ", M("k=8"),
-          ". The readout says 96% of the energy is captured. Now look at the picture. The corners are rounded. Right at each jump the signal is stuck halfway, off by about 0.5, and just beside it, it overshoots by about 9% of the step's height before ringing back down."),
-        el("p", {}, "Keep dragging to the right. The overshoot stays at about 9% and just gets squeezed into a narrower spike next to each jump (this is called the Gibbs phenomenon). Then switch the target to the smooth bump. The same cutoff reproduces it almost exactly."),
+        el("p", {}, "Let's go back to the cut and look at what it does in one dimension, where it's easier to see everything at once. Instead of a whole image, we'll take a single slice: a square step that sits at 0, jumps up to 1, and then drops back down to 0. We build that step out of waves, throw away every wave above a cutoff, and look at what's left."),
+        el("p", {}, "If you drag the slider to this model's cutoff, ", M("k=8"),
+          ", the readout says we've kept 96% of the energy. But the picture looks noticeably off. The corners get rounded, and right at each jump the curve only makes it halfway, so it's off by about 0.5. Just next to each jump it also overshoots by about 9% of the step's height, then ripples back down."),
+        el("p", {}, "If you keep dragging to the right, the overshoot stays at about 9%. The spike just gets narrower and moves in closer to each jump. This is called the Gibbs phenomenon. Now switch the target to the smooth bump, and you'll see the same cutoff rebuilds it almost exactly."),
         key("At the end of the day, the fast waves are where a lot of the sharp detail is. They carry very little energy, so we can keep 96% of the energy and still lose the sharp edges."),
         el("p", { class: "note" }, "This is a 1-D slice, so its numbers are its own. The 2-D picture of the real layer is on the spectral-path slide, and both use the same cutoff."),
       ];
@@ -392,6 +392,10 @@ export const STEPS = [
     prose() {
       return [
         el("p", {}, "Since we threw away a lot of waves, we've lost some information, and the network needs something to pick it up. This is where we switch to the Darcy flow example \u2013 its sharp edges make the loss easy to see. The local path runs a 1\u00d71 convolution over the grid, mixing the 32 channels at each pixel with no neighbours involved. It keeps track of individual details, including the extra signal the cutoff threw away. In short, one path sees the whole image at once, and the other sees one pixel at a time."),
+        el("details", {}, el("summary", {}, "What is Darcy flow?"),
+          el("p", {}, "Darcy flow describes water seeping slowly through porous ground, like soil or rock. The input is a map of the ground made of two materials: one that lets water through easily and one that doesn't. Water is added evenly everywhere, and the edges are held at zero pressure, so that's where it drains out. The output is the water pressure at every point once everything has settled."),
+          D(tex`-\nabla \cdot \big(a(x)\, \nabla u(x)\big) = 1, \qquad u = 0 \text{ on the edges}`),
+          el("p", {}, "Here ", M(tex`a(x)`), " is how easily water moves through the ground at ", M(tex`x`), ", and ", M(tex`u(x)`), " is the pressure. It's lowest along the edges, where the water drains out, and rises toward the inside. Where the two materials meet, the pressure's slope changes suddenly. Those sharp boundaries are why this example is good for seeing what the cutoff loses.")),
       ];
     },
   },
@@ -457,7 +461,7 @@ export const STEPS = [
       const mono = c.every((v, i) => i === 0 || v >= c[i - 1]);
       return [
         el("p", {}, c[4] > c[0]
-          ? "Here we're looking at the real channels of the rock model as they move through the four layers. At the start they still look a lot like the rock map, and by the end most of them look like the pressure \u2013 so each layer is turning the rock into the answer a little more."
+          ? "Here we're looking at the real channels of the Darcy flow model as they move through the four layers. At the start they still look a lot like the rock map, and by the end most of them look like the pressure \u2013 so each layer is turning the rock into the answer a little more."
           : "Here we're looking at the real channels as they move through the four layers. The badge above each column counts how many of the 32 look like the true answer."),
         el("p", {}, c[4] > c[0]
           ? `We can count it too: out of 32 channels, ${c[0]} look like the pressure after the lift, and ${c[4]} do after layer 4 (${c.join(" \u2192 ")}).`
