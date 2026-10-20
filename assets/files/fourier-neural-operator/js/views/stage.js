@@ -260,7 +260,8 @@ function invarianceStage(viz, app) {
       el("h4", { class: "drill-sub" }, "The same weights, three different grids"),
       el("span", { class: "inv-badge mono" }, `${m.model.params.toLocaleString("en-US")} weights · unchanged`)),
     row,
-    el("p", { class: "cap-s" }, `Predicted ${words().output} for one sample at each grid size, on one colour scale. Test error is the mean over ${m.stats.test_error["64"].n} unseen samples. Nothing about the model changes between them — no retraining, no resizing, no interpolation of weights.`)));
+    el("p", { class: "cap-s" }, `Predicted ${words().output} for one sample at each grid size, on one colour scale. Test error is the mean over ${m.stats.test_error["64"].n} unseen samples. Nothing about the model changes between them — no retraining, no resizing, no interpolation of weights.`),
+    isNS() ? el("p", { class: "cap-s" }, `Why the three errors nearly match: the 32×32 and 64×64 grids are every 4th and every 2nd point of the same 128×128 data, and the fluid is smooth. The model only uses waves up to ${Math.max(...m.kept_modes_centered.map(([a]) => a)) - m.resolutions[1] / 2} in each direction, and even 32×32 can hold waves up to 16, so all three grids give it the same waves to work with.`) : null));
 }
 
 // ---------- steps 1, 2, 9 ----------

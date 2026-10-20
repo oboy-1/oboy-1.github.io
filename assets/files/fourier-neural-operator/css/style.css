@@ -696,15 +696,17 @@ table.mini tr.on td { color: var(--ink); font-weight: 600; }
 .ws-bar-val { text-align: right; color: var(--ink-2); }
 .ws-track { height: 9px; border-radius: 3px; background: var(--rule); overflow: hidden; }
 .ws-fill { display: block; height: 100%; border-radius: 3px; transition: width 120ms ease-out; }
-.ws-surf-top { display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 10px; align-items: start; }
+.ws-surf-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 210px); gap: 14px; align-items: start; }
 .ws-3d { width: 100%; height: auto; aspect-ratio: 560 / 330; background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius); cursor: grab; touch-action: none; }
 .ws-3d:active { cursor: grabbing; }
 .ws-thumbs { display: grid; gap: 10px; }
-.ws-thumbs figure { margin: 0; display: grid; gap: 4px; }
-.ws-thumbs .tile { padding: 0; }
+.ws-thumbs figure { margin: 0; display: grid; gap: 6px; }
+.ws-thumbs figcaption { display: grid; gap: 1px; font: 600 13px/1.3 var(--font-sans); color: var(--ink); }
+.ws-thumbs .ws-goal .tile { box-shadow: 0 0 0 2px var(--accent); border-radius: 4px; }
+.ws-thumbs .tile { padding: 0; width: 100%; height: auto; aspect-ratio: 1; }
 .ws-thumb { display: block; width: 100%; height: auto; image-rendering: pixelated; border-radius: 3px; }
 .ws-cut { margin: 0; }
-@media (max-width: 560px) { .ws-surf-top { grid-template-columns: 1fr; } .ws-thumbs { grid-template-columns: repeat(2, minmax(0, 120px)); } }
+@media (max-width: 560px) { .ws-surf-top { grid-template-columns: 1fr; } .ws-thumbs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Sliders: explicit track so the unfilled part stays light (Chromium darkens it behind a bright accent-color) */
 .tw input[type=range], .ws-row input[type=range] { -webkit-appearance: none; appearance: none; height: 20px; background: transparent; cursor: pointer; }

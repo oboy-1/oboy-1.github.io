@@ -127,7 +127,7 @@ export const STEPS = [
           el("li", {}, el("strong", {}, "Phase:"), " where the wave starts. Changing it slides the stripes sideways.")),
         el("p", {}, "Put together, one wave looks like this:"),
         D(tex`h \cos\big(2\pi\, k\cdot x + \varphi\big)`),
-        el("p", {}, "where k is the frequency, h is the amplitude and φ is the phase. You'll often see these packed into a single complex number, where its size is the amplitude and its angle is the phase."),
+        el("p", {}, "where ", M(tex`k`), " is the frequency, ", M(tex`h`), " is the amplitude and ", M(tex`\varphi`), " is the phase. You'll often see these packed into a single complex number, where its size is the amplitude and its angle is the phase."),
         el("p", {}, "So an image becomes a list of waves, and each wave is just a few numbers. On the right is a real forcing pattern written out that way, strongest waves first. A handful of waves already carry most of the picture, and the rest add smaller and smaller corrections."),
         el("p", {}, "Notice that none of these numbers mention how many pixels the image has. The list describes the image without relying on the grid."),
       ];

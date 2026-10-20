@@ -4,7 +4,7 @@
 //   surface — the same idea in 2-D: a rotatable height-field rebuilt from stripes, k = 0 .. 16.
 // All of it is computed live; nothing here is a recording. State lives at module scope so a
 // re-render of the stage (new sample, new grid) does not throw the reader's sliders away.
-import { el, paintField, paintBinary, lut } from "../render.js";
+import { el, paintField, lut } from "../render.js";
 
 const SVG = "http://www.w3.org/2000/svg";
 const svgEl = (tag, attrs = {}) => {
@@ -373,7 +373,8 @@ function surfaceTab({ cutoff }) {
     const D = surface();
     const r = rebuild2d(S.K);
     draw3d(r.field);
-    paintBinary(tgt, D.h, G);
+    // same colours as the rebuild beside it, so the two can be compared at a glance
+    paintField(tgt, D.h, G, { mode: "sequential", vmin: -0.2, vmax: 1.2 });
     paintField(cur, r.field, DISP, { mode: "sequential", vmin: -0.2, vmax: 1.2 });
     kLab.textContent = String(S.K);
     sK.textContent = S.K === 0 ? "none" : S.K >= KMAX ? "all of them" : `up to ${S.K}`;
@@ -399,8 +400,8 @@ function surfaceTab({ cutoff }) {
     el("div", { class: "ws-surf-top" },
       cv,
       el("div", { class: "ws-thumbs" },
-        el("figure", {}, el("div", { class: "tile" }, tgt), el("figcaption", { class: "cap-s" }, "the shape to rebuild")),
-        el("figure", {}, el("div", { class: "tile" }, cur), el("figcaption", { class: "cap-s" }, "what the waves give so far")))),
+        el("figure", { class: "ws-goal" }, el("figcaption", {}, el("strong", {}, "What we want"), el("span", { class: "cap-s" }, "the shape to rebuild")), el("div", { class: "tile" }, tgt)),
+        el("figure", {}, el("figcaption", {}, el("strong", {}, "What the waves give"), el("span", { class: "cap-s" }, "so far, with the slider below")), el("div", { class: "tile" }, cur)))),
     el("label", { class: "tw-slider", for: "ws-k" }, el("span", {}, "highest wave number kept, in each direction"), kLab),
     slider,
     cutoff ? el("p", { class: "cap-s ws-cut" }, `The model's own cutoff is ${cutoff}: set the slider to ${cutoff} to see how much of this shape it could keep.`) : null,
