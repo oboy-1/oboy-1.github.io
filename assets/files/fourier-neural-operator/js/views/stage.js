@@ -212,30 +212,52 @@ function problemStage(viz, app) {
 }
 
 // ---------- act 0.25: a function in, a function out ----------
-// The same forcing sampled on three grids: an ordinary network fits exactly one of them, an operator takes all of them.
+// One grid switch drives both rows: the operator runs on whatever grid it's given, while an ordinary
+// network has exactly n input slots, drawn as a bar that the grid's numbers either fill, leave half empty, or spill past.
+let opRes = null;
 function operatorStage(viz, app) {
-  const m = app.manifest, sample = app.sample;
-  const trained = m.model.trained_resolution;
-  const card = (r, ok, badge) => {
-    const cv = el("canvas");
-    paintInput(cv, sample.io[r].input, r);
-    return el("figure", { class: `op-card ${ok ? "ok" : "no"}` },
-      el("div", { class: "tile" }, cv),
-      el("figcaption", {},
-        el("span", { class: "cap-t" }, `${r} × ${r}`),
-        el("span", { class: "cap-s" }, `${(r * r).toLocaleString("en-US")} numbers`),
-        el("span", { class: "op-badge" }, badge)));
-  };
-  const row = (title, sub, cards) => el("div", { class: "op-row" },
-    el("div", { class: "op-head" }, el("span", { class: "op-title" }, ...title), el("span", { class: "cap-s" }, sub)),
-    el("div", { class: "op-cards" }, ...cards));
-  viz.append(el("div", { class: "panel-body" },
-    el("h4", { class: "drill-sub" }, `One ${words().input}, sampled on three grids`),
-    row([M("f:\\ \\mathbb{R}^n \\to \\mathbb{R}^m"), " — an ordinary network"], `n is baked into the first layer: it takes exactly ${(trained * trained).toLocaleString("en-US")} numbers and nothing else`,
-      m.resolutions.map((r) => card(r, r === trained, r === trained ? "fits" : "doesn't fit"))),
-    row([M("\\mathcal{G}:\\ a(x) \\mapsto u(x)"), " — an operator"], "the input is a function, so any grid that samples it is fine",
-      m.resolutions.map((r) => card(r, true, "accepted"))),
-    el("p", { class: "cap-s" }, `The same ${words().input} from one sample, evaluated on ${m.resolutions.map((r) => `${r}×${r}`).join(", ")} grids. The operator's output is a function too, so you can ask for it on whatever grid you like.`)));
+  const m = app.manifest, sample = app.sample, w = words();
+  const trained = m.model.trained_resolution, n = trained * trained, most = Math.max(...m.resolutions) ** 2;
+  opRes ??= trained;
+  const scale = outScale(...m.resolutions.map((r) => sample.io[r].prediction));
+  const body = el("div", { class: "op2" });
+  const num = (v) => v.toLocaleString("en-US");
+
+  function draw() {
+    const r = opRes, count = r * r;
+    const inCv = el("canvas"), outCv = el("canvas");
+    paintInput(inCv, sample.io[r].input, r);
+    paintField(outCv, sample.io[r].prediction, r, scale);
+    const fill = Math.min(count, n), spill = Math.max(0, count - n);
+    const verdict = count === n ? "fits exactly"
+      : count < n ? `${num(n - count)} slots left empty, so it can't run`
+      : `${num(spill)} numbers with nowhere to go, so it can't run`;
+    body.replaceChildren(
+      el("div", { class: "op2-ctl" }, el("span", { class: "cv-lab" }, "grid"),
+        el("div", { class: "seg" }, ...m.resolutions.map((g) => el("button", { type: "button", "aria-pressed": String(g === r), onclick: () => { opRes = g; draw(); } }, `${g} × ${g}`)))),
+      el("div", { class: "op2-row" },
+        el("div", { class: "op-head" }, el("span", { class: "op-title" }, M("\\mathcal{G}:\\ a(x) \\mapsto u(x)"), " — an operator"),
+          el("span", { class: "cap-s" }, `the same ${num(m.model.params)} weights on every grid`)),
+        el("div", { class: "op2-flow" },
+          el("figure", { class: "op2-card" }, el("div", { class: "tile" }, inCv),
+            el("figcaption", {}, el("span", { class: "cap-t" }, `${w.input}, ${r} × ${r}`), el("span", { class: "cap-s" }, `${num(count)} numbers in`))),
+          el("span", { class: "op2-arrow", "aria-hidden": "true" }, "→ 𝒢 →"),
+          el("figure", { class: "op2-card" }, el("div", { class: "tile" }, outCv),
+            el("figcaption", {}, el("span", { class: "cap-t" }, `${w.output}, ${r} × ${r}`), el("span", { class: "cap-s" }, `${num(count)} numbers out${r === trained ? " · trained on this grid" : " · never trained on this grid"}`))))),
+      el("div", { class: "op2-row" },
+        el("div", { class: "op-head" }, el("span", { class: "op-title" }, M("f:\\ \\mathbb{R}^n \\to \\mathbb{R}^m"), " — an ordinary network"),
+          el("span", { class: "cap-s" }, `its first layer has exactly n = ${num(n)} input slots, one per number`)),
+        el("div", { class: "op2-bar", role: "img", "aria-label": `${num(count)} numbers against ${num(n)} slots: ${verdict}` },
+          el("div", { class: "op2-slots", style: `width:${(100 * n) / most}%` }),
+          el("div", { class: "op2-fill", style: `width:${(100 * fill) / most}%` }),
+          spill ? el("div", { class: "op2-spill", style: `left:${(100 * n) / most}%; width:${(100 * spill) / most}%` }) : null),
+        el("div", { class: "op2-legend cap-s" },
+          el("span", {}, `${num(count)} numbers from this grid · ${num(n)} slots`),
+          el("strong", { class: count === n ? "ok" : "no" }, verdict))),
+      el("p", { class: "cap-s" }, `The ${w.input} and the model's prediction for one test sample, on one colour scale. The bar is drawn to scale.`));
+  }
+  draw();
+  viz.append(el("div", { class: "panel-body" }, el("h4", { class: "drill-sub" }, `One ${w.input}, any grid`), body));
 }
 
 // ---------- act 0.5: the hook ----------
