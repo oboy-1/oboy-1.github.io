@@ -1,6 +1,6 @@
 // App shell: story state, the scroll driver, live inference, and the reader's own controls.
 // Scrolling sets the model state; clicking refines it. A reader who only scrolls sees every step.
-import { loadManifest, loadSample, loadWeights } from "./data.js";
+import { loadManifest, loadSample, loadWeights, loadIO } from "./data.js";
 import { setColormaps, setProblem, el, paintInput, isNS } from "./render.js";
 import { fft2, ifft2 } from "./fourier.js";
 import { renderStage } from "./views/stage.js";
@@ -205,18 +205,25 @@ export function resampleSmooth(src, from, to) {
 }
 
 // ---------- reader controls, pinned with the viz ----------
+// A thumbnail only needs the sample's 64×64 input, not the whole sample. Each one is fetched once,
+// however many times the controls redraw while it's in flight; the full sample loads when it's picked.
+const thumbs = new Map();
+const thumbOf = (m, idx) => {
+  const key = `${m.__base}#${idx}`;
+  if (!thumbs.has(key)) thumbs.set(key, loadIO(idx, 64, new URL(m.__base)).then((io) => io.input));
+  return thumbs.get(key);
+};
 function renderControls() {
   const nav = document.getElementById("samples");
   nav.replaceChildren();
   for (const s of app.manifest.samples) {
     const cv = el("canvas", { width: 64, height: 64 });
     const cached = app.cache.get(s.test_index);
-    const m = app.manifest, cache = app.cache;
+    const m = app.manifest;
     if (cached) paintInput(cv, cached.io[64].input, 64);
-    else loadSample(m, s.test_index).then((d) => {
-      cache.set(s.test_index, d);
+    else thumbOf(m, s.test_index).then((input) => {
       // Paint with the dataset this thumbnail belongs to, even if the page has switched since.
-      if (app.manifest === m) paintInput(cv, d.io[64].input, 64);
+      if (app.manifest === m) paintInput(cv, input, 64);
     });
     const label = s.note ? el("span", { class: "flag" }, `#${s.test_index} worst`) : el("span", {}, `#${s.test_index}`);
     const pressed = !app.state.draw && app.state.sampleIdx === s.test_index;
@@ -308,14 +315,26 @@ function watchScroll() {
 async function boot() {
   const stage = document.getElementById("stage");
   stage.replaceChildren(el("p", { class: "loading" }, "Loading model data…"));
+  // A small pill in the corner while the model downloads, on whichever slide the reader is on.
+  const pill = el("div", { class: "model-status", role: "status", "aria-live": "polite" }, el("span", { class: "spin", "aria-hidden": "true" }), el("span", {}, "Loading the model…"));
+  document.body.append(pill);
+  const mb = (b) => (b / 1e6).toFixed(1);
+  const progress = (got, total) => { pill.lastChild.textContent = total ? `Loading the model… ${Math.min(99, Math.round((100 * got) / total))}%` : `Loading the model… ${mb(got)} MB`; };
   try {
-    // Load both datasets' manifests and first samples; the active one is whatever step 1 owns.
-    for (const [key, dir] of Object.entries(DATASETS)) {
-      const m = await loadManifest(dir);
-      app.manifest = m; app.cache = new Map(); app.drawing = null; app.model = null;
-      setProblem(m.problem);
-      await app.selectSample(m.samples[0].test_index);
-      app.ds[key] = { manifest: m, model: null, sample: app.sample, cache: app.cache, drawing: null, sampleIdx: m.samples[0].test_index };
+    // Both datasets' manifests and first samples load in parallel. The opening dataset's weights start
+    // downloading as soon as its manifest arrives, so the model can go live without waiting on the other one.
+    const first = app.state.dataset;
+    const load = async (key) => {
+      const m = await loadManifest(DATASETS[key]);
+      const weights = key === first ? loadWeights(m, progress) : null;
+      const s = await loadSample(m, m.samples[0].test_index);
+      return { m, s, weights };
+    };
+    const loaded = Object.fromEntries(await Promise.all(Object.keys(DATASETS).map(async (k) => [k, await load(k)])));
+    for (const [key, { m, s }] of Object.entries(loaded)) {
+      const idx = m.samples[0].test_index, cache = new Map([[idx, s]]);
+      const sample = { ...s, error: Object.fromEntries(Object.entries(s.entry.error).map(([r, e]) => [r, e.rel_l2])), live: null };
+      app.ds[key] = { manifest: m, model: null, sample, cache, drawing: null, sampleIdx: idx };
     }
     for (const k of PER_DATASET) app[k] = app.ds[app.state.dataset][k];
     app.state.sampleIdx = app.ds[app.state.dataset].sampleIdx;
@@ -326,17 +345,22 @@ async function boot() {
     watchScroll();
     window.__fno = app; // for the verification harness
     document.documentElement.dataset.ready = "1";
-    // Weights for both models; the parked dataset gets its model when it is next swapped in.
-    for (const key of Object.keys(DATASETS)) {
-      const w = await loadWeights(app.ds[key].manifest);
-      if (key === app.state.dataset) app.model = w; else app.ds[key].model = w;
+    // A dataset's model goes live as soon as its weights arrive. If it's the one on screen, run it now;
+    // otherwise it waits in app.ds until that dataset is swapped in.
+    const arrive = (key, w) => {
       app.ds[key].model = w;
-    }
-    app.runLive();
-    app.render();
+      if (key === app.state.dataset) { app.model = w; app.runLive(); app.render(); }
+    };
+    arrive(first, await loaded[first].weights);
+    pill.lastChild.textContent = "Model running in your browser";
+    pill.classList.add("done");
+    setTimeout(() => pill.remove(), 2200);
     document.documentElement.dataset.live = "1";
     document.getElementById("notes").replaceChildren(...notes(app));
+    // The other model downloads afterwards, so it never competes with the first one.
+    for (const key of Object.keys(DATASETS)) if (key !== first) arrive(key, await loadWeights(app.ds[key].manifest));
   } catch (e) {
+    pill.remove();
     stage.replaceChildren(el("p", { class: "error" }, `Could not load the model data: ${e.message}. Serve the web/ folder over HTTP (for example: python3 -m http.server).`));
     console.error(e);
   }
