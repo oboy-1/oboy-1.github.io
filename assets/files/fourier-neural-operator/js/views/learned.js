@@ -130,7 +130,7 @@ export function multiplyStage(viz, app) {
       if (ix >= 0 && iy >= 0 && ix < M0 && iy < M1) { S.ix = ix; S.iy = iy; draw(); }
     });
 
-    // input wave, output wave, same colour scale
+    // input wave, output wave, same color scale
     const T = 64, vmax = Math.max(1, mag);
     const inCv = el("canvas"), outCv = el("canvas");
     paintField(inCv, wave(T, kx, ky, 1, 0), T, { vmax });
@@ -162,7 +162,7 @@ export function multiplyStage(viz, app) {
             el("span", { class: "wave-intro-eq", "aria-hidden": "true" }, "×R →"),
             el("figure", { class: "ftile" }, el("div", { class: "tile" }, outCv), el("figcaption", {}, el("span", { class: "cap-t" }, "and comes out"), el("span", { class: "cap-s mono" }, `height ${fmt(mag, 2)}, shifted ${deg(ph)}`)))),
           svg,
-          el("p", { class: "cap-s" }, `Grey: the wave going in. Orange: what comes out. The size of R, ${fmt(mag, 2)}, scales it. The angle of R, ${deg(ph)}, slides its peaks ${fmt(Math.abs(frac), 2)} of a wavelength ${frac > 0 ? "earlier" : "later"}.`))),
+          el("p", { class: "cap-s" }, `Gray: the wave going in. Orange: what comes out. The size of R, ${fmt(mag, 2)}, scales it. The angle of R, ${deg(ph)}, slides its peaks ${fmt(Math.abs(frac), 2)} of a wavelength ${frac > 0 ? "earlier" : "later"}.`))),
       el("p", { class: "cap-s" }, `This is wave (${kx}, ${ky}) in layer ${S.l}, channel ${S.b} → channel ${S.e}. Across all ${M0 * M1} waves of this one pair, R ranges in size from ${fmt(lo, 2)} to ${fmt(hi, 2)}: each wave gets its own number. In the real layer every one of the ${cin} input channels has such a number for each of the ${cout} output channels, and the results are added, so one wave of one output channel is ${cin} of these multiplications summed.`));
   }
   draw();

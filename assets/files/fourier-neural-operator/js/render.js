@@ -26,7 +26,7 @@ export function paintInput(canvas, field, res, { vmax = null } = {}) {
   return paintField(canvas, field, res, { vmax });
 }
 
-/** One shared colour scale for output fields, as paintField options: pressure (>= 0) or vorticity (signed). */
+/** One shared color scale for output fields, as paintField options: pressure (>= 0) or vorticity (signed). */
 export function outScale(...fields) {
   const m = Math.max(...fields.map(maxAbs)) || 1;
   return isNS() ? { mode: "diverging", vmax: m } : { mode: "sequential", vmin: 0, vmax: m };

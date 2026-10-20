@@ -2,7 +2,7 @@
 // what a kernel does to one wave, why that makes it a per-wave multiply, what it costs, and
 // how far this model's prediction moves when one spot of its input is poked.
 // The stage re-renders on every app render, so each panel is built once and kept at module scope;
-// a render only re-attaches it. Canvases read the colour tokens at draw time.
+// a render only re-attaches it. Canvases read the color tokens at draw time.
 import { el, M, D, fmt, pct, paintField, paintBinary, maxAbs } from "../render.js";
 import { forward } from "../fno.js";
 import FFT from "../../vendor/fft.mjs";
@@ -38,7 +38,7 @@ function panel(id, build) {
   }
   return panels.get(id);
 }
-// Colours are read at draw time, so a flip of the colour scheme only needs a redraw.
+// Colors are read at draw time, so a flip of the color scheme only needs a redraw.
 const redrawAll = () => requestAnimationFrame(() => { for (const p of panels.values()) if (p.root.isConnected) p.draw(); });
 new MutationObserver(redrawAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redrawAll);
@@ -83,7 +83,7 @@ const HALF = N / 2;
 /** Kernel taps as [u, κ(u)]: y(n) = Σ_u κ(u) x(n − u), indices wrapping around. */
 const KERNELS = {
   average: { label: "average", taps: [[-2, 1 / 16], [-1, 4 / 16], [0, 6 / 16], [1, 4 / 16], [2, 1 / 16]],
-    about: "Five weights that add up to 1. The middle sample counts most and its neighbours less, so each output is an average of a sample and the ones around it." },
+    about: "Five weights that add up to 1. The middle sample counts most and its neighbors less, so each output is an average of a sample and the ones around it." },
   difference: { label: "difference", taps: [[-1, 1], [0, 0], [1, -1]],
     about: "Weights −1 and +1 on either side of the middle. Each output is the sample ahead minus the sample behind, so it is large where the signal changes fast: positive going up, negative going down." },
   shift: { label: "shift by 3", taps: [[3, 1]],
@@ -107,14 +107,14 @@ function response(taps, k) {
 }
 /**
  * How far wave k moves, in points. A shift is only defined up to whole wavelengths, so pick the one
- * nearest the kernel's centre of weight: "shift by 3" then reads as 3 for every wave, not a wrapped −1.
+ * nearest the kernel's center of weight: "shift by 3" then reads as 3 for every wave, not a wrapped −1.
  */
 function shiftOf(taps, k, R) {
   if (k === 0 || R.mag < 1e-9) return 0;
   const lam = N / k, sum = taps.reduce((a, [, w]) => a + w, 0);
-  const centre = Math.abs(sum) > 1e-9 ? taps.reduce((a, [u, w]) => a + u * w, 0) / sum : 0;
+  const center = Math.abs(sum) > 1e-9 ? taps.reduce((a, [u, w]) => a + u * w, 0) / sum : 0;
   const d = (-R.arg * N) / (TAU * k);
-  return d + Math.round((centre - d) / lam) * lam;
+  return d + Math.round((center - d) / lam) * lam;
 }
 const n2 = (v) => (Math.abs(v) < 0.005 ? "0.00" : v.toFixed(2));
 
@@ -306,7 +306,7 @@ function drawWave(cv, { x, y, taps, R, k, PHI, stage, n, seen, pos, done }) {
   if (top.block) {
     const xb = Float64Array.from({ length: N }, (_, i) => (i >= 10 && i <= 21 ? 1 : 0)), yb = convolve(xb, taps);
     const Yb = scaleY("block", 1.15);
-    head("block", w < 560 ? "on a block: grey in, orange out" : "the same kernel on a block (grey), and what comes out (orange)");
+    head("block", w < 560 ? "on a block: gray in, orange out" : "the same kernel on a block (gray), and what comes out (orange)");
     axis("block");
     ctx.strokeStyle = T.ink3; ctx.lineWidth = 1.6; ctx.beginPath();
     for (let i = 0; i < N; i++) { const a = X(i) - dx / 2, b = X(i) + dx / 2; i ? ctx.lineTo(a, Yb(xb[i])) : ctx.moveTo(a, Yb(xb[i])); ctx.lineTo(b, Yb(xb[i])); }
@@ -330,7 +330,7 @@ function drawWave(cv, { x, y, taps, R, k, PHI, stage, n, seen, pos, done }) {
   if (stage >= 2) {
 
     const lim = Math.max(1, ...Array.from({ length: HALF + 1 }, (_, kk) => response(taps, kk).mag)) * 1.08, Yo = scaleY("output", lim);
-    head("output", stage === 4 ? "output (orange) against the input (grey)" : "output: the sum of the products, one point per spot");
+    head("output", stage === 4 ? "output (orange) against the input (gray)" : "output: the sum of the products, one point per spot");
     axis("output");
     if (stage === 4) {
       ctx.strokeStyle = T.rule; ctx.lineWidth = 2; plotLine(ctx, x, X, Yo);
@@ -478,7 +478,7 @@ function drawOut(cv, { y, R, k, PHI, shift, taps, name }) {
   const kl = Math.max(...taps.map(([, wt]) => Math.abs(wt))), neg = taps.some(([, wt]) => wt < 0);
   const kBase = neg ? kTop + 18 + (kH - 18) / 2 : kTop + kH - 4, kAmp = neg ? (kH - 18) / 2 - 6 : kH - 30;
   const c0 = (N - 1) / 2, Kx = (u) => X(c0 - u), Ky = (wt) => kBase - (wt / kl) * kAmp;
-  label(ctx, cv.clientWidth < 560 ? `kernel: ${name}` : `kernel: ${name}, centred on the dashed line (the output point)`, L, kTop + 4, T.ink, "left", 11);
+  label(ctx, cv.clientWidth < 560 ? `kernel: ${name}` : `kernel: ${name}, centered on the dashed line (the output point)`, L, kTop + 4, T.ink, "left", 11);
   ctx.strokeStyle = T.rule; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, kBase); ctx.lineTo(Rt, kBase); ctx.stroke();
   ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(X(c0), kBase - kAmp - 4); ctx.lineTo(X(c0), kBase + (neg ? kAmp + 4 : 4)); ctx.stroke(); ctx.setLineDash([]);
   for (const [u, wt] of taps) {
@@ -496,7 +496,7 @@ function drawOut(cv, { y, R, k, PHI, shift, taps, name }) {
   };
   // legend on the left; the two numbers that differ on the right, or on a third line when narrow
   const narrow = w < 560;
-  label(ctx, "grey: the sine wave going in", L, 16, T.ink3, "left", 11);
+  label(ctx, "gray: the sine wave going in", L, 16, T.ink3, "left", 11);
   label(ctx, "orange: the sine wave coming out", L, 32, T.sp, "left", 11);
   label(ctx, `both repeat ${k}× · orange is ${fmt(R.mag, 2)}× as tall`, narrow ? L : Rt, narrow ? 48 : 16, T.ink, narrow ? "left" : "right", 11);
   ctx.strokeStyle = T.rule; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, Y(0)); ctx.lineTo(Rt, Y(0)); ctx.stroke();
@@ -665,7 +665,7 @@ function drawSum(cv, { x, W, direct, stage, tau, added, done }) {
       curve((t) => at(wv, t, tau), Y); ctx.globalAlpha = 1;
     }
   });
-  if (stage >= 2) label(ctx, "grey: before · orange: after the kernel", L, y0 - 14, T.ink3, "left", 10);
+  if (stage >= 2) label(ctx, "gray: before · orange: after the kernel", L, y0 - 14, T.ink3, "left", 10);
   if (stage < 3) return;
 
   // the changed waves, added into the output one at a time

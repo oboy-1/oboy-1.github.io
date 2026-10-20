@@ -503,7 +503,7 @@ table.mini tr.on td { color: var(--ink); font-weight: 600; }
 .step-prose a, .appendix a { color: var(--link); text-underline-offset: 2px; }
 .m-block { max-width: 60ch; overflow-x: auto; overflow-y: hidden; padding: 2px 0; color: var(--ink); }
 .m-block .katex-display { margin: 0.35em 0; }
-/* "Key Point" and side-note callouts, in the blog's prompt-tip / prompt-info colours */
+/* "Key Point" and side-note callouts, in the blog's prompt-tip / prompt-info colors */
 .step-prose .key, .step-prose .aside { margin: 0; max-width: 60ch; padding: 10px 14px; border-radius: 6px; border-left: 4px solid var(--tip-bd); background: var(--tip-bg); color: var(--ink); font-size: 14px; }
 .step-prose .aside { border-left-color: var(--info-bd); background: var(--info-bg); color: var(--ink-2); font-size: 13.5px; }
 .step-prose .key .m-block, .step-prose .aside .m-block { margin-top: 4px; }

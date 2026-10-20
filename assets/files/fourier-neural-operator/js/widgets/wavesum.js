@@ -35,7 +35,7 @@ const sinSum = (amps, x) => {
 };
 
 function target1d(kind) {
-  // off-centre on purpose: a centred step has no even waves at all, and a skipped wave is a confusing thing to watch
+  // off-center on purpose: a centered step has no even waves at all, and a skipped wave is a confusing thing to watch
   if (kind === "step") return xs.map((x) => (x >= 0.2 && x < 0.55 ? 1 : 0));
   if (kind === "saw") return xs.map((x) => x);
   return xs.map((x) => Math.exp(-((x - 0.5) ** 2) / (2 * 0.1 * 0.1)));
@@ -373,7 +373,7 @@ function surfaceTab({ cutoff }) {
     const D = surface();
     const r = rebuild2d(S.K);
     draw3d(r.field);
-    // same colours as the rebuild beside it, so the two can be compared at a glance
+    // same colors as the rebuild beside it, so the two can be compared at a glance
     paintField(tgt, D.h, G, { mode: "sequential", vmin: -0.2, vmax: 1.2 });
     paintField(cur, r.field, DISP, { mode: "sequential", vmin: -0.2, vmax: 1.2 });
     kLab.textContent = String(S.K);

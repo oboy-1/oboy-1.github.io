@@ -125,7 +125,7 @@ export function keptMaskFigure(res) {
   const kept = m.reduce((s, v) => s + (v ? 1 : 0), 0);
   return el("figure", { class: "ftile maskwrap" }, el("div", { class: "tile" }, cv),
     el("figcaption", {}, el("span", { class: "cap-t" }, `${kept} kept of ${(res * res).toLocaleString("en-US")}`),
-      el("span", { class: "cap-s" }, `every wave in the grid, at ${res}×${res}; centre is the flat average`)));
+      el("span", { class: "cap-s" }, `every wave in the grid, at ${res}×${res}; center is the flat average`)));
 }
 
 /** The cut applied to the layer's real input: before, after, and what was removed. */
@@ -156,7 +156,7 @@ export function truncateRealPanel(app, { l, part = "both" }) {
       el("span", { class: "op-chip" }, "difference"),
       tile(cut, res, vmRem, "what was removed", `own scale ±${fmt(vmRem, 3)}`)),
     el("p", { class: "drill-note" },
-      `This channel is smooth, so the cut barely changes it. The last tile has its own, much finer colour scale (±${fmt(vmRem, 3)}, against ±${fmt(vm, 2)} for the other two), just so the difference is visible at all. Across all 32 channels, the cut keeps ${pct(stats.truncation_kept_excl_mean, 1)} of this input's energy, not counting the flat average.`),
+      `This channel is smooth, so the cut barely changes it. The last tile has its own, much finer color scale (±${fmt(vmRem, 3)}, against ±${fmt(vm, 2)} for the other two), just so the difference is visible at all. Across all 32 channels, the cut keeps ${pct(stats.truncation_kept_excl_mean, 1)} of this input's energy, not counting the flat average.`),
   ];
 
   if (part === "real") return out;
@@ -320,7 +320,7 @@ export function rPanel(app, { l, truncOnly = false }) {
   const kmask = mask(res);
 
   function draw() {
-    // "what we throw away": the same spectrum with the kept block greyed and the rest stretched to its own range
+    // "what we throw away": the same spectrum with the kept block grayed and the rest stretched to its own range
     const lost = kind === "3";
     const E = spectra[l - 1][lost ? 0 : +kind];
     let hi = -Infinity;
@@ -441,7 +441,7 @@ export function rPanel(app, { l, truncOnly = false }) {
       el("div", { class: "drill-text" },
         el("p", {}, "Each cell is one wave. Its position says how fast it oscillates and in which direction: the center is the mean, the far edges are the finest ripples the grid can show."),
         el("p", {}, `R is a complex array of shape ${W.join(" × ")}. For each kept wave it holds a ${W[0]}×${W[1]} matrix that mixes the ${W[0]} input channels into ${W[1]} output channels. Complex numbers let it rescale each wave and shift where its peaks sit.`),
-        el("p", {}, "Switch to “after truncation”: everything outside the outline turns grey. Switch to “after × R”: the energy is redistributed inside the block but never leaves it. Multiplying a wave's coefficient by a number can't create a different wave."),
+        el("p", {}, "Switch to “after truncation”: everything outside the outline turns gray. Switch to “after × R”: the energy is redistributed inside the block but never leaves it. Multiplying a wave's coefficient by a number can't create a different wave."),
         el("p", { class: "drill-note" }, "The strong horizontal and vertical lines through the center come from the square's borders. The FFT treats the grid as if it wrapped around, and opposite edges of the rock don't match. The model's own FFT sees these lines too."))),
   ];
 }
@@ -464,11 +464,11 @@ export function convPanel(app, { l, c, F }) {
       tile(lc.high, res, vm, "Local path, above cutoff", `shared scale ±${fmt(vm, 3)}`, "p-local")),
     el("p", { class: "drill-note" },
       `The left tile is blank because the spectral path has nothing there to show. Over all 32 channels of this layer, the local path supplies ${pct(stats.outside_cutoff_share_local, 1)} of the energy above the cutoff. ${pct(stats.local_own_energy_outside_cutoff, 1)} of the local path's own energy lives up there, and ${pct(stats.spectral_own_energy_outside_cutoff, 1)} of the spectral path's.`,
-      exact ? "" : " The two tiles above come from the 8-bit precomputed fields, so the left one holds a little rounding noise, far below this colour scale. The percentages come from the full-precision export."),
+      exact ? "" : " The two tiles above come from the 8-bit precomputed fields, so the left one holds a little rounding noise, far below this color scale. The percentages come from the full-precision export."),
   ];
 }
 
-/** Energy per wave after the × R step, as one tile: grey outside the kept block. For the "back to pixels" slide. */
+/** Energy per wave after the × R step, as one tile: gray outside the kept block. For the "back to pixels" slide. */
 export function heatTile(app, { l, kind = 2 }) {
   const s = app.sample, res = s.live ? s.live.res : 64;
   const E = (s.live?.spectra ?? s.spectra)[l - 1][kind];
@@ -483,5 +483,5 @@ export function heatTile(app, { l, kind = 2 }) {
   }
   ctx.putImageData(img, 0, 0);
   return el("figure", { class: "ftile" }, el("div", { class: "tile" }, cv),
-    el("figcaption", {}, el("span", { class: "cap-t" }, "waves after × R"), el("span", { class: "cap-s" }, "all 32 channels; grey = discarded")));
+    el("figcaption", {}, el("span", { class: "cap-t" }, "waves after × R"), el("span", { class: "cap-s" }, "all 32 channels; gray = discarded")));
 }

@@ -36,7 +36,7 @@ export function fieldTile(field, res, vmax, { big = false, label, sub, path } = 
     el("figcaption", {}, el("span", { class: "cap-t" }, label), sub ? el("span", { class: "cap-s" }, sub) : null));
 }
 
-// A labelled step in the diagram. Not clickable: the slides after this one explain each step.
+// A labeled step in the diagram. Not clickable: the slides after this one explain each step.
 function node(app, key) {
   const n = NODES[key];
   return el("span", { class: `node static p-${n.path}`, title: n.title }, n.label);

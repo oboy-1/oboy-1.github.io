@@ -1,5 +1,5 @@
 // The whole network as an animated 3D scene, in the style of the CNN explainers: grid slabs going in and out.
-// One Fourier layer is drawn once and labelled "× 4". The heart is the spectral path, shown as four stations
+// One Fourier layer is drawn once and labeled "× 4". The heart is the spectral path, shown as four stations
 // (FFT, keep the slow waves, scale + shift each wave, inverse FFT); the lift and the local path are 1×1 convolutions
 // and are drawn as a window sliding across the grid. Slabs are neutral grids: real data lives in the 2D panels.
 import * as THREE from "../../vendor/three/three.module.min.js";
@@ -187,7 +187,7 @@ function build() {
     root.add(g); return g;
   };
 
-  // ---- tubes with travelling dots: how data flows
+  // ---- tubes with traveling dots: how data flows
   const flows = [];
   function path(points, color, { dots = 3, speed = 0.12 } = {}) {
     const vs = points.map((p) => new THREE.Vector3(...p));

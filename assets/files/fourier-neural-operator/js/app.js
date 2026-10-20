@@ -179,7 +179,7 @@ export function resampleNearest(src, from, to) {
 /**
  * Resample a smooth periodic field (a painted forcing). Down: point subsample, exactly how the
  * 32 and 64 test grids were made from 128. Up: Fourier interpolation, which adds no frequencies
- * the painting didn't have; nearest-neighbour would add staircase edges, i.e. fake fine detail.
+ * the painting didn't have; nearest-neighbor would add staircase edges, i.e. fake fine detail.
  */
 export function resampleSmooth(src, from, to) {
   if (to === from) return Float64Array.from(src);

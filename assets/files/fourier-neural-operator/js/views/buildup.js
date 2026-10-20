@@ -49,7 +49,7 @@ export function buildUpPanel(app, { l }) {
   const cum = new Float64Array(NW + 1);
   for (let j = 0; j < NW; j++) cum[j + 1] = cum[j] + (waves[j].i === 0 ? 0 : waves[j].e);
 
-  // Heat colours for the grid, same log scale as the heatmap above.
+  // Heat colors for the grid, same log scale as the heatmap above.
   const logE = (i) => Math.log10(energy[i] / (N * N) + 1e-30);
   let hi = -Infinity;
   for (let i = 0; i < N; i++) hi = Math.max(hi, logE(i));
@@ -260,8 +260,8 @@ export function buildUpPanel(app, { l }) {
     el("div", { class: "bu-row" },
       el("figure", { class: "ftile bu-tile bu-gridfig" },
         el("div", { class: "heat-stack bu-stack" }, grid, over),
-        el("figcaption", {}, el("span", { class: "cap-t" }, "its waves, strongest first"), el("span", { class: "cap-s" }, "orange: the one just added · grey outline: the network's kept block"))),
-      tile(recCv, "rebuilt from the waves so far", "one colour scale"),
+        el("figcaption", {}, el("span", { class: "cap-t" }, "its waves, strongest first"), el("span", { class: "cap-s" }, "orange: the one just added · gray outline: the network's kept block"))),
+      tile(recCv, "rebuilt from the waves so far", "one color scale"),
       tile(realCv, "the real channel", "the target"),
       tile(newCv, "the wave just added", "scaled to itself")),
     el("div", { class: "bu-ctl" },

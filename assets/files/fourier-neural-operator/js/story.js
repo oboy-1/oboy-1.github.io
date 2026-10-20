@@ -187,7 +187,7 @@ export const STEPS = [
     prose() {
       return [
         el("p", {}, "Let's see this in action. For starters, what is a kernel?"),
-        el("p", {}, "A kernel is just a short list of weights. You slide it along the signal, and at every spot it looks at a few neighbouring samples, multiplies each one by its weight, and adds them up. Different weights do different things: an average kernel averages a point with its neighbours, and a difference kernel subtracts the point behind from the point ahead, so it picks out where the signal changes fast."),
+        el("p", {}, "A kernel is just a short list of weights. You slide it along the signal, and at every spot it looks at a few neighboring samples, multiplies each one by its weight, and adds them up. Different weights do different things: an average kernel averages a point with its neighbors, and a difference kernel subtracts the point behind from the point ahead, so it picks out where the signal changes fast."),
         el("p", {}, "For our input, we'll use a single wave measured at 32 points. On the right, the kernel sits under it, with one weight lined up under each sample it reads. At the bottom, the same kernel runs over a block with sharp sides, so you can see what each kernel does: average rounds off the corners, difference lights up only at the two jumps, and shift just moves the block over."),
       ];
     },
@@ -325,7 +325,7 @@ export const STEPS = [
       return [
         el("p", {}, "The network's input is a grid of values, and that grid can be any size. Just like how convolutional layers can take any kind of input, the first thing we do is run a convolutional layer on it. But instead of a kernel with some large size, it's a 1\u00d71 kernel, and it expands out to 32 channels. Those 32 channels exist so that the network has a lot more values to work with, instead of just one number per pixel."),
         el("details", {}, el("summary", {}, "Why x and y get added as extra input channels"),
-          el("p", {}, "Remember, this whole network is meant to be resolution invariant from end to end. That's why we use 1\u00d71 kernels. A 3\u00d73 or a 5\u00d75 kernel looks at a neighbourhood, so it builds in a sense of which pixels sit close to each other. A 1\u00d71 kernel never looks at a neighbour, so nothing in the network knows where a pixel is. To give that back, we add the x and y position of every pixel as two more input channels.")),
+          el("p", {}, "Remember, this whole network is meant to be resolution invariant from end to end. That's why we use 1\u00d71 kernels. A 3\u00d73 or a 5\u00d75 kernel looks at a neighborhood, so it builds in a sense of which pixels sit close to each other. A 1\u00d71 kernel never looks at a neighbor, so nothing in the network knows where a pixel is. To give that back, we add the x and y position of every pixel as two more input channels.")),
       ];
     },
   },
@@ -391,7 +391,7 @@ export const STEPS = [
     state: { dataset: "darcy", view: "bridge", flowMode: "plain", layer: 2, node: null, focus: null, draw: false },
     prose() {
       return [
-        el("p", {}, "Since we threw away a lot of waves, we've lost some information, and the network needs something to pick it up. This is where we switch to the Darcy flow example \u2013 its sharp edges make the loss easy to see. The local path runs a 1\u00d71 convolution over the grid, mixing the 32 channels at each pixel with no neighbours involved. It keeps track of individual details, including the extra signal the cutoff threw away. In short, one path sees the whole image at once, and the other sees one pixel at a time."),
+        el("p", {}, "Since we threw away a lot of waves, we've lost some information, and the network needs something to pick it up. This is where we switch to the Darcy flow example \u2013 its sharp edges make the loss easy to see. The local path runs a 1\u00d71 convolution over the grid, mixing the 32 channels at each pixel with no neighbors involved. It keeps track of individual details, including the extra signal the cutoff threw away. In short, one path sees the whole image at once, and the other sees one pixel at a time."),
         el("details", {}, el("summary", {}, "What is Darcy flow?"),
           el("p", {}, "Darcy flow describes water seeping slowly through porous ground, like soil or rock. The input is a map of the ground made of two materials: one that lets water through easily and one that doesn't. Water is added evenly everywhere, and the edges are held at zero pressure, so that's where it drains out. The output is the water pressure at every point once everything has settled."),
           D(tex`\begin{gathered} -\nabla \cdot \big(a(x)\, \nabla u(x)\big) = 1 \\ u = 0 \text{ on the edges} \end{gathered}`),
@@ -419,7 +419,7 @@ export const STEPS = [
       const st = lstats(app, app.state.layer);
       return [
         el("p", {}, "The spectral path truncates the fast waves and only keeps the slow ones, so whatever it processes is very smooth data \u2013 and that means the sharp detail is missing from that path."),
-        el("p", {}, "Let's check that on a real layer of the Darcy flow model. On the right are the two paths for one channel, on one shared colour scale. The local path looks like the quieter of the two: across all 32 channels of this layer, its values spread about ",
+        el("p", {}, "Let's check that on a real layer of the Darcy flow model. On the right are the two paths for one channel, on one shared color scale. The local path looks like the quieter of the two: across all 32 channels of this layer, its values spread about ",
           el("strong", {}, `${fmt(st.std_spectral / st.std_local, 1)}×`), " less than the spectral path's."),
         el("p", {}, "Now keep only what's above the cutoff in each, the fast waves, which is where sharp edges live. The spectral tile goes blank, and the local tile is nothing but the outlines of the rock."),
         key("So the local path is the smaller of the two signals, and it's still the only one carrying the sharp detail."),

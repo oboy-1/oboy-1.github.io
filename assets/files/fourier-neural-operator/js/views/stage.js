@@ -207,8 +207,8 @@ function problemStage(viz, app) {
       card("model", "Way 2 · predict", "Predicted", "one pass through the network", predCv,
         live && !state.draw ? `${Math.round(live.ms)} ms, live in this tab${live.error != null ? ` · ${pct(live.error, 1)} off the simulation` : ""}` : "from the exported run")),
     el("p", { class: "cap-s" }, isNS()
-      ? `Both swirl fields (vorticity: red spins one way, blue the other) on one colour scale, ±${fmt(vmax, 2)}. A test sample the model never trained on.`
-      : `Both pressure fields on one colour scale, 0 to ${fmt(vmax, 2)}. The rock is a test sample the model never trained on.`)));
+      ? `Both swirl fields (vorticity: red spins one way, blue the other) on one color scale, ±${fmt(vmax, 2)}. A test sample the model never trained on.`
+      : `Both pressure fields on one color scale, 0 to ${fmt(vmax, 2)}. The rock is a test sample the model never trained on.`)));
 }
 
 // ---------- act 0.25: a function in, a function out ----------
@@ -254,7 +254,7 @@ function operatorStage(viz, app) {
         el("div", { class: "op2-legend cap-s" },
           el("span", {}, `${num(count)} numbers from this grid · ${num(n)} slots`),
           el("strong", { class: count === n ? "ok" : "no" }, verdict))),
-      el("p", { class: "cap-s" }, `The ${w.input} and the model's prediction for one test sample, on one colour scale. The bar is drawn to scale.`));
+      el("p", { class: "cap-s" }, `The ${w.input} and the model's prediction for one test sample, on one color scale. The bar is drawn to scale.`));
   }
   draw();
   viz.append(el("div", { class: "panel-body" }, el("h4", { class: "drill-sub" }, `One ${w.input}, any grid`), body));
@@ -282,7 +282,7 @@ function invarianceStage(viz, app) {
       el("h4", { class: "drill-sub" }, "The same weights, three different grids"),
       el("span", { class: "inv-badge mono" }, `${m.model.params.toLocaleString("en-US")} weights · unchanged`)),
     row,
-    el("p", { class: "cap-s" }, `Predicted ${words().output} for one sample at each grid size, on one colour scale. Test error is the mean over ${m.stats.test_error["64"].n} unseen samples. Nothing about the model changes between them — no retraining, no resizing, no interpolation of weights.`),
+    el("p", { class: "cap-s" }, `Predicted ${words().output} for one sample at each grid size, on one color scale. Test error is the mean over ${m.stats.test_error["64"].n} unseen samples. Nothing about the model changes between them — no retraining, no resizing, no interpolation of weights.`),
     isNS() ? el("p", { class: "cap-s" }, `Why the three errors nearly match: the 32×32 and 64×64 grids are every 4th and every 2nd point of the same 128×128 data, and the fluid is smooth. The model only uses waves up to ${Math.max(...m.kept_modes_centered.map(([a]) => a)) - m.resolutions[1] / 2} in each direction, and even 32×32 can hold waves up to 16, so all three grids give it the same waves to work with.`) : null));
 }
 
@@ -369,14 +369,14 @@ function wavesStage(viz, app) {
     ...waveIntroPanel(app)));
 }
 
-// ---------- step 4: the centrepiece ----------
+// ---------- step 4: the centerpiece ----------
 function pathsStage(viz, app) {
   const l = app.state.layer;
   const stats = layerStats(app, l);
   const c = app.state.channel ?? stats.default_channel;
   const F = layerFields(app, l, c);
   const res = F.res;
-  // One scale across both paths and their sum. Normalising each tile on its own would erase the point.
+  // One scale across both paths and their sum. Normalizing each tile on its own would erase the point.
   const shared = Math.max(maxAbs(F.spectral), maxAbs(F.local), maxAbs(F.sum));
 
   const m = mask(res);
@@ -391,14 +391,14 @@ function pathsStage(viz, app) {
   viz.append(...layerHeader(app));
   viz.append(el("div", { class: "paths-grid" },
     el("h4", { class: "drill-sub" }, "1 · Both paths, side by side"),
-    el("p", { class: "lead-in" }, `Here's channel ${c} of layer ${l} coming out of each path, all on one colour scale. ${bigger}`),
+    el("p", { class: "lead-in" }, `Here's channel ${c} of layer ${l} coming out of each path, all on one color scale. ${bigger}`),
     el("div", { class: "paths-row" },
       fieldTile(F.spectral, res, shared, { big: true, label: "Spectral path", sub: `std ${fmt(spatialStd(F.spectral), 2)}`, path: "spectral" }),
       fieldTile(F.local, res, shared, { big: true, label: "Local path", sub: `std ${fmt(spatialStd(F.local), 2)}`, path: "local" }),
       el("span", { class: "plus-chip", "aria-hidden": "true" }, "+"),
       fieldTile(F.sum, res, shared, { big: true, label: "Sum", sub: "what the layer carries on" })),
     el("div", { class: "scale-note" }, el("span", { class: "grad", "aria-hidden": "true" }),
-      el("span", {}, `All three on one colour scale: ±${fmt(shared, 2)}. Red positive, blue negative.`)),
+      el("span", {}, `All three on one color scale: ±${fmt(shared, 2)}. Red positive, blue negative.`)),
     el("h4", { class: "drill-sub" }, "2 · Only what's above the cutoff"),
     el("p", { class: "lead-in" }, "Now strip both of them down to just the fast waves, everything above the cutoff. That's the sharp detail. The spectral tile comes out blank, because the cutoff already removed all of it. The local tile is what's left of the detail, and it sits along the edges of the rock."),
     el("div", { class: "paths-row" },

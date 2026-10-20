@@ -14,7 +14,7 @@ export function renderDraw(app) {
   const N = 64;
   const ns = isNS();
   const cv = el("canvas", { class: "paint", width: N, height: N, "aria-label": ns ? "Forcing map. Drag to paint." : "Permeability map. Drag to paint." });
-  // Fixed colour scale while painting, so a stroke visibly adds rather than the map renormalising.
+  // Fixed color scale while painting, so a stroke visibly adds rather than the map renormalizing.
   const peak = () => Math.max(maxAbs(app.sample.io[64].input), 1e-6);
   const paint = () => (ns ? paintInput(cv, app.drawing, N, { vmax: peak() }) : paintInput(cv, app.drawing, N));
   paint();
