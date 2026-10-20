@@ -191,7 +191,7 @@ export function buildUpPanel(app, { l }) {
   const nOf = (p) => Math.round(Math.exp((p / 1000) * Math.log(NW + 1)) - 1);
 
   marker.style.left = `calc(8px + (100% - 16px) * ${posOf(keptPairs) / 1000})`;
-  marker.lastChild.textContent = `network keeps ${keptPairs}`;
+  marker.lastChild.textContent = `network keeps ${keptPairs} pairs`;
   function update() {
     // Bring the running sum from `applied` waves to `n` waves.
     while (applied < n) { const w = waves[applied++]; for (const i of w.i === w.p ? [w.i] : [w.i, w.p]) { acc.re[i] = F.re[i]; acc.im[i] = F.im[i]; } }
@@ -255,7 +255,8 @@ export function buildUpPanel(app, { l }) {
     el("figcaption", {}, el("span", { class: "cap-t" }, label), sub ? el("span", { class: "cap-s" }, sub) : null));
 
   const out = el("div", { class: "bu" },
-    el("h4", { class: "drill-sub" }, `Putting channel ${best} back together, one wave at a time`),
+    el("h4", { class: "drill-sub" }, "2 · Putting a channel back together"),
+    el("p", { class: "lead-in" }, `Those squares really are the input. To see it, take channel ${best} and add its waves back one at a time, strongest first. The rebuild gets closer and closer to the real channel.`),
     el("div", { class: "bu-row" },
       el("figure", { class: "ftile bu-tile bu-gridfig" },
         el("div", { class: "heat-stack bu-stack" }, grid, over),
@@ -268,8 +269,8 @@ export function buildUpPanel(app, { l }) {
       el("div", { class: "bu-ctlrow" }, prev, el("div", { class: "tw bu-sl" }, slider, marker), next, play)),
     info,
     el("div", { class: "bu-3dwrap" }, cv3,
-      el("p", { class: "cap-s" }, "The same rebuild as a surface: height is the channel's value. The thin black mesh is the real channel, so you can watch the coloured surface settle onto it. Drag to turn it.")),
-    el("p", { class: "cap-s" }, `Waves are ranked by their energy in this one channel and added with their real size and phase. A real image's waves come in mirror pairs (a wave and its opposite), so each step lights two cells. The slider is stretched so the first few waves, which do most of the work, get room. The orange tick on the slider is how many waves the network keeps (${keptPairs}). Strongest-first isn't the same as slowest-first, so waves past the tick can still come early, and the network drops those. After all ${NW.toLocaleString("en-US")}, the rebuilt tile is the channel exactly.`));
+      el("p", { class: "cap-s" }, "The same rebuild as a 3-D surface, where height is the channel's value. The thin black mesh is the real channel, so you can watch the surface settle onto it. Drag to turn it.")),
+    el("p", { class: "cap-s" }, `Each wave goes in with its real size and shift. Waves come in mirror pairs, so each step lights up two squares. The slider is stretched so the first few waves, which do most of the work, get more room. The orange tick marks how many pairs the network keeps: ${keptPairs}, which is the ${app.manifest.stats.n_kept_modes} squares inside the outline, paired up (the flat average is its own pair). Strongest first isn't quite the same order as slowest first, so a few waves the network drops show up before the tick. Once all ${NW.toLocaleString("en-US")} are in, the rebuild matches the channel exactly.`));
 
   update();
   return out;

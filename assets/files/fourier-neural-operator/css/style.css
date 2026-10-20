@@ -861,6 +861,7 @@ table.mini tr.on td { color: var(--ink); font-weight: 600; }
 .viz.nobar .stage { padding-top: 12px; }
 
 /* slide 2: function vs operator */
+.lead-in { margin: 2px 0 12px; font: 15px/1.55 var(--font-sans); color: var(--ink); max-width: 68ch; }
 .node.static { cursor: default; }
 .node.static:hover { background: var(--panel); }
 .op2 { display: grid; gap: 14px; }

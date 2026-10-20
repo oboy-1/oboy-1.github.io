@@ -422,9 +422,13 @@ function bar(label, share, path, note) {
 function truncateStage(viz, app) {
   const l = app.state.layer;
   viz.append(...layerHeader(app, { picker: false }));
-  viz.append(el("div", { class: "panel-body drill" }, ...rPanel(app, { l, truncOnly: true })));
-  viz.append(el("div", { class: "panel-body" }, ...truncateRealPanel(app, { l })));
+  // In the order the text goes: the waves, proof they are the input, the cut, what it drops, where it hurts.
+  const [title, lead, grid, lost] = rPanel(app, { l, truncOnly: true });
+  viz.append(el("div", { class: "panel-body drill" }, title, lead, grid));
   viz.append(el("div", { class: "panel-body" }, buildUpPanel(app, { l })));
+  viz.append(el("div", { class: "panel-body" }, ...truncateRealPanel(app, { l, part: "real" })));
+  viz.append(el("div", { class: "panel-body drill" }, lost));
+  viz.append(el("div", { class: "panel-body" }, ...truncateRealPanel(app, { l, part: "rock" })));
 }
 
 // ---------- back to pixels: the waves after × R, then the grid again ----------

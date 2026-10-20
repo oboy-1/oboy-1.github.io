@@ -129,7 +129,7 @@ export function keptMaskFigure(res) {
 }
 
 /** The cut applied to the layer's real input: before, after, and what was removed. */
-export function truncateRealPanel(app, { l }) {
+export function truncateRealPanel(app, { l, part = "both" }) {
   const s = app.sample;
   const res = s.live ? s.live.res : 64;
   const stats = app.sample.live?.layerStats?.[l - 1] ?? s.entry.layers[l - 1];
@@ -147,7 +147,8 @@ export function truncateRealPanel(app, { l }) {
   // The removed part is tiny on smooth data, so it gets its own scale (and says so); before and after share one.
   const vmRem = maxAbs(cut) || 1;
   const out = [
-    el("h4", { class: "drill-sub" }, `The cut, applied to layer ${l}'s real input`),
+    el("h4", { class: "drill-sub" }, "3 · Keeping only the slow block"),
+    el("p", { class: "lead-in" }, `Now the cut itself. We keep only the waves inside the orange block and drop everything else. Here's what that does to one of layer ${l}'s input channels, the one that loses the most.`),
     el("div", { class: "drill-row" },
       tile(x, res, vm, `input channel ${best}`, "before the cut"),
       el("span", { class: "op-chip" }, "keep |k| ≤ 8"),
@@ -155,9 +156,11 @@ export function truncateRealPanel(app, { l }) {
       el("span", { class: "op-chip" }, "difference"),
       tile(cut, res, vmRem, "what was removed", `own scale ±${fmt(vmRem, 3)}`)),
     el("p", { class: "drill-note" },
-      `This channel is smooth, so almost nothing is lost: the removed tile is drawn on its own, much finer scale (±${fmt(vmRem, 3)}, against ±${fmt(vm, 2)} for the other two) just so you can see it. Across all 32 channels, truncation keeps ${pct(stats.truncation_kept_excl_mean, 1)} of this input's energy (excluding the mean).`),
+      `This channel is smooth, so the cut barely changes it. The last tile has its own, much finer colour scale (±${fmt(vmRem, 3)}, against ±${fmt(vm, 2)} for the other two), just so the difference is visible at all. Across all 32 channels, the cut keeps ${pct(stats.truncation_kept_excl_mean, 1)} of this input's energy, not counting the flat average.`),
   ];
 
+  if (part === "real") return out;
+  if (part === "rock") out.length = 0;
   // A smooth fluid has few fast waves to lose, so show the same cut on an image that does: a rock map with sharp edges.
   try {
     const rock = app.sampleOf("darcy").io[64].input;
@@ -170,14 +173,15 @@ export function truncateRealPanel(app, { l }) {
     const fig = (cv, label, sub) => el("figure", { class: "ftile" }, el("div", { class: "tile" }, cv),
       el("figcaption", {}, el("span", { class: "cap-t" }, label), sub ? el("span", { class: "cap-s" }, sub) : null));
     out.push(
-      el("h4", { class: "drill-sub" }, "The same cut on an image with sharp edges: a rock map"),
+      el("h4", { class: "drill-sub" }, "5 · The same cut on sharp edges"),
+      el("p", { class: "lead-in" }, "The cut costs so little here because the fluid is smooth. Here's the same cut on an image with sharp edges, a map of two kinds of rock."),
       el("div", { class: "drill-row" },
         fig(inCv, "a rock map", "two materials, sharp edges"),
         el("span", { class: "op-chip" }, "keep |k| ≤ 8"),
         fig(keptCv, "after the cut", `same scale ±${fmt(rv, 2)}`),
         el("span", { class: "op-chip" }, "difference"),
         fig(cutCv, "what was removed", `own scale ±${fmt(rvr, 2)}`)),
-      el("p", { class: "drill-note" }, "Now the cut does damage: the edges blur and ring, and everything that was removed sits along them. The fast waves are where sharp edges live."));
+      el("p", { class: "drill-note" }, "This time the cut does real damage. The edges blur and ripple, and everything it removed sits right along them. Sharp edges are made of fast waves, and those are exactly what the cut throws away."));
   } catch (e) { /* the rock data is only needed for this comparison */ }
   return out;
 }
@@ -410,20 +414,22 @@ export function rPanel(app, { l, truncOnly = false }) {
     };
     const kept = pick(true, 1), cut = pick(false, 5);
     return el("div", { class: "lost-waves" },
-      el("h4", { class: "drill-sub" }, "The strongest waves we throw away, drawn as waves"),
+      el("h4", { class: "drill-sub" }, "4 · What the cut throws away"),
+      el("p", { class: "lead-in" }, "So what exactly did we lose? Here are the biggest waves outside the block, drawn out, next to the biggest wave we keep."),
       el("div", { class: "drill-row" }, ...(kept.length ? [fig(kept[0], "kept:"), el("span", { class: "op-chip" }, "vs")] : []), ...cut.map((i) => fig(i, "cut:"))),
-      el("p", { class: "drill-note" }, "These are the fastest-wiggling waves the grid can hold, and the biggest of them still carries a sliver of what the slowest kept wave carries. In smooth data there is little up here to lose."));
+      el("p", { class: "drill-note" }, "Even the biggest wave we throw away holds a tiny sliver of the energy, compared with the biggest wave we keep. In smooth data like this fluid, there just isn't much up here to lose."));
   };
 
   if (truncOnly) return [
-    el("h3", { class: "drill-title" }, "Every wave in this layer's input, and the block we keep"),
+    el("h3", { class: "drill-title" }, "1 · The input, broken into waves"),
+    el("p", { class: "lead-in" }, `First, the FFT. This is layer ${l}'s input, broken into its waves. Every square on the map below is one wave, and together they make up the whole input.`),
     el("div", { class: "drill-grid" },
       el("div", { class: "heat-col" }, seg, stack,
-        el("p", { class: "cap-s" }, `log10 energy summed over 32 channels · 10 decades, so even the faint waves show · the flat average at the center · outlined: ${m.stats.n_kept_modes} kept waves of ${(res * res).toLocaleString("en-US")}`)),
-      el("div", { class: "wave-col" }, el("div", { class: "cap-t" }, "Hovered cell as a wave"), wave, info),
+        el("p", { class: "cap-s" }, `Brightness is on a log scale and summed over all 32 channels, so even very faint waves show up. Outlined: the ${m.stats.n_kept_modes} waves we keep, out of ${(res * res).toLocaleString("en-US")}.`)),
+      el("div", { class: "wave-col" }, el("div", { class: "cap-t" }, "The square you're pointing at, as a wave"), wave, info),
       el("div", { class: "drill-text" },
-        el("p", {}, "Each cell is one wave. Its position says how fast it oscillates and in which direction: the center is the flat average, the far edges are the finest ripples the grid can show. Brightness is how much of that wave the 32 channels hold."),
-        el("p", {}, `The orange outline is the block we keep, the same ${m.stats.n_kept_modes} waves for every image. Switch to “after truncation” and everything outside it goes grey. Switch to “what we throw away” and it flips: the kept block goes grey and the waves outside it are stretched to their own scale so you can see them.`))),
+        el("p", {}, "The middle square is the flat average. The further a square sits from the middle, the faster its wave wiggles, and which way it sits tells you which way the stripes run. The brighter a square, the more of that wave is in the input. Point at any square to see its wave drawn out."),
+        el("p", {}, `The orange outline is the block of slow waves we keep: the same ${m.stats.n_kept_modes} waves for every image. Click “after truncation” to see only what's inside it, or “what we throw away” to see only what's outside it, brightened so you can see it.`))),
     lostRow(),
   ];
   return [
