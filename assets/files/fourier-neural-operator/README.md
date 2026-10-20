@@ -8,7 +8,7 @@ Most posts here are markdown with small interactives embedded from `assets/files
 
 | Piece | Where |
 |---|---|
-| The page | `_posts/2026-10-19-fourier-neural-operators.html`. Its front matter sets `layout: none`, so Jekyll serves the HTML as written, at the normal `/posts/<slug>/` URL. Title, date, description and category come from the front matter, so the home card, archives, categories and search all work like any other post. |
+| The page | `_posts/2026-10-20-fourier-neural-operators.html`. Its front matter sets `layout: none`, so Jekyll serves the HTML as written, at the normal `/posts/<slug>/` URL. Title, date, description and category come from the front matter, so the home card, archives, categories and search all work like any other post. |
 | Everything it loads | This folder. The page links here with absolute paths. |
 | Home-page card images | `assets/images/2026/10/fourier-sine-to-fluid-card-{light,dark}.jpg` |
 
