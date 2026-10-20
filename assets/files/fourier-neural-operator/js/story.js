@@ -394,7 +394,7 @@ export const STEPS = [
         el("p", {}, "Since we threw away a lot of waves, we've lost some information, and the network needs something to pick it up. This is where we switch to the Darcy flow example \u2013 its sharp edges make the loss easy to see. The local path runs a 1\u00d71 convolution over the grid, mixing the 32 channels at each pixel with no neighbours involved. It keeps track of individual details, including the extra signal the cutoff threw away. In short, one path sees the whole image at once, and the other sees one pixel at a time."),
         el("details", {}, el("summary", {}, "What is Darcy flow?"),
           el("p", {}, "Darcy flow describes water seeping slowly through porous ground, like soil or rock. The input is a map of the ground made of two materials: one that lets water through easily and one that doesn't. Water is added evenly everywhere, and the edges are held at zero pressure, so that's where it drains out. The output is the water pressure at every point once everything has settled."),
-          D(tex`-\nabla \cdot \big(a(x)\, \nabla u(x)\big) = 1, \qquad u = 0 \text{ on the edges}`),
+          D(tex`\begin{gathered} -\nabla \cdot \big(a(x)\, \nabla u(x)\big) = 1 \\ u = 0 \text{ on the edges} \end{gathered}`),
           el("p", {}, "Here ", M(tex`a(x)`), " is how easily water moves through the ground at ", M(tex`x`), ", and ", M(tex`u(x)`), " is the pressure. It's lowest along the edges, where the water drains out, and rises toward the inside. Where the two materials meet, the pressure's slope changes suddenly. Those sharp boundaries are why this example is good for seeing what the cutoff loses.")),
       ];
     },
