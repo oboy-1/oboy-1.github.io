@@ -798,13 +798,15 @@ table.mini tr.on td { color: var(--ink); font-weight: 600; }
 .fail-top { display: flex; flex-wrap: wrap; gap: 14px; }
 .fail-tile .tile { width: min(190px, 40vw); height: min(190px, 40vw); }
 .fail-bars { display: grid; gap: 6px; max-width: 560px; }
-.fail-bar { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 4.5em; gap: 10px; align-items: center; font-size: 13px; }
+.fail-bar { display: grid; grid-template-columns: 11em minmax(0, 1fr) 5.5em; gap: 10px; align-items: center; font-size: 13px; }
 .fb-lab { color: var(--ink-2); }
 .fb-track { height: 10px; border-radius: 4px; background: var(--rule); overflow: hidden; }
 .fb-fill { display: block; height: 100%; background: var(--ink-3); border-radius: 4px; }
 .fail-bar.hot .fb-fill { background: var(--accent); }
 .fail-bar.hot .fb-val { color: var(--accent-text); font-weight: 600; }
 .fb-val { text-align: right; }
+.fail-head { font: 600 10.5px/1.2 var(--font-mono); color: var(--ink-3); letter-spacing: 0.02em; }
+.fb-scale { display: flex; justify-content: space-between; }
 
 .lim-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .lim-pair .tile { width: 100%; height: auto; aspect-ratio: 1; }
