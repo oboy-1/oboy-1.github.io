@@ -524,13 +524,13 @@ function stillFailsStage(viz, app) {
       el("figure", { class: "ftile fail-tile" }, el("div", { class: "tile" }, errCv),
         el("figcaption", {}, el("span", { class: "cap-t" }, "prediction − truth"), el("span", { class: "cap-s" }, `own scale, ±${fmt(maxAbs(err), 2)}`)))),
     el("h4", { class: "drill-sub" }, "2 · How much of each is fast detail"),
-    el("p", { class: "lead-in" }, `Now split each field into slow and fast waves at the spectral path's cutoff, and ask how much of its energy is in the fast ones. Almost none of the swirl is fast detail, but about half of the mistake is. Averaged over ${A("ns").n} test samples.`),
+    el("p", { class: "lead-in" }, `Now split each field into slow and fast waves at the spectral path's cutoff, and ask how much of its energy is in the fast ones. Almost none of the swirl is fast detail, but about half of the mistake is. For comparison, random noise would be about 93% fast, because most of the waves a 64×64 grid can hold are above the cutoff. So the point is the contrast: the swirl is almost all slow, and its mistake is not. Averaged over ${A("ns").n} test samples.`),
     el("div", { class: "fail-bars" }, ...bars.map(([label, v]) => el("div", { class: `fail-bar${label === "the mistake" ? " hot" : ""}` },
       el("span", { class: "fb-lab" }, label),
       el("span", { class: "fb-track" }, el("span", { class: "fb-fill", style: `width:${Math.max(0.6, (v / top) * 100)}%` })),
       el("span", { class: "fb-val mono" }, pct(v, 2))))),
-    el("h4", { class: "drill-sub" }, "3 · Does the local path's fast detail help?"),
-    el("p", { class: "lead-in" }, `To find out, we change the trained model without retraining it, and run the ${A("ns").n} test samples of each problem again.`),
+    el("h4", { class: "drill-sub" }, "3 · How much does this model lean on the local path?"),
+    el("p", { class: "lead-in" }, `We take the trained model, change one thing, and run the ${A("ns").n} test samples of each problem again. Nothing is retrained, so this shows how much this trained model relies on each piece. It doesn't show whether a model trained without that piece would do better or worse.`),
     el("table", { class: "mini" },
       el("thead", {}, el("tr", {}, el("th", {}, ""), el("th", {}, "fluid"), el("th", {}, "rock"))),
       el("tbody", {},
@@ -538,7 +538,7 @@ function stillFailsStage(viz, app) {
         el("tr", { class: "on" }, el("td", {}, "local path smoothed: in every layer, its waves above the cutoff are deleted"), el("td", { class: "num" }, pct(A("ns").local_above_cutoff_removed.mean, 2)), el("td", { class: "num" }, pct(A("darcy").local_above_cutoff_removed.mean, 2))),
         el("tr", {}, el("td", {}, "local path switched off entirely"), el("td", { class: "num" }, pct(A("ns").local_removed.mean, 1)), el("td", { class: "num" }, pct(A("darcy").local_removed.mean, 1))))),
     el("p", { class: "cap-s" }, `Error, averaged over ${A("ns").n} test samples per problem at 64×64, in the trained PyTorch model. Smoothing the local path leaves neither of the two paths able to pass on sharp detail. It costs the fluid about a tenth more error and the rock more than a third.`),
-    el("p", { class: "cap-s" }, "Error is the size of the prediction's mistake relative to the size of the true field, so it can go past 100%. Predicting all zeros would score exactly 100%. With the local path switched off, the fluid model still draws roughly the right swirl, but about 2.5× too strong, so its mistake ends up bigger than the swirl itself.")));
+    el("p", { class: "cap-s" }, "Error is the size of the prediction's mistake relative to the size of the true field, so it can go past 100%. Predicting all zeros would score exactly 100%. The last row is the network breaking: the layers after the local path were trained to expect its output, and without it the fluid model draws roughly the right swirl but about 2.5× too strong. That says the local path is wired in, not what information it carries.")));
 }
 
 // ---------- the whole layer as implemented: the two paths plus everything around them ----------
