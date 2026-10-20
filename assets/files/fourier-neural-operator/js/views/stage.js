@@ -512,7 +512,7 @@ function stillFailsStage(viz, app) {
   paintField(truthCv, io.target, 64, { vmax: maxAbs(io.target) });
   paintField(errCv, err, 64, { vmax: maxAbs(err) || 1 });
   const E = an.ns.energy_above_cutoff_64;
-  const bars = [["forcing (input)", E.input], ["true swirl", E.truth], ["predicted swirl", E.prediction], ["the mistake", E.error]];
+  const bars = [["the forcing (input)", E.input], ["the true swirl", E.truth], ["the model's prediction", E.prediction], ["the model's mistake", E.error]];
   const top = Math.max(...bars.map(([, v]) => v));
   const A = (k) => an[k].ablation_64;
   viz.append(el("div", { class: "panel-body" },
@@ -523,12 +523,13 @@ function stillFailsStage(viz, app) {
         el("figcaption", {}, el("span", { class: "cap-t" }, "true swirl"), el("span", { class: "cap-s" }, `sample #${s.entry.test_index}, 64×64`))),
       el("figure", { class: "ftile fail-tile" }, el("div", { class: "tile" }, errCv),
         el("figcaption", {}, el("span", { class: "cap-t" }, "prediction − truth"), el("span", { class: "cap-s" }, `own scale, ±${fmt(maxAbs(err), 2)}`)))),
-    el("h4", { class: "drill-sub" }, "2 · How much of each is fast detail"),
-    el("p", { class: "lead-in" }, `Now split each field into slow and fast waves at the spectral path's cutoff, and ask how much of its energy is in the fast ones. Almost none of the swirl is fast detail, but about half of the mistake is. Averaged over ${A("ns").n} test samples.`),
-    el("div", { class: "fail-bars" }, ...bars.map(([label, v]) => el("div", { class: `fail-bar${label === "the mistake" ? " hot" : ""}` },
+    el("h4", { class: "drill-sub" }, "2 · How much of each is fine detail"),
+    el("p", { class: "lead-in" }, "Each bar asks the same question: how much of this picture is fine detail, meaning the fast waves the spectral path throws away? The forcing, the true swirl and the model's prediction are all smooth, with well under 1% fine detail each. The mistake is the odd one out: almost half of it is fine detail. So the sharp stuff makes up a big share of what the model gets wrong, even though the swirl itself has almost none."),
+    el("div", { class: "fail-bars" }, ...bars.map(([label, v]) => el("div", { class: `fail-bar${label === "the model's mistake" ? " hot" : ""}` },
       el("span", { class: "fb-lab" }, label),
       el("span", { class: "fb-track" }, el("span", { class: "fb-fill", style: `width:${Math.max(0.6, (v / top) * 100)}%` })),
       el("span", { class: "fb-val mono" }, pct(v, 2))))),
+    el("p", { class: "cap-s" }, `Fine detail here is the share of each picture's energy in the waves above the cutoff, averaged over ${A("ns").n} test samples of the fluid.`),
     el("h4", { class: "drill-sub" }, "3 · Does the local path's fast detail help?"),
     el("p", { class: "lead-in" }, `To find out, we change the trained model without retraining it, and run the ${A("ns").n} test samples of each problem again.`),
     el("table", { class: "mini" },
