@@ -18,6 +18,13 @@ image:
 <meta name="description" content="{{ page.description }}">
 <link rel="icon" href="/assets/img/favicons/favicon.ico">
 {% seo title=false %}
+{% comment %} Start the downloads the page waits on as soon as the HTML arrives: the opening model's data, and the big modules. {% endcomment %}
+{% assign fno = '/assets/files/fourier-neural-operator' | relative_url %}
+<link rel="preload" href="{{ fno }}/data-ns/manifest.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="{{ fno }}/data-ns/weights.wasm" as="fetch" crossorigin="anonymous">
+<link rel="modulepreload" href="{{ fno }}/js/app.js">
+<link rel="modulepreload" href="{{ fno }}/vendor/three/three.module.min.js">
+<link rel="modulepreload" href="{{ fno }}/vendor/katex/katex.mjs">
 </head><body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -18,10 +18,23 @@ export async function loadManifest(dir = "data") {
   return m;
 }
 
-async function fetchBytes(path, base = BASE) {
+async function fetchBytes(path, base = BASE, onProgress = null) {
   const res = await fetch(new URL(path, base));
   if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
-  return res.arrayBuffer();
+  if (!onProgress || !res.body) return res.arrayBuffer();
+  // Content-Length is the compressed size when the host gzips, so it's only a total when nothing is encoded.
+  const total = res.headers.get("content-encoding") ? 0 : +res.headers.get("content-length") || 0;
+  const reader = res.body.getReader(), parts = [];
+  let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value); got += value.length; onProgress(got, total);
+  }
+  const out = new Uint8Array(got);
+  let at = 0;
+  for (const p of parts) { out.set(p, at); at += p.length; }
+  return out.buffer;
 }
 
 async function decodeGray(path, base) {
@@ -64,8 +77,8 @@ export async function loadSpectra(sampleIdx, base = BASE) {
   return [0, 1, 2, 3].map((l) => [0, 1, 2].map((k) => buf.subarray((l * 3 + k) * n, (l * 3 + k + 1) * n)));
 }
 
-export async function loadWeights(manifest) {
-  return decodeWeights(manifest, await fetchBytes(manifest.weights.file.replace(/\.bin$/, BIN), baseOf(manifest)));
+export async function loadWeights(manifest, onProgress = null) {
+  return decodeWeights(manifest, await fetchBytes(manifest.weights.file.replace(/\.bin$/, BIN), baseOf(manifest), onProgress));
 }
 
 /** Decode weights.bin (ArrayBuffer) into { name: { shape, complex, data: Float64Array } }. */
