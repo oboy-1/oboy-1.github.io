@@ -3,7 +3,7 @@ import { el, M, paintField, paintBinary, paintInput, outScale, isNS, words, maxA
 import { spatialStd } from "../nn.js";
 import { splitAtCutoff, keptMask, fft2 } from "../fourier.js";
 import { renderFlow } from "./flow.js";
-import { renderLayer, layerHeader, layerFields, layerStats, fieldTile } from "./layer.js";
+import { layerHeader, layerFields, layerStats, fieldTile } from "./layer.js";
 import { renderDraw } from "./draw.js";
 import { storedStage, multiplyStage, limitsStage } from "./learned.js";
 import { buildUpPanel } from "./buildup.js";
@@ -138,12 +138,7 @@ export function renderStage(viz, app) {
     case "operator": return operatorStage(viz, app);
     case "invariance": return invarianceStage(viz, app);
     case "flow": return flowStage(viz, app, { counts: true });
-    case "split": {
-      // renderLayer clears whatever it is handed, so it gets its own host and the 3D strip above it stays.
-      const host = el("div", { class: "layer-host" });
-      viz.append(host);
-      return renderLayer(host, app);
-    }
+    case "split": return splitStage(viz, app);
     case "convwave": case "convkernel": case "convone": case "convslide": case "convout": return convWaveStage(viz, fresh, step.id);
     case "convsum": case "convsplit": case "convchange": case "convadd": return convSumStage(viz, fresh, step.id);
     case "convcost": return convCostStage(viz, fresh);
@@ -209,6 +204,41 @@ function problemStage(viz, app) {
     el("p", { class: "cap-s" }, isNS()
       ? `Both swirl fields (vorticity: red spins one way, blue the other) on one colour scale, ±${fmt(vmax, 2)}. A test sample the model never trained on.`
       : `Both pressure fields on one colour scale, 0 to ${fmt(vmax, 2)}. The rock is a test sample the model never trained on.`)));
+}
+
+// ---------- slide 22: one layer, as a map ----------
+// One channel goes in, splits into the two paths, and comes back together. Each path shows only its output,
+// with its steps named. The slides after this one open each step up.
+function splitStage(viz, app) {
+  const { sample } = app, l = 2;
+  const c = layerStats(app, l).default_channel;
+  const F = layerFields(app, l, c), res = F.res;
+  const v = sample.live ? sample.live.layers[l - 2].out[c] : sample.fields[`layer${l - 1}.out`][c];
+  const shared = Math.max(maxAbs(F.spectral), maxAbs(F.local), maxAbs(F.sum), maxAbs(F.act));
+  const tileOf = (f, vmax, cls = "") => { const cv = el("canvas"); paintField(cv, f, res, { vmax }); return el("div", { class: `tile ${cls}` }, cv); };
+  const fig = (tileEl, title, sub) => el("figure", { class: "sp-fig" }, tileEl, el("figcaption", {}, el("span", { class: "cap-t" }, title), sub ? el("span", { class: "cap-s" }, sub) : null));
+  const arrow = (t = "→") => el("span", { class: "sp-arrow", "aria-hidden": "true" }, t);
+  const steps = (...names) => el("ol", { class: "sp-chain" }, ...names.map((n) => el("li", {}, n)));
+
+  viz.append(el("div", { class: "panel-body sp" },
+    el("h4", { class: "drill-sub" }, `Inside layer ${l}, following one of its 32 channels`),
+    el("div", { class: "sp-grid" },
+      el("div", { class: "sp-in" }, fig(tileOf(v, maxAbs(v), "big"), "What comes in", `channel ${c}, from layer ${l - 1}`)),
+      el("div", { class: "sp-paths" },
+        el("div", { class: "sp-path spectral" },
+          el("div", { class: "sp-path-text" }, el("strong", {}, "Spectral path"),
+            steps("break it into waves", "keep the slow ones", "reweight each wave", "back to pixels")),
+          tileOf(F.spectral, shared, "out")),
+        el("div", { class: "sp-path local" },
+          el("div", { class: "sp-path-text" }, el("strong", {}, "Local path"),
+            steps("mix the channels at each pixel, no neighbours")),
+          tileOf(F.local, shared, "out"))),
+      el("div", { class: "sp-end" },
+        arrow("+"),
+        fig(tileOf(F.sum, shared, "big"), "Added together", null),
+        arrow("↓"),
+        fig(tileOf(F.act, shared, "big"), "After the nonlinearity", null))),
+    el("p", { class: "cap-s" }, "One test sample. Everything after the split shares one colour scale. Both paths mix all 32 channels, so their outputs depend on more than the one channel shown going in.")));
 }
 
 // ---------- act 0.25: a function in, a function out ----------
