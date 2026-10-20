@@ -1,7 +1,6 @@
 // Zoom level 2: one Fourier layer, split into its spectral and local paths.
 import { el, paintField, maxAbs, fmt, pct } from "../render.js";
 import { geluArray, spatialStd } from "../nn.js";
-import { renderDrill } from "./drill.js";
 
 const NODES = {
   fft: { label: "FFT", path: "spectral", title: "Fourier transform" },
@@ -37,13 +36,10 @@ export function fieldTile(field, res, vmax, { big = false, label, sub, path } = 
     el("figcaption", {}, el("span", { class: "cap-t" }, label), sub ? el("span", { class: "cap-s" }, sub) : null));
 }
 
+// A labelled step in the diagram. Not clickable: the slides after this one explain each step.
 function node(app, key) {
   const n = NODES[key];
-  const target = n.drill ?? key;
-  const b = el("button", { class: `node p-${n.path}`, "aria-pressed": String(app.state.node === target), title: `${n.title}: open explanation` },
-    n.label, el("span", { class: "more", "aria-hidden": "true" }, "+"));
-  b.addEventListener("click", (e) => { e.stopPropagation(); app.set({ node: app.state.node === target ? null : target }); });
-  return b;
+  return el("span", { class: `node static p-${n.path}`, title: n.title }, n.label);
 }
 
 function arrowLine(kind) {
@@ -115,11 +111,6 @@ export function renderLayer(root, app) {
     el("div", { class: "tp-sum" }, fieldTile(F.sum, res, shared, { big: true, label: "Sum", sub: "before the nonlinearity" })),
   );
 
-  // On the "two paths" slide, point at the buttons until one has been clicked.
-  if (app.step?.().id === "split" && !state.node) {
-    diagram.classList.add("hinted");
-    diagram.querySelector(".tp-row.spectral")?.append(el("div", { class: "node-hint", role: "note" }, "Click any of these steps to open it"));
-  }
 
   const outMax = maxAbs(F.out);
   const after = el("div", { class: "after" },
@@ -144,7 +135,6 @@ export function renderLayer(root, app) {
   );
 
   root.append(el("div", { class: "layer-body" }, diagram, readout), legend, after);
-  if (state.node) root.append(renderDrill(app, state.node, { l, c, F }));
   if (sample.live?.note) root.append(el("p", { class: "fcap", style: "text-align:left" }, sample.live.note));
 }
 
