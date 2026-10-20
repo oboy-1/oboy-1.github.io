@@ -749,11 +749,13 @@ function buildConvWide() {
   return p;
 }
 
-const rgb = (s) => { if (s.startsWith("#")) { const h = s.length === 4 ? [...s.slice(1)].map((c) => c + c).join("") : s.slice(1); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); } return (s.match(/[\d.]+/g) ?? [0, 0, 0]).slice(0, 3).map(Number); };
+// Always white to orange, in both themes, like the input map beside it. Fading from the dark-mode
+// background instead turns the middle of the scale a muddy brown.
+const HEAT_LO = [255, 255, 255], HEAT_HI = [234, 88, 12];
 function paintHeat(cv, delta) {
   if (cv.width !== R64) { cv.width = R64; cv.height = R64; }
   const ctx = cv.getContext("2d"), img = ctx.createImageData(R64, R64);
-  const a = rgb(tokens().ground), b = rgb(tokens().sp), top = Math.sqrt(maxAbs(delta)) || 1;
+  const a = HEAT_LO, b = HEAT_HI, top = Math.sqrt(maxAbs(delta)) || 1;
   for (let i = 0; i < R64 * R64; i++) {
     const t = Math.sqrt(Math.abs(delta[i])) / top;
     for (let ch = 0; ch < 3; ch++) img.data[i * 4 + ch] = a[ch] + (b[ch] - a[ch]) * t;
@@ -770,16 +772,17 @@ function drawMarks(cv, key, [r0, c0], square) {
   if (square) {
     // wrapped copies for the fluid, so the square reads right when the poke sits by an edge
     const shifts = key === "ns" ? [-1, 0, 1] : [0];
-    ctx.strokeStyle = T.ink; ctx.setLineDash([5, 4]);
+    // fixed dark ink: the map under it is white to orange in both themes
+    ctx.strokeStyle = "#27272a"; ctx.setLineDash([5, 4]);
     for (const a of shifts) for (const b of shifts) ctx.strokeRect((c0 - REACH + b * R64) * px, (r0 - REACH + a * R64) * px, (2 * REACH + 1) * px, (2 * REACH + 1) * px);
     ctx.setLineDash([]);
     const ly = (r0 - REACH) * px - 6 > 12 ? (r0 - REACH) * px - 6 : (r0 + REACH + 1) * px + 14;
     ctx.font = FONT(10.5, 500); ctx.textAlign = cx > side / 2 ? "right" : "left";
     const tx = cx > side / 2 ? Math.min(side - 4, (c0 + REACH + 1) * px) : Math.max(4, (c0 - REACH) * px);
     const t = "all that four 3×3 layers could reach", wt = ctx.measureText(t).width;
-    ctx.fillStyle = T.ground; ctx.globalAlpha = 0.85;
+    ctx.fillStyle = "#ffffff"; ctx.globalAlpha = 0.85;
     ctx.fillRect(ctx.textAlign === "right" ? tx - wt - 3 : tx - 3, ly - 11, wt + 6, 15); ctx.globalAlpha = 1;
-    ctx.fillStyle = T.ink; ctx.fillText(t, tx, ly);
+    ctx.fillStyle = "#27272a"; ctx.fillText(t, tx, ly);
   } else {
     // wide enough to ring the flipped 3×3 block without covering it
     const rad = Math.max(8, 2.6 * px);
