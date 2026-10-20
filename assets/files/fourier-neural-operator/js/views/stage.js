@@ -512,29 +512,33 @@ function stillFailsStage(viz, app) {
   paintField(truthCv, io.target, 64, { vmax: maxAbs(io.target) });
   paintField(errCv, err, 64, { vmax: maxAbs(err) || 1 });
   const E = an.ns.energy_above_cutoff_64;
-  const bars = [["forcing (input)", E.input], ["true swirl", E.truth], ["predicted swirl", E.prediction], ["the error", E.error]];
+  const bars = [["forcing (input)", E.input], ["true swirl", E.truth], ["predicted swirl", E.prediction], ["the mistake", E.error]];
   const top = Math.max(...bars.map(([, v]) => v));
   const A = (k) => an[k].ablation_64;
   viz.append(el("div", { class: "panel-body" },
+    el("h4", { class: "drill-sub" }, "1 · Where the mistakes are"),
+    el("p", { class: "lead-in" }, `Here's the true swirl for sample #${s.entry.test_index}, next to the model's mistake: its prediction minus the truth. The mistake is small, and it sits along the thin streaks.`),
     el("div", { class: "fail-top" },
       el("figure", { class: "ftile fail-tile" }, el("div", { class: "tile" }, truthCv),
         el("figcaption", {}, el("span", { class: "cap-t" }, "true swirl"), el("span", { class: "cap-s" }, `sample #${s.entry.test_index}, 64×64`))),
       el("figure", { class: "ftile fail-tile" }, el("div", { class: "tile" }, errCv),
         el("figcaption", {}, el("span", { class: "cap-t" }, "prediction − truth"), el("span", { class: "cap-s" }, `own scale, ±${fmt(maxAbs(err), 2)}`)))),
-    el("h4", { class: "drill-sub" }, "Share of each field's energy that sits above the cutoff (fluid, 200 test samples)"),
-    el("div", { class: "fail-bars" }, ...bars.map(([label, v]) => el("div", { class: `fail-bar${label === "the error" ? " hot" : ""}` },
+    el("h4", { class: "drill-sub" }, "2 · How much of each is fast detail"),
+    el("p", { class: "lead-in" }, `Now split each field into slow and fast waves at the spectral path's cutoff, and ask how much of its energy is in the fast ones. Almost none of the swirl is fast detail, but about half of the mistake is. Averaged over ${A("ns").n} test samples.`),
+    el("div", { class: "fail-bars" }, ...bars.map(([label, v]) => el("div", { class: `fail-bar${label === "the mistake" ? " hot" : ""}` },
       el("span", { class: "fb-lab" }, label),
       el("span", { class: "fb-track" }, el("span", { class: "fb-fill", style: `width:${Math.max(0.6, (v / top) * 100)}%` })),
       el("span", { class: "fb-val mono" }, pct(v, 2))))),
-    el("h4", { class: "drill-sub" }, "Switch off the local path's fine detail, nothing retrained"),
+    el("h4", { class: "drill-sub" }, "3 · Does the local path's fast detail help?"),
+    el("p", { class: "lead-in" }, `To find out, we change the trained model without retraining it, and run the ${A("ns").n} test samples of each problem again.`),
     el("table", { class: "mini" },
       el("thead", {}, el("tr", {}, el("th", {}, ""), el("th", {}, "fluid"), el("th", {}, "rock"))),
       el("tbody", {},
-        el("tr", {}, el("td", {}, "error as trained"), el("td", { class: "num" }, pct(A("ns").baseline.mean, 2)), el("td", { class: "num" }, pct(A("darcy").baseline.mean, 2))),
-        el("tr", { class: "on" }, el("td", {}, "local path's above-cutoff part removed"), el("td", { class: "num" }, pct(A("ns").local_above_cutoff_removed.mean, 2)), el("td", { class: "num" }, pct(A("darcy").local_above_cutoff_removed.mean, 2))),
-        el("tr", {}, el("td", {}, "whole local path removed"), el("td", { class: "num" }, pct(A("ns").local_removed.mean, 1)), el("td", { class: "num" }, pct(A("darcy").local_removed.mean, 1))))),
-    el("p", { class: "cap-s" }, `Over ${A("ns").n} test samples per problem at 64×64. "Removed" means that part of the local path's output is replaced by nothing in all four layers, in the trained PyTorch model.`),
-    el("p", { class: "cap-s" }, "Error is the size of the prediction's mistake relative to the size of the true field, so it can go past 100%. Predicting all zeros would score exactly 100%. With the whole local path removed, the fluid model still draws roughly the right swirl, but about 2.5× too strong, so its mistake ends up bigger than the swirl itself.")));
+        el("tr", {}, el("td", {}, "the model as trained"), el("td", { class: "num" }, pct(A("ns").baseline.mean, 2)), el("td", { class: "num" }, pct(A("darcy").baseline.mean, 2))),
+        el("tr", { class: "on" }, el("td", {}, "local path smoothed: in every layer, its waves above the cutoff are deleted"), el("td", { class: "num" }, pct(A("ns").local_above_cutoff_removed.mean, 2)), el("td", { class: "num" }, pct(A("darcy").local_above_cutoff_removed.mean, 2))),
+        el("tr", {}, el("td", {}, "local path switched off entirely"), el("td", { class: "num" }, pct(A("ns").local_removed.mean, 1)), el("td", { class: "num" }, pct(A("darcy").local_removed.mean, 1))))),
+    el("p", { class: "cap-s" }, `Error, averaged over ${A("ns").n} test samples per problem at 64×64, in the trained PyTorch model. Smoothing the local path leaves neither of the two paths able to pass on sharp detail. It costs the fluid about a tenth more error and the rock more than a third.`),
+    el("p", { class: "cap-s" }, "Error is the size of the prediction's mistake relative to the size of the true field, so it can go past 100%. Predicting all zeros would score exactly 100%. With the local path switched off, the fluid model still draws roughly the right swirl, but about 2.5× too strong, so its mistake ends up bigger than the swirl itself.")));
 }
 
 // ---------- the whole layer as implemented: the two paths plus everything around them ----------
