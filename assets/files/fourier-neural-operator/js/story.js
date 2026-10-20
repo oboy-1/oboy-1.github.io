@@ -441,7 +441,7 @@ export const STEPS = [
         el("p", {}, "Last is a skip connection. In every layer, the layer's own input comes back around, scaled by one learned number per channel, and gets added to what the MLP produced. Then one more GELU, except in the last layer."),
         el("p", {}, "Written out, as implemented in ", el("span", { class: "mono" }, m.model.library), ":"),
         D(tex`\begin{aligned} v_{\ell+1} = \sigma\Big(&\,\mathrm{MLP}\big(\sigma(\mathcal{S}v_\ell + W v_\ell)\big) \\ &+ g\odot v_\ell\Big), \end{aligned}`),
-        el("p", {}, "where ", M(tex`\mathcal{S}`), " is the spectral path, ", M(tex`\sigma`), " is a GELU, and ", M(tex`g`), " is one learned number per channel. The circle with a dot, ", M(tex`\odot`), ", means multiply channel by channel: each channel of ", M(tex`v_\ell`), " is scaled by its own number from ", M(tex`g`), ". Layer 4 skips the last GELU."),
+        el("p", {}, "where ", M(tex`\mathcal{S}`), " is the spectral path, ", M(tex`W`), " is the local path (a 32\u00d732 matrix that mixes the channels at each pixel, the 1\u00d71 convolution), ", M(tex`\sigma`), " is a GELU, and ", M(tex`g`), " is one learned number per channel. The circle with a dot, ", M(tex`\odot`), ", means multiply channel by channel: each channel of ", M(tex`v_\ell`), " is scaled by its own number from ", M(tex`g`), ". Layer 4 skips the last GELU."),
       ];
     },
   },
