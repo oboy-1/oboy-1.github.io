@@ -55,11 +55,6 @@ export const STEPS = [
         el("p", {}, "Let's start with a Navier-Stokes problem. Picture a fluid that's just sitting still. We push on it with some pattern of forces, and that starts stirring it up. What we want to know is what the swirl looks like a little while later."),
         el("p", {}, "The normal way to answer that is to simulate it. But simulating it is tedious. It's computationally expensive, and you have to redo the whole thing for every single forcing pattern you want to try."),
         el("p", {}, "So the idea is this: what if we train a network that can simulate the problem for us, given any kind of input?"),
-        app.sample.live?.error != null
-          ? el("div", { class: "statgrid" },
-            stat("Model, this sample", `${Math.round(app.sample.live.ms)} ms`, `one forward pass at ${app.sample.live.res}×${app.sample.live.res}, in this browser, just now`),
-            stat("How wrong it is", pct(app.sample.live.error, 1), "against the simulated answer beside it"))
-          : null,
       ];
     },
   },
@@ -73,9 +68,9 @@ export const STEPS = [
         el("p", {}, "The key thing is that in a lot of these problems we don't have a fixed input. The data can come at different resolutions. The same flow might be sampled on a 64×64 grid or on a 128×128 grid, which is 4,096 numbers in one case and 16,384 in the other. A normal network has its input size baked into its first layer, so it can only take one of them. Ideally we want a network that accepts any input, whatever its dimensions."),
         el("p", {}, "So the idea is that our network isn't approximating a function that takes data in and gives data out:"),
         D(tex`f: \mathbb{R}^n \to \mathbb{R}^m`),
-        el("p", {}, "It's approximating an ", el("strong", {}, "operator"), ". A function maps numbers to numbers, for a fixed n and m baked into the network. An operator maps a function to another function:"),
+        el("p", {}, "It's approximating an ", el("strong", {}, "operator"), ". A normal network maps ", M(tex`n`), " numbers to ", M(tex`m`), " numbers, with ", M(tex`n`), " and ", M(tex`m`), " fixed and baked into the network. An operator maps a function to another function:"),
         D(tex`\mathcal{G}: a(x) \mapsto u(x)`),
-        el("p", {}, "where both a(x) and u(x) can be evaluated at any x you like, at any resolution, because neither side is a fixed-length vector."),
+        el("p", {}, "where both ", M(tex`a(x)`), " and ", M(tex`u(x)`), " can be evaluated at any ", M(tex`x`), " you like, at any resolution, because neither side is a fixed-length vector."),
         el("p", {}, "Here, the input function is the forcing: how hard, and which way, the fluid is being pushed at every point. The output function is the swirl (the vorticity) at every point you ask about, five time units later."),
       ];
     },
@@ -148,7 +143,7 @@ export const STEPS = [
         el("p", {}, "It turns out you need a large number of waves to fully express an image. So we're almost back to the same problem, or even a worse one: to express any image, we'd need a huge number of data points."),
         el("p", {}, "Yes, by doing the Fourier transform we've eliminated the dependence on the dimensions of our data. But now we need a gazillion data points to actually express the image."),
         el("details", {}, el("summary", {}, "Why not infinite?"),
-          el("p", {}, "For a continuous signal, yes, you'd need infinitely many waves, every possible frequency, to describe it exactly. But everything on this page is a discrete grid, like our 64×64 forcing. A discrete Fourier transform on an N-point signal uses exactly N waves, and the reconstruction is exact. So for us it's never infinite. It's a large but fixed number: 4,096 for a 64×64 image. That's still a lot, and we'd like to prune it down to the waves we actually need.")),
+          el("p", {}, "For a continuous signal, yes, you'd need infinitely many waves, every possible frequency, to describe it exactly. But everything on this page is a discrete grid, like our 64×64 forcing. A discrete Fourier transform on a signal with ", M(tex`N`), " points uses exactly ", M(tex`N`), " waves, and the reconstruction is exact. So for us it's never infinite. It's a large but fixed number: 4,096 for a 64×64 image. That's still a lot, and we'd like to prune it down to the waves we actually need.")),
         el("p", {}, "So instead, we need to figure out which waves in the image are actually important, in other words, which waves make up most of the image. We want to remove the waves that only do fine, minute detail, and keep the ones that give the broad brush strokes."),
         el("p", {}, "For that we have a metric called ", el("strong", {}, "energy"), ". Energy is simply the square of a wave's amplitude. The higher the wave's amplitude, the further the wave pushes away from the default flat value. Try the sliders on the right: notice how increasing the amplitude pushes the summed-up wave much further from the usual flat line."),
         el("p", {}, "That's what energy is. It tells us which waves matter most in an image, so we can measure how much of the image a smaller set of waves still holds. Keeping a small, fixed number of waves is how we get around the huge number of data points, regardless of dimensions."),
@@ -367,9 +362,9 @@ export const STEPS = [
     state: { dataset: "ns", view: "multiply", flowMode: "plain", layer: 2, node: null, focus: null, draw: false },
     prose() {
       return [
-        el("p", {}, "So we've kept a fixed set of waves. Now we want to apply a learned weight to each one \u2013 but what does that actually look like in math? Each wave, recall, is a complex number: its size is the amplitude, its angle is the phase. The network learns its own complex number for that wave, call it R, and applying the weight just means multiplying the two:"),
+        el("p", {}, "So we've kept a fixed set of waves. Now we want to apply a learned weight to each one \u2013 but what does that actually look like in math? Each wave, recall, is a complex number: its size is the amplitude, its angle is the phase. The network learns its own complex number for that wave, call it ", M(tex`R`), ", and applying the weight just means multiplying the two:"),
         D(tex`a_k \cdot R_k = \big(h_k e^{i\varphi_k}\big) \cdot \big(r_k e^{i\theta_k}\big) = h_k r_k\, e^{i(\varphi_k + \theta_k)}`),
-        el("p", {}, "Multiplying complex numbers multiplies their sizes and adds their angles \u2013 so R scales the wave's amplitude by r, and rotates its phase by \u03b8. Of those four numbers, only r and \u03b8 are learned: they come out of training and stay fixed afterward, the same for every image. h and \u03c6 aren't learned at all \u2013 they're just whatever the FFT measured for that particular image. There's one R per wave, per input-output channel pair, all learned during training, and the paper itself calls this weight tensor R."),
+        el("p", {}, "Multiplying complex numbers multiplies their sizes and adds their angles \u2013 so ", M(tex`R_k`), " scales the wave's amplitude by ", M(tex`r_k`), ", and rotates its phase by ", M(tex`\theta_k`), ". Of those four numbers, only ", M(tex`r_k`), " and ", M(tex`\theta_k`), " are learned: they come out of training and stay fixed afterward, the same for every image. ", M(tex`h_k`), " and ", M(tex`\varphi_k`), " aren't learned at all \u2013 they're just whatever the FFT measured for that particular image. There's one ", M(tex`R`), " per wave, per input-output channel pair, all learned during training, and the paper itself calls this weight tensor ", M(tex`R`), "."),
       ];
     },
   },

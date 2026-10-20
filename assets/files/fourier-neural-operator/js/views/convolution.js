@@ -554,24 +554,24 @@ function howCounted() {
   const sec = (title, ...body) => el("div", { class: "cv-how-sec" }, el("h6", {}, title), ...body);
   return el("details", { class: "cv-proof cv-how" },
     el("summary", {}, "How we count the operations"),
-    el("p", {}, "We count every real multiply and every real add, for one channel on an n × n grid with ", M(tex`N = n^2`), " pixels."),
-    sec("Sliding a K × K kernel",
-      el("p", {}, "Each output pixel multiplies ", M(tex`K^2`), " weights by the ", M(tex`K^2`), " samples under them, then adds the products together. That's ", M(tex`K^2`), " multiplies and ", M(tex`K^2 - 1`), " adds, for each of the N pixels:"),
+    el("p", {}, "We count every real multiply and every real add, for one channel on an ", M(tex`n \times n`), " grid with ", M(tex`N = n^2`), " pixels."),
+    sec(el("span", {}, "Sliding a ", M(tex`K \times K`), " kernel"),
+      el("p", {}, "Each output pixel multiplies ", M(tex`K^2`), " weights by the ", M(tex`K^2`), " samples under them, then adds the products together. That's ", M(tex`K^2`), " multiplies and ", M(tex`K^2 - 1`), " adds, for each of the ", M(tex`N`), " pixels:"),
       D(tex`\text{sliding} = N\,(2K^2 - 1)`),
       el("p", {}, "A kernel as wide as the grid has ", M(tex`K^2 = N`), ", so every pixel needs every other pixel: ", M(tex`N(2N - 1)`), ". At 64 × 64 that's 4,096 × 8,191 = 33,550,336.")),
     sec("Through the waves",
-      el("p", {}, "Three steps: turn the input into waves, multiply each wave by its R, and turn the result back into pixels."),
-      el("p", {}, el("strong", {}, "One FFT. "), "An FFT on N numbers runs ", M(tex`\log_2 N`), " rounds of ", M(tex`N/2`), " butterflies. A butterfly turns two numbers a and b into ", M(tex`a + wb`), " and ", M(tex`a - wb`), ", for a fixed angle w. That's one complex multiply (4 multiplies and 2 adds) and two complex adds (2 adds each), so 10 operations:"),
+      el("p", {}, "Three steps: turn the input into waves, multiply each wave by its ", M(tex`R`), ", and turn the result back into pixels."),
+      el("p", {}, el("strong", {}, "One FFT. "), "An FFT on ", M(tex`N`), " numbers runs ", M(tex`\log_2 N`), " rounds of ", M(tex`N/2`), " butterflies. A butterfly turns two numbers ", M(tex`a`), " and ", M(tex`b`), " into ", M(tex`a + wb`), " and ", M(tex`a - wb`), ", for a fixed angle ", M(tex`w`), ". That's one complex multiply (4 multiplies and 2 adds) and two complex adds (2 adds each), so 10 operations:"),
       D(tex`\tfrac{N}{2} \cdot \log_2 N \cdot 10 = 5N\log_2 N`),
-      el("p", {}, "On a grid, we FFT every row and then every column. That's 2n FFTs of size n, which comes to the same thing, because ", M(tex`\log_2 N = 2\log_2 n`), ":"),
+      el("p", {}, "On an ", M(tex`n \times n`), " grid, we FFT every row and then every column. That's ", M(tex`2n`), " FFTs of size ", M(tex`n`), ", which comes to the same thing, because ", M(tex`\log_2 N = 2\log_2 n`), ":"),
       D(tex`2n \cdot 5n\log_2 n = 5N\log_2 N`),
-      el("p", {}, el("strong", {}, "Multiply each wave by its R. "), "One complex multiply per wave, 6 operations each, so ", M(tex`6N`), "."),
+      el("p", {}, el("strong", {}, "Multiply each wave by its ", M(tex`R`), ". "), "One complex multiply per wave, 6 operations each, so ", M(tex`6N`), "."),
       el("p", {}, el("strong", {}, "Turn it back. "), "The inverse FFT costs the same as the first one. Altogether:"),
       D(tex`\text{waves} = 10N\log_2 N + 6N`),
-      el("p", {}, "At 64 × 64, N = 4,096 and ", M(tex`\log_2 N = 12`), ", so 491,520 + 24,576 = 516,096, whatever the kernel's size.")),
+      el("p", {}, "At 64 × 64, ", M(tex`N = 4{,}096`), " and ", M(tex`\log_2 N = 12`), ", so 491,520 + 24,576 = 516,096, whatever the kernel's size.")),
     sec("Checked, and what's left out",
       el("p", {}, "We ran a plain sliding loop and a plain FFT that count each operation as they go. At 16 × 16, 32 × 32 and 64 × 64 the counts match these formulas exactly, and the two routes give the same output to within ", M(tex`4 \times 10^{-15}`), "."),
-      el("p", {}, "Not counted: the kernel's own waves, because an FNO learns them directly, and the inverse FFT's division by N, which can be folded into R. The count includes multiplies by 1 and doesn't use the cheaper FFT for real-valued inputs, so if anything it overstates the cost of the waves. These count operations. The actual run time also depends on memory and hardware.")));
+      el("p", {}, "Not counted: the kernel's own waves, because an FNO learns them directly, and the inverse FFT's division by ", M(tex`N`), ", which can be folded into ", M(tex`R`), ". The count includes multiplies by 1 and doesn't use the cheaper FFT for real-valued inputs, so if anything it overstates the cost of the waves. These count operations. The actual run time also depends on memory and hardware.")));
 }
 
 function buildConvCost() {

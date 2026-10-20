@@ -205,7 +205,7 @@ function problemStage(viz, app) {
         : card("solver", "Way 1 · simulate", "Solved", `${(res * res).toLocaleString("en-US")} cells, one equation each`, trueCv,
           "computed offline, before this page existed"),
       card("model", "Way 2 · predict", "Predicted", "one pass through the network", predCv,
-        live && !state.draw ? `${Math.round(live.ms)} ms, live in this tab` : "from the exported run")),
+        live && !state.draw ? `${Math.round(live.ms)} ms, live in this tab${live.error != null ? ` · ${pct(live.error, 1)} off the simulation` : ""}` : "from the exported run")),
     el("p", { class: "cap-s" }, isNS()
       ? `Both swirl fields (vorticity: red spins one way, blue the other) on one colour scale, ±${fmt(vmax, 2)}. A test sample the model never trained on.`
       : `Both pressure fields on one colour scale, 0 to ${fmt(vmax, 2)}. The rock is a test sample the model never trained on.`)));

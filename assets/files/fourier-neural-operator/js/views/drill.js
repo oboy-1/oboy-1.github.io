@@ -1,5 +1,5 @@
 // Zoom level 3: focused explainer panels for nodes inside a layer.
-import { el, paintField, paintBinary, paintInput, isNS, words, maxAbs, fmt, pct, lut } from "../render.js";
+import { el, M, paintField, paintBinary, paintInput, isNS, words, maxAbs, fmt, pct, lut } from "../render.js";
 import { truncate, keptMask, splitAtCutoff, fft2, ifft2 } from "../fourier.js";
 import { mountTruncationWidget } from "../widgets/truncation.js";
 
@@ -43,10 +43,10 @@ function fftPanel() {
     el("p", {}, "A wave of a given speed can sit anywhere: peak in the middle, peak at the edge, anything between. Speed alone doesn't pin it down. So each frequency gets two coefficients — how much cosine and how much sine — and their combination slides the wave along."),
     host,
     el("h4", { class: "drill-sub" }, "Complex packaging"),
-    el("p", {}, "Those two numbers are stored as one complex number a + bi. Its magnitude √(a²+b²) is how strong the wave is, and its angle atan2(b, a) is where the peaks sit. That's the only reason complex numbers show up here: they're a compact way to store a wave's size and shift together."),
-    el("p", {}, "It's also why R, the learned weight, is complex: multiplying by a complex number rescales a wave ", el("em", {}, "and"), " shifts it, in one operation."),
+    el("p", {}, "Those two numbers are stored as one complex number ", M(String.raw`a + bi`), ". Its magnitude ", M(String.raw`\sqrt{a^2 + b^2}`), " is how strong the wave is, and its angle ", M(String.raw`\operatorname{atan2}(b, a)`), " is where the peaks sit. That's the only reason complex numbers show up here: they're a compact way to store a wave's size and shift together."),
+    el("p", {}, "It's also why ", M(String.raw`R`), ", the learned weight, is complex: multiplying by a complex number rescales a wave ", el("em", {}, "and"), " shifts it, in one operation."),
     el("h4", { class: "drill-sub" }, "Why it's called fast"),
-    el("p", {}, "Measuring each of n frequencies against n samples is n² work. The FFT uses the fact that the even-indexed and odd-indexed samples give overlapping sub-problems. It splits the transform in two and repeats, which brings the work down to n log n."),
+    el("p", {}, "Measuring each of ", M(String.raw`n`), " frequencies against ", M(String.raw`n`), " samples is ", M(String.raw`n^2`), " work. The FFT uses the fact that the even-indexed and odd-indexed samples give overlapping sub-problems. It splits the transform in two and repeats, which brings the work down to ", M(String.raw`n \log n`), "."),
     el("p", { class: "drill-note" }, "The FFT only makes this faster. A slow transform and a fast one give identical coefficients, so truncation would blur edges either way."),
     el("h4", { class: "drill-sub" }, "The convolution theorem"),
     el("p", {}, "Sliding a filter across an image — a convolution — is the same thing as multiplying coefficients one by one in frequency space. That's why the spectral path is worth the two transforms. With one multiply per kept wave, you get a filter as wide as the whole grid, so the layer can move information across the whole domain in a single step."),
