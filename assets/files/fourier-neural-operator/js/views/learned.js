@@ -224,6 +224,5 @@ export function limitsStage(viz, app) {
         `Share of each layer's input energy that survives keeping ${ns.stats.n_kept_modes} of ${ns.stats.n_total_modes.toLocaleString("en-US")} waves (average excluded; range over layers). The fluid loses almost nothing, the rock loses about 7%.`),
       card("3", "Other grid sizes, measured",
         el("div", { class: "lim-chart" }, errRow("fluid", ns), errRow("rock", dc)),
-        `Test error at ${ns.resolutions.map((r) => `${r}×${r}`).join(", ")}, on ${ns.stats.test_error["64"].n} unseen samples each. Both models were trained at 64×64 only. The errors at the other sizes are measured on this test data, so data that looks different could do worse.`)),
-    a ? el("p", { class: "lim-note" }, el("b", {}, "Ablation. "), `On ${a.ns.ablation_64.n} test samples per problem at 64×64, with nothing retrained, removing only the local path's above-cutoff detail moves the error from ${pct(a.ns.ablation_64.baseline.mean, 2)} to ${pct(a.ns.ablation_64.local_above_cutoff_removed.mean, 2)} on the fluid, and from ${pct(a.darcy.ablation_64.baseline.mean, 2)} to ${pct(a.darcy.ablation_64.local_above_cutoff_removed.mean, 2)} on the rock.`) : null));
+        `Test error at ${ns.resolutions.map((r) => `${r}×${r}`).join(", ")}, on ${ns.stats.test_error["64"].n} unseen samples each. Both models were trained at 64×64 only. The errors at the other sizes are measured on this test data, so data that looks different could do worse.`))));
 }

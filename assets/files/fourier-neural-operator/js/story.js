@@ -506,16 +506,11 @@ export const STEPS = [
     title: "Where the leftover error is",
     state: { dataset: "ns", view: "stillfails", focus: null, node: null, draw: false },
     prose(app) {
-      const a = app.ds.ns.manifest.analysis, E = a.ns.energy_above_cutoff_64, A = (k) => a[k].ablation_64;
+      const E = app.ds.ns.manifest.analysis.ns.energy_above_cutoff_64;
       return [
-        el("p", {}, "So where does the fluid model still go wrong? Take its error, the prediction minus the true swirl, and split it into slow and fast waves at the same cutoff the spectral path uses. On the right, the same split is done for the forcing and the swirl too."),
-        el("p", {}, "Only ", el("strong", {}, pct(E.truth, 2)), " of the true swirl's energy is above the cutoff, but ", el("strong", {}, pct(E.error, 0)),
-          " of the error's is. (Random noise would be about 93%, since most of the waves a 64\u00d764 grid holds are fast, so what matters is the gap from the swirl's 0.19%.) The swirl is almost entirely slow waves, and the mistakes sit in the thin streaks, which is the sharp detail the spectral path can't draw."),
-        el("p", {}, "Of the two paths, the local path is the only one that can carry that detail. To see how much this trained model leans on it, we take the model, and in all four layers we throw away just the fast part of the local path's output, everything above the cutoff. Nothing is retrained. Then we run the ",
-          String(A("ns").n), " test samples again."),
-        el("p", {}, "The fluid's error goes from ", el("strong", {}, pct(A("ns").baseline.mean, 2)), " to ", el("strong", {}, pct(A("ns").local_above_cutoff_removed.mean, 2)),
-          ", up by about a tenth. The rock's goes from ", el("strong", {}, pct(A("darcy").baseline.mean, 2)), " to ", el("strong", {}, pct(A("darcy").local_above_cutoff_removed.mean, 2)),
-          ", up by more than a third. So both trained models use that fine detail, the rock more than the fluid, which fits its sharp edges being made of fast waves. Because nothing was retrained, this is about these two models. A model trained without the fast part might learn to make up for it some other way."),
+        el("p", {}, "So where does the fluid model still go wrong? Take its mistake, the prediction minus the true swirl, and split it into slow and fast waves at the same cutoff the spectral path uses."),
+        el("p", {}, "Only ", el("strong", {}, pct(E.truth, 2)), " of the true swirl's energy is in the fast waves, but ", el("strong", {}, pct(E.error, 0)),
+          " of the mistake's is. The mistakes sit in the thin streaks, which is the sharp detail the spectral path can't draw. That's the part of the answer the local path is there to help with."),
       ];
     },
   },
