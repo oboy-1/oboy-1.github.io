@@ -503,17 +503,19 @@ export const STEPS = [
   {
     id: "stillfails",
     eyebrow: "Where it still fails",
-    title: "Where the fluid still goes wrong",
+    title: "Where the leftover error is",
     state: { dataset: "ns", view: "stillfails", focus: null, node: null, draw: false },
     prose(app) {
       const a = app.ds.ns.manifest.analysis, E = a.ns.energy_above_cutoff_64, A = (k) => a[k].ablation_64;
       return [
-        el("p", {}, "Now let's look at where the fluid's leftover error is. Only ", el("strong", {}, pct(E.truth, 2)),
-          " of the true swirl's energy is above the cutoff, and yet ", el("strong", {}, pct(E.error, 0)), " of the model's ", el("em", {}, "error"), " is. The mistakes are in the thin streaks, which is exactly the sharp detail the spectral path can't draw."),
-        el("p", {}, "Earlier we saw that the local path ", el("em", {}, "carries"), " that detail. Now we check whether it's ", el("em", {}, "needed"),
-          ". If we remove just that part of the local path in every layer and re-run, the fluid's error goes from ", el("strong", {}, pct(A("ns").baseline.mean, 2)), " to ",
-          el("strong", {}, pct(A("ns").local_above_cutoff_removed.mean, 2)), ", and the rock's goes from ", el("strong", {}, pct(A("darcy").baseline.mean, 2)), " to ",
-          el("strong", {}, pct(A("darcy").local_above_cutoff_removed.mean, 2)), ". So the local path's fine detail matters for both. The rock's error goes up by about a third, and the fluid's by about a tenth."),
+        el("p", {}, "So where does the fluid model still go wrong? Take its error, the prediction minus the true swirl, and split it into slow and fast waves at the same cutoff the spectral path uses. On the right, the same split is done for the forcing and the swirl too."),
+        el("p", {}, "Only ", el("strong", {}, pct(E.truth, 2)), " of the true swirl's energy is above the cutoff, but ", el("strong", {}, pct(E.error, 0)),
+          " of the error's is. So the mistakes pile up in the thin streaks, which is exactly the sharp detail the spectral path can't draw."),
+        el("p", {}, "Of the two paths, the local path is the only one that can carry that detail. To see whether it actually helps, we take the trained model, and in all four layers we throw away just the fast part of the local path's output, everything above the cutoff. Nothing is retrained. Then we run the ",
+          String(A("ns").n), " test samples again."),
+        el("p", {}, "The fluid's error goes from ", el("strong", {}, pct(A("ns").baseline.mean, 2)), " to ", el("strong", {}, pct(A("ns").local_above_cutoff_removed.mean, 2)),
+          ", up by about a tenth. The rock's goes from ", el("strong", {}, pct(A("darcy").baseline.mean, 2)), " to ", el("strong", {}, pct(A("darcy").local_above_cutoff_removed.mean, 2)),
+          ", up by more than a third. So that fine detail matters for both models, and more for the rock, whose sharp edges are made of fast waves."),
       ];
     },
   },
