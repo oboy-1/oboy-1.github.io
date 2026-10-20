@@ -502,19 +502,23 @@ function drawSum(cv, { x, W, direct, stage, tau, added, done }) {
   const NAMES = ["slow", "medium", "fast"];
   W.forEach((wv, r) => {
     const top = y0 + r * ROW, c = top + 12 + ROW / 2 - 6, Y = (v) => c - (v / big) * half;
-    const on = stage === 3 && share(r) > 0 && share(r) < 1;
+    const on = stage === 3 && !done && share(r) > 0 && share(r) < 1;
+    const waiting = stage === 3 && !done && share(r) === 0, inSum = stage === 3 && !done && share(r) === 1;
     const narrow = w < 560;
-    label(ctx, `${NAMES[r] ?? ""} wave${narrow ? "" : ` · repeats ${wv.k}×`}${on ? "  ← adding" : ""}`, L, top + 4, on ? T.sp : T.ink3, "left", 10.5);
+    // the wave being added right now gets a band behind its row; the rest step back
+    if (on) { ctx.fillStyle = T.soft; ctx.fillRect(L - 8, top - 8, Rt - L + 16, ROW - 2); ctx.fillStyle = T.sp; ctx.fillRect(L - 8, top - 8, 3, ROW - 2); }
+    const tag = on ? "  ← adding now" : inSum ? "  ✓ added" : waiting ? "  · next" : "";
+    label(ctx, `${NAMES[r] ?? ""} wave${narrow ? "" : ` · repeats ${wv.k}×`}${tag}`, L, top + 4, on ? T.sp : T.ink3, "left", on ? 12 : 10.5);
     if (stage >= 2) {
       const moved = Math.abs(wv.shift) < 0.05 ? "" : ` · moved ${fmt(Math.abs(wv.shift), 1)} ${narrow ? "pts" : "points"} ${wv.shift > 0 ? "right" : "left"}`;
-      label(ctx, `×${wv.R.mag.toFixed(2)}${narrow ? "" : " as tall"}${moved}`, Rt, top + 4, tau > 0.02 ? T.sp : T.ink3, "right", 10.5);
+      label(ctx, `×${wv.R.mag.toFixed(2)}${narrow ? "" : " as tall"}${moved}`, Rt, top + 4, tau > 0.02 && !waiting ? T.sp : T.ink3, "right", 10.5);
     }
     zero(c);
-    ctx.strokeStyle = stage >= 2 ? T.ink3 : T.ink; ctx.lineWidth = stage >= 2 ? 1.2 : 1.8; ctx.globalAlpha = stage >= 2 ? 0.45 : 1;
+    ctx.strokeStyle = stage >= 2 ? T.ink3 : T.ink; ctx.lineWidth = stage >= 2 ? 1.2 : 1.8; ctx.globalAlpha = stage >= 2 ? (waiting ? 0.18 : 0.45) : 1;
     curve((t) => at(wv, t, 0), Y); ctx.globalAlpha = 1;
     if (stage >= 2) {
-      ctx.strokeStyle = T.sp; ctx.lineWidth = on ? 3.2 : 2.2;
-      ctx.globalAlpha = stage === 3 && share(r) === 0 ? 0.35 : 1;
+      ctx.strokeStyle = T.sp; ctx.lineWidth = on ? 3.6 : 2.2;
+      ctx.globalAlpha = waiting ? 0.22 : inSum ? 0.5 : 1;
       curve((t) => at(wv, t, tau), Y); ctx.globalAlpha = 1;
     }
   });
@@ -525,8 +529,15 @@ function drawSum(cv, { x, W, direct, stage, tau, added, done }) {
   y0 += nW * ROW + 46;
   const ol = Math.max(...direct.map(Math.abs)) * 1.15 || 1, Yo = (v) => y0 + outH / 2 - (v / ol) * (outH / 2);
   const names = W.map((_, r) => NAMES[r]).filter((_, r) => share(r) > 0);
+  const now = W.findIndex((_, r) => share(r) > 0 && share(r) < 1);
   label(ctx, done ? "output: the three changed waves added up" : `output so far: ${names.length ? names.join(" + ") : "nothing yet"}`, L, y0 - 8, T.ink3);
+  if (!done && now >= 0) label(ctx, w < 560 ? (now > 0 ? "dashed: before" : "") : `adding the ${NAMES[now]} wave${now > 0 ? " · dashed: before it" : ""}`, Rt, y0 - 8, T.sp, "right", 10.5);
   zero(Yo(0));
+  // the sum before the wave being added, so the change it makes stands out
+  if (!done && now > 0) {
+    ctx.strokeStyle = T.ink3; ctx.lineWidth = 1.4; ctx.setLineDash([5, 4]);
+    curve((t) => W.reduce((s, wv, r) => s + (r < now ? at(wv, t, 1) : 0), 0), Yo); ctx.setLineDash([]);
+  }
   ctx.strokeStyle = T.sp; ctx.lineWidth = 3; curve((t) => W.reduce((s, wv, r) => s + share(r) * at(wv, t, 1), 0), Yo);
   if (done) {
     for (let i = 0; i < N; i++) dot(ctx, Xt(i), Yo(direct[i]), 2.6, T.ink);
