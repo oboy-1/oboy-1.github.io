@@ -413,21 +413,20 @@ export const STEPS = [
   {
     id: "paths",
     eyebrow: "The two paths, measured",
-    title: "The spectral path carries almost none of the sharp detail",
+    title: "The spectral path carries none of the sharp detail",
     state: { dataset: "darcy", view: "layer", layer: 2, focus: "paths", node: null, draw: false },
     prose(app) {
       const st = lstats(app, app.state.layer);
       const s = st.outside_cutoff_share_spectral;
       return [
         el("p", {}, "The spectral path truncates the fast waves and only keeps the slow ones, so whatever it processes is very smooth data \u2013 and that means the sharp detail is missing from that path."),
+        el("p", {}, "Let's check that on a real layer of the Darcy flow model. On the right are the two paths for one channel, on one shared colour scale. The local path looks like the quieter of the two: across all 32 channels of this layer, its values spread about ",
+          el("strong", {}, `${fmt(st.std_spectral / st.std_local, 1)}×`), " less than the spectral path's."),
+        el("p", {}, "Now keep only what's above the cutoff in each, the fast waves, which is where sharp edges live. The spectral tile goes blank, and the local tile is nothing but the outlines of the rock."),
+        key("So the local path is the smaller of the two signals, and it's still the only one carrying the sharp detail."),
+        el("p", {}, "The bars add this up over all 32 channels: the local path supplies ", el("strong", {}, pct(st.outside_cutoff_share_local, 1)), " of the energy above the cutoff, and the spectral path supplies ",
+          el("strong", {}, s < 5e-4 ? s.toExponential(1) : pct(s, 1)), ", which is just rounding error. This has to come out this way. The spectral path throws away every wave above the cutoff before it does anything else, so nothing above the cutoff can come out of it."),
         el("p", { class: "note" }, `Quick note: the network on this page is a small one we trained to run in your browser (${m17(app)} weights, four layers, 32 channels, trained at 64\u00d764), so the numbers from here on describe this model.`),
-        el("p", {}, "Now we check the claim on a real layer. On one shared colour scale the local path looks like the smaller signal: across all 32 channels of this layer its spatial standard deviation is ",
-          el("strong", {}, `${fmt(st.std_spectral / st.std_local, 1)}×`), " smaller than the spectral path's."),
-        el("p", {}, "Now subtract everything below the cutoff from both. The spectral tile goes blank, and the local tile is nothing but outlines."),
-        key("Above the cutoff, the local path supplies the energy and the spectral path supplies none."),
-        el("p", {}, "The bars measure it: the local path supplies ", el("strong", {}, pct(st.outside_cutoff_share_local, 1)), " of the energy above the cutoff and the spectral path supplies ",
-          el("strong", {}, s < 5e-4 ? s.toExponential(1) : pct(s, 1)), ", which is rounding error. That's true in every layer, sample and grid size we ran (the largest spectral share anywhere is ",
-          el("span", { class: "mono" }, app.manifest.stats.outside_cutoff_share_spectral_max.toExponential(1)), ")."),
       ];
     },
   },
