@@ -160,7 +160,6 @@ function buildConvWave() {
     el("div", { class: "pf-body" }, el("div", { class: "pf-text" }, el("h6", {}, ...[title].flat()), ...body), figure));
   const proof = el("section", { class: "cv-proof" },
     el("h5", {}, "Why a sine wave always comes out"),
-    el("p", { class: "pf-lead" }, "Eight short steps, using the kernel and the wave picked above."),
     el("ol", { class: "pf-steps" },
       step(1, "The input", [
         el("p", {}, "Our input is one cosine wave. It repeats ", M(tex`k`), " times across the ", M(tex`N`), " points, so its frequency is ", M(tex`\omega = 2\pi k/N`), ". The angle ", M(tex`\varphi`), " says where it starts:"),
@@ -170,7 +169,7 @@ function buildConvWave() {
       step(3, "The convolution", [
         el("p", {}, "To get the output at point ", M(tex`n`), ", multiply each weight by the sample it sits on, then add everything up:"),
         D(tex`y(n) = \sum_u \kappa(u)\, x(n-u)`)],
-        fig("conv", 170, "Top: the samples under the kernel. Middle: the weights. Bottom: each product, added up into y(n).")),
+        fig("conv", 186, "Top: the samples under the kernel. Middle: the weights. Bottom: each product, added up into y(n). The column u = 0 is the output point n, and u counts points back from it.")),
       step(4, "Plug in the wave", [
         el("p", {}, "The sample ", M(tex`u`), " points back is the same cosine, read at ", M(tex`n - u`), " instead of ", M(tex`n`), ". So its angle is just ", M(tex`\omega u`), " smaller:"),
         D(tex`y(n) = \sum_u \kappa(u) \cos(\omega n + \varphi - \omega u)`)]),
@@ -197,6 +196,13 @@ function buildConvWave() {
       step(8, "What it means", [
         el("p", {}, "That's the input wave again, with the same frequency ", M(tex`\omega`), ". It's ", M(tex`A`), " times as tall and shifted along by ", M(tex`\theta/\omega`), " points. For the kernel shown above that's ", vA, " and ", vD, ", which is exactly the orange wave in the plot."),
         el("p", { class: "pf-note" }, "Sliding a wave along by one whole wavelength, ", M(tex`N/k`), " points, gives back the exact same wave. So a shift is only pinned down up to whole wavelengths, and the plot shows whichever one sits closest to the kernel's weights. That's why the shift-by-3 kernel reads as 3 points for every ", M(tex`k`), ", even where ", M(tex`\theta/\omega`), " itself comes out as a different number.")])));
+  // Step 7's diagram plays out its caption: once when it scrolls into view, and again whenever the kernel or k changes.
+  let lastMini = null, played = "", seen = false;
+  const psw = sweeper(100, 45, () => { minis.polar.fr = psw.pos / 100; if (lastMini) drawMinis(minis, lastMini); }, () => proof.isConnected && !proof.hidden);
+  minis.polar.fr = reduced() ? 1 : 0;
+  const playPolar = () => { played = `${st.kernel}:${st.k}`; psw.play(); };
+  minis.polar.cv.after(el("button", { type: "button", class: "cv-btn pf-replay", onclick: playPolar }, "↻ replay"));
+  new IntersectionObserver((es) => { seen = es.some((e) => e.isIntersecting); if (seen && played !== `${st.kernel}:${st.k}`) playPolar(); }, { threshold: 0.6 }).observe(minis.polar.cv);
   // the live bits that belong to each part: what the kernel is, the sum at one spot, replay, the result
   const live = el("div", { class: "cs-live" });
   const LIVE = [[], [about], [math, nav], [replay], [verdict]];
@@ -243,7 +249,7 @@ function buildConvWave() {
       vD.textContent = Math.abs(shift) < 0.005 ? "no shift" : `a shift of ${fmt(Math.abs(shift), 2)} points to the ${shift > 0 ? "right" : "left"}`;
       p.check = { y, R, PHI, k, shift };
       proof.hidden = st.part !== 4;
-      if (st.part === 4) { drawOut(cv, { y, R, k, PHI, shift, taps, name: KERNELS[st.kernel].label }); drawMinis(minis, { x, taps, k, R, n: 8, PHI }); }
+      if (st.part === 4) { drawOut(cv, { y, R, k, PHI, shift, taps, name: KERNELS[st.kernel].label }); lastMini = { x, taps, k, R, n: 8, PHI }; if (played !== `${st.kernel}:${st.k}`) { if (seen) playPolar(); else minis.polar.fr = reduced() ? 1 : 0; } drawMinis(minis, lastMini); }
       else drawWave(cv, { x, y, taps, R, k, PHI, stage: st.part, n: st.n, seen: st.seen, pos: sw.pos, done: sw.done() });
     },
   };
@@ -391,8 +397,13 @@ function drawMinis(m, { x, taps, k, R, n, PHI }) {
     label(ctx, "Σ", (X(W) + sx) / 2 - 2, rows.p - 6, T.ink3, "center", 11);
     ctx.strokeStyle = T.sp; ctx.lineWidth = Math.max(3, step * 0.38); ctx.lineCap = "butt";
     ctx.beginPath(); ctx.moveTo(sx, rows.p); ctx.lineTo(sx, rows.p - (total / pmax) * half); ctx.stroke(); ctx.lineCap = "round";
-    label(ctx, "y(n)", sx, h - 6, T.sp, "center", 10);
-    label(ctx, "n", X(0), h - 6, T.ink, "center", 10);
+    label(ctx, "y(n)", sx, rows.p + half + 16, T.sp, "center", 10);
+    // u under each column the kernel covers; u = 0 is the output point
+    label(ctx, "u", 2, h - 8, T.ink3, "left", 10);
+    for (let j = -W; j <= W; j++) {
+      const u = -j, on = live.some(([v]) => v === u);
+      if (on || u === 0) label(ctx, u < 0 ? `−${-u}` : String(u), X(j), h - 8, u === 0 ? T.ink : T.ink3, "center", 10);
+    }
   } }
 
   // 6 and 7 · arrows in the (C, S) plane
@@ -410,31 +421,46 @@ function drawMinis(m, { x, taps, k, R, n, PHI }) {
     label(ctx, "C", w - 8, oy - 6, T.ink3, "right", 10); label(ctx, "S", ox + 6, 14, T.ink3, "left", 10);
     extra(ctx, P, sc, lo, hi);
   };
-  // 7 · the weights' arrows, tip to tail, end at (C, S); its length is A and its angle is θ
+  // 7 · the weights' arrows laid tip to tail, then the arrow to (C, S), then its length A and angle θ.
+  // m.polar.fr runs 0 → 1 as that plays out; 1 is the finished picture.
   { const f = fit(m.polar.cv, m.polar.h); if (f) plane(f, (ctx, P) => {
+    const fr = m.polar.fr ?? 1, L = live.length, F = fr * (L + 2);
     const [ox, oy] = P([0, 0]), [ex, ey] = P(pts[pts.length - 1]);
-    for (let i = 1; i < pts.length; i++) {
-      const [x0, y0] = P(pts[i - 1]), [x1, y1] = P(pts[i]), len = Math.hypot(x1 - x0, y1 - y0) || 1;
-      arrowTo(ctx, x0, y0, x1, y1, T.ink3, 1.3);
-      // label each arrow on its outer side, away from the line to (C, S)
+    const lerp = (p, q, g) => [p[0] + (q[0] - p[0]) * g, p[1] + (q[1] - p[1]) * g];
+    for (let i = 0; i < L && F > i; i++) {
+      const g = Math.min(1, F - i), [x0, y0] = P(pts[i]), [x1, y1] = P(lerp(pts[i], pts[i + 1], g)), len = Math.hypot(x1 - x0, y1 - y0) || 1;
+      arrowTo(ctx, x0, y0, x1, y1, g < 1 ? T.ink : T.ink3, g < 1 ? 1.8 : 1.3);
+      if (g < 1 || len <= 18 || L < 2) continue;
+      // label each finished arrow on its outer side, away from the line to (C, S)
       let nx = -(y1 - y0) / len, ny = (x1 - x0) / len;
       const side = (ex - ox) * ((y0 + y1) / 2 - oy) - (ey - oy) * ((x0 + x1) / 2 - ox);
       if (side * ((ex - ox) * ny - (ey - oy) * nx) < 0) { nx = -nx; ny = -ny; }
-      if (len > 18 && pts.length > 2) label(ctx, `u=${live[i - 1][0]}`, (x0 + x1) / 2 + nx * 10, (y0 + y1) / 2 + ny * 10 + 3, T.ink3, "center", 9);
+      label(ctx, `u=${live[i][0]}`, (x0 + x1) / 2 + nx * 10, (y0 + y1) / 2 + ny * 10 + 3, T.ink3, "center", 9);
     }
     const A = Math.hypot(ex - ox, ey - oy), th = Math.atan2(R.S, R.C);
-    arrowTo(ctx, ox, oy, ex, ey, T.sp, 2.4); dot(ctx, ex, ey, 3.6, T.sp);
-    const r = Math.max(14, Math.min(30, A * 0.35));
-    if (Math.abs(th) > 0.02) { ctx.strokeStyle = T.ink; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(ox, oy, r, 0, -th, th > 0); ctx.stroke(); }
-    // only the symbols go on the drawing; the numbers go in the line under it
-    const ux = (ex - ox) / (A || 1), uy = (ey - oy) / (A || 1);
-    let nx = -uy, ny = ux;
-    const cx = pts.reduce((t, q) => t + P(q)[0], 0) / pts.length, cy = pts.reduce((t, q) => t + P(q)[1], 0) / pts.length;
-    if (pts.length > 2 && (cx - (ox + ex) / 2) * nx + (cy - (oy + ey) / 2) * ny > 0) { nx = -nx; ny = -ny; }
-    label(ctx, "A", (ox + ex) / 2 + nx * 12, (oy + ey) / 2 + ny * 12 + 4, T.sp, "center", 12);
-    if (Math.abs(th) > 0.02) label(ctx, "θ", ox + r * 0.55 * Math.cos(-th / 2), oy + r * 0.55 * Math.sin(-th / 2) + 4, T.ink, "center", 11);
-    const nb = (t) => t.replace(/ /g, "\u00a0");
-    m.polar.read.textContent = [nb(`(C, S) = (${fmt(R.C, 2)}, ${fmt(R.S, 2)})`), nb(`A = ${fmt(R.mag, 2)}`), nb(`θ = ${fmt(th, 2)}`)].join(" · ");
+    if (F > L) {
+      const [tx, ty] = P(lerp([0, 0], pts[pts.length - 1], Math.min(1, F - L)));
+      arrowTo(ctx, ox, oy, tx, ty, T.sp, 2.4);
+      if (F >= L + 1) dot(ctx, ex, ey, 3.6, T.sp);
+    }
+    if (F > L + 1) {
+      ctx.globalAlpha = Math.min(1, F - L - 1);
+      const r = Math.max(14, Math.min(30, A * 0.35));
+      if (Math.abs(th) > 0.02) { ctx.strokeStyle = T.ink; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(ox, oy, r, 0, -th, th > 0); ctx.stroke(); }
+      const ux = (ex - ox) / (A || 1), uy = (ey - oy) / (A || 1);
+      let nx = -uy, ny = ux;
+      const cx = pts.reduce((t, q) => t + P(q)[0], 0) / pts.length, cy = pts.reduce((t, q) => t + P(q)[1], 0) / pts.length;
+      if (pts.length > 2 && (cx - (ox + ex) / 2) * nx + (cy - (oy + ey) / 2) * ny > 0) { nx = -nx; ny = -ny; }
+      label(ctx, "A", (ox + ex) / 2 + nx * 12, (oy + ey) / 2 + ny * 12 + 4, T.sp, "center", 12);
+      if (Math.abs(th) > 0.02) label(ctx, "θ", ox + r * 0.55 * Math.cos(-th / 2), oy + r * 0.55 * Math.sin(-th / 2) + 4, T.ink, "center", 11);
+      ctx.globalAlpha = 1;
+    }
+    // the line under the drawing narrates what's happening, then settles on the numbers
+    const nb = (t) => t.replace(/ /g, " ");
+    const sym = (u) => (u === 0 ? "0" : u === 1 ? "ω" : u === -1 ? "−ω" : `${u < 0 ? "−" : ""}${Math.abs(u)}ω`);
+    if (F < L) { const u = live[Math.floor(F)][0]; m.polar.read.textContent = `adding u = ${u}: ${nb(`κ(${u})·(cos ${sym(u)}, sin ${sym(u)})`)}`; }
+    else if (F < L + 1) m.polar.read.textContent = "tip to tail, they end at (C, S)";
+    else m.polar.read.textContent = [nb(`(C, S) = (${fmt(R.C, 2)}, ${fmt(R.S, 2)})`), nb(`A = ${fmt(R.mag, 2)}`), nb(`θ = ${fmt(th, 2)}`)].join(" · ");
   }); }
 }
 
