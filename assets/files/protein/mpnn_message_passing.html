@@ -82,7 +82,7 @@
 <body>
 
 <div class="top-label">ProteinMPNN — message passing</div>
-<p class="sub">Residue <b>i</b> (orange) sits in a graph, not a line — edges connect residues that are physically close in 3D, sequence-neighbors or not. Step through the four stages below, then <b>click any other node</b> to repeat the whole thing for a different residue.</p>
+<p class="sub">Residue <b>i</b> (orange) sits in a graph. Edges connect residues that are physically close in 3D. Step through the four stages below, then <b>click any other node</b> to repeat the whole thing for a different residue.</p>
 
 <div class="tabs" id="tabs"></div>
 <div class="stage-caption" id="caption"></div>
@@ -95,7 +95,7 @@
       <span class="legend-chip"><span class="chip-dot" style="background:var(--msa)"></span>neighbor j</span>
       <span class="legend-chip"><span class="chip-line"></span>graph edge</span>
     </div>
-    <p class="graph-note">Edges here aren't the sequence 1&ndash;2&ndash;3&hellip; — they connect residues within a distance cutoff in real 3D. <b style="color:var(--text-secondary)">1&ndash;8</b> and <b style="color:var(--text-secondary)">2&ndash;7</b> are neighbors because this stretch folds into a hairpin, even though they sit far apart in sequence.</p>
+    <p class="graph-note">Edges connect residues that are close in real 3D, whether or not they're next to each other in the sequence. <b style="color:var(--text-secondary)">1&ndash;8</b> and <b style="color:var(--text-secondary)">2&ndash;7</b> are neighbors because this stretch folds into a hairpin, even though they sit far apart in sequence.</p>
     <div class="hint">click a node to make it the target</div>
   </div>
   <div class="side" id="panel"></div>

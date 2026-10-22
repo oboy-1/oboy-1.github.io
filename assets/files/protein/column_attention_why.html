@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Column attention — why first</title>
+<title>Column attention</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -63,9 +63,9 @@ const weights = softmax(scores);
 const updated = [0,1].map(d => weights.reduce((sum,w,i)=> sum + w*vecs[i][d], 0));
 
 const STAGES = [
-  { id:0, label:'1. Why', caption: 'This is column 2 of the alignment, pulled out from the grid above. Dog has a K here. On its own, we don\'t know if that K is meaningful or arbitrary — we don\'t yet know how much Cat and Fish\'s versions should matter.' },
-  { id:1, label:'2. Compute relevance', caption: 'Relevance comes purely from how similar the content looks — no pair-grid bias here, this step only compares species to each other, within this one column. Cat matches Dog exactly; Fish diverges.' },
-  { id:2, label:'3. Update the representation', caption: 'Dog\'s representation barely moves — Cat agrees with it almost entirely, reinforcing rather than changing it. Fish pulls it slightly toward something new. If every species disagreed, the shift would be much larger.' },
+  { id:0, label:'1. Why', caption: 'This is column 2 of the alignment, pulled out from the grid above. Dog has a K here. On its own, we can\'t tell if that K matters. We need to see what Cat and Fish have at the same spot.' },
+  { id:1, label:'2. Compute relevance', caption: 'Relevance comes only from how similar the residues look. There\'s no pair-grid bias in this step. It only compares species to each other within this one column. Cat matches Dog exactly; Fish diverges.' },
+  { id:2, label:'3. Update the representation', caption: 'Dog\'s representation barely moves, because Cat agrees with it almost entirely. Fish pulls it slightly toward something new. If every species disagreed, the shift would be much larger.' },
 ];
 
 const NS = "http://www.w3.org/2000/svg";

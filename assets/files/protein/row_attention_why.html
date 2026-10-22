@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Row attention — why first</title>
+<title>Row attention</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -78,9 +78,9 @@ const weights = softmax(scores);
 const updated = [0,1].map(d => weights.reduce((sum,w,i)=> sum + w*VEC[seq1[i]][d], 0));
 
 const STAGES = [
-  { id:0, label:'1. Why', caption: 'Position 1 starts as just "M". To understand what it\'s really doing, we need information from the other positions — but we don\'t yet know how much each one actually matters.' },
-  { id:1, label:'2. Compute relevance', caption: 'Relevance comes from two numbers per position, added together: content similarity (how alike the two residues look) and the pair-grid bias (what the pair grid — built up over earlier blocks and updated by row/column attention, outer product mean, and triangle update — already believes about this specific pair). Row attention doesn\'t compute relevance from content alone.' },
-  { id:2, label:'3. Combine and update', caption: 'Those two numbers get added, then passed through softmax across all four positions to get a weight. Position 1\'s new representation is a blend of all four, weighted this way — no longer just "M," mostly shaped by position 3, a little less by the others.' },
+  { id:0, label:'1. Why', caption: 'Position 1 starts as just "M". To understand what it\'s really doing, we need information from the other positions. We don\'t know yet how much each one matters.' },
+  { id:1, label:'2. Compute relevance', caption: 'Relevance comes from two numbers per position, added together: content similarity (how alike the two residues look) and the pair-grid bias (what the pair grid already says about this specific pair, built up over earlier blocks by outer product mean and the triangle steps).' },
+  { id:2, label:'3. Combine and update', caption: 'Those two numbers get added, then passed through softmax across all four positions to get a weight. Position 1\'s new representation is a blend of all four, weighted this way. It now carries information from position 3 most of all, and a little from the others.' },
 ];
 
 const NS = "http://www.w3.org/2000/svg";
