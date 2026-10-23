@@ -512,7 +512,9 @@ What matters is whether a head's attention shows up **off the diagonal**. On-dia
 
 Now it might be a bit confusing visualizing what the contact map on the left actually means.  See below for how to interpret the graph.
 
-Look at the real contact map on the left of that widget. Cell $i,j$ indicates whether residue $i$ is in contact with residue $j$. The main diagonal isn't a single line — there's a second, thinner line running right alongside it. Pick "Helix turn" below to see why: the alpha helix hydrogen-bonds residue $i$ to residue $i{+}4$ as it coils, so every residue along the helix ends up close to one a few positions ahead of it. That repeating offset is the second band. "Sheet pairing" shows a different case: two stretches of sequence tens of residues apart, pulled next to each other because the chain folds back on itself, showing up as a contact far off the diagonal.
+Look at the real contact map on the left of that widget.  Cell $i,j$ is filled in if residue $i$ is in contact with residue $j$.  Right next to the main diagonal, there's a second, thinner line.  Pick "Helix turn" below to see where it comes from.  As an alpha helix coils, residue $i$ hydrogen-bonds to residue $i{+}4$, so every residue in the helix is close to the one four positions ahead.  That fixed offset is what draws the second line.
+
+Now pick "Sheet pairing."  Here the chain folds back on itself, so two strands that are tens of residues apart in the sequence end up lying side by side.  Those contacts show up far from the diagonal.
 
 {% include interactive.html
   id="contact-3d-frame"
