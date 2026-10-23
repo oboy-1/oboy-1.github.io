@@ -795,7 +795,9 @@ $$
 \left\lVert T_i(q_i^p)-T_j(k_j^p) \right\rVert
 $$
 
-This distance doesn't change if you move or rotate the entire protein.  A translation shifts both points equally, so it cancels out.  A rotation doesn't change distances.  The set of all these rotations and translations is called **SE(3)**, so we say IPA is *SE(3)-invariant*.  This matters because the protein's position and orientation in space are arbitrary, and the model's prediction shouldn't depend on them.
+This distance doesn't change if you move or rotate the entire protein.  A translation shifts both points equally, so it cancels out.  A rotation doesn't change distances.
+
+There's a name for this property.  **SE(3)** is the set of every way you can move a rigid object around in 3D: any rotation combined with any shift.  (It stands for the *special Euclidean group* in 3 dimensions.)  Something is **SE(3)-invariant** if it comes out exactly the same no matter which of these moves you apply to the input first.  IPA's attention scores are SE(3)-invariant.  This matters because the protein's position and orientation in space are arbitrary, so the model's prediction shouldn't depend on them.
 
 Step through this on a real structure below.
 
@@ -848,7 +850,7 @@ The biggest change in AlphaFold 3 (AF3) is **what it predicts**.  AF2 was built 
 
 **The Structure Module becomes a diffusion module.**  *Diffusion* is a way of generating data by starting from random noise and removing it a little at a time.  We'll go through how it works in more detail in the [RFdiffusion section](#rfdiffusion).  AF3 starts with every atom at a random position and learns to move them, step by step, into a plausible structure.  It works on all atoms directly, so there are no residue frames and no separate χ-angle step for side chains.
 
-**No built-in invariance.**  IPA was SE(3)-invariant by design.  AF3's diffusion module isn't.  Instead, during training each structure is randomly rotated and shifted, so the model learns to give the same answer no matter how the input is oriented.
+**No built-in invariance.**  IPA was [SE(3)-invariant](#structure-module-and-invariant-point-attention) by design.  AF3's diffusion module isn't.  Instead, during training each structure is randomly rotated and shifted, so the model learns to give the same answer no matter how the input is oriented.
 
 So the pair grid and triangle operations stay at the center of AF3.  The two big changes are the scope (proteins plus DNA, RNA, and small molecules) and how the final 3D coordinates are generated.
 

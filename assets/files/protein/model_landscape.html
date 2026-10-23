@@ -228,7 +228,7 @@ const MODELS = [
     body:'Large autoregressive model trained on over a billion protein sequences. Accepts functional annotations prepended as conditioning — same idea as CTRL (2019) for text, applied to proteins. Can estimate fitness from log-likelihood without fine-tuning.',
     insight:'Scale + conditioning finally made autoregressive generation practically useful.',
     link:'https://arxiv.org/abs/2206.13517' },
-  { key:'rfdiffusion', name:'RFdiffusion',  year:2023, lab:'Baker lab',         problem:'gen',    arch:'generative', arch_pill:'SE(3) diffusion on 3D coords',
+  { key:'rfdiffusion', name:'RFdiffusion',  year:2023, lab:'Baker lab',         problem:'gen',    arch:'generative', arch_pill:'diffusion on 3D backbone',
     oneliner:'Diffusion over 3D backbone coordinates; generates shapes, hands off to ProteinMPNN.',
     body:'Applies diffusion over protein backbone coordinates — starts from random 3D noise and iteratively denoises toward a valid structure. Generates backbone shapes, then ProteinMPNN finds sequences.',
     insight:'Separating "what shape do I want" from "what sequence makes that shape" turned out to be the right decomposition.',
