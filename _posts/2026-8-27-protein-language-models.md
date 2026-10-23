@@ -137,7 +137,7 @@ Below is an interactive showing the different levels.  Click the top buttons to 
   autoresize=true
   alt="Click the top buttons to view hemoglobin's primary, secondary, tertiary, and quaternary structure." %}
 
-The key thing to take away: each level emerges from the level below, but in a way that's not locally predictable. The sequence determines everything — but you can't read off the 3D shape by looking at any short stretch of it. You need to understand the whole thing at once. That's why this problem is hard, and you'll see why it's surprising that protein language models learn anything about tertiary structure from sequence statistics alone.
+Each level comes from the one below it, but you can't predict it locally.  The sequence determines the 3D shape, yet no short stretch of the sequence tells you what that shape is.  You have to consider the whole sequence at once, which is why this problem is hard.  So it's surprising that protein language models, which only ever see sequences, learn anything about tertiary structure at all.  We'll see how they do it in the [ESM-1b section](#esm-1b-what-does-masked-language-modeling-learn-from-protein-sequences).
 
 ### The different protein modeling problems
 
@@ -170,7 +170,7 @@ See below for an illustration of how ESM-2 turns a sequence into embeddings — 
   autoresize=true
   alt="An illustration of how ESM-2 turns a sequence into embeddings for a sequence, using illustrative (not real) vector values." %}
 
-Just like BERT, each vector isn't just "what amino acid is this" — it captures context. The three T residues at positions 7, 9, and 12 all get different vectors, even though they're the same character. Same token, different neighbors, different embedding.
+Just like BERT, each vector depends on the residue's context as well as its amino acid.  The three T residues at positions 7, 9, and 12 all get different vectors, even though they're the same letter, because their neighbors are different.
 
 All these models are called **Protein Language Models (PLMs)** — transformers trained on protein sequences the same way BERT and GPT are trained on text. Some models combine multiple problems: ESMFold uses PLM embeddings to predict structure directly, skipping the need for a separate folding model. ESM3 goes furthest — it jointly reasons over sequence, structure, and function in a single model, so any modality can prompt any other.
 
@@ -222,7 +222,7 @@ There are three main datasets in this space: [UniProt](https://www.uniprot.org/)
 
 ##### UniProt: tons of amino acid sequences
 
-UniProt contains a bunch of amino acid sequences of different proteins—about ~250 million sequences in fact!  This is awesome—you can train models to predict the next amino acid (self-supervised learning) really easily at scale.  The problem is that not all of these sequences have *labels*—what each sequence actually corresponds to in terms of the protein's function.  This means it is really difficult to train models to predict downstream tasks, such as whether a mutation will cause a disease, or a protein's enzyme activity (i.e. how well it accelerates a reaction).  Of all the sequences only around 550,000 sequences have been manually curated by expert biologists — the rest are automatically annotated by rule systems.
+UniProt contains a bunch of amino acid sequences of different proteins—about ~250 million sequences in fact!  This is awesome—you can train models to predict the next amino acid (self-supervised learning) really easily at scale.  The problem is that not all of these sequences have *labels*—what each sequence actually corresponds to in terms of the protein's function.  This means it is really difficult to train models to predict downstream tasks, such as whether a mutation will cause a disease, or a protein's enzyme activity (i.e. how well it accelerates a reaction).  Of all the sequences only around 570,000 sequences have been manually curated by expert biologists — the rest are automatically annotated by rule systems.
 
 {% capture uniprot_flow_content %}
 
@@ -273,11 +273,11 @@ As you can see, there is a major data shortage in this domain—despite being ab
 
 ##### CASP: a competition, not a dataset
 
-So how do we know any of these predicted structures — from AlphaFold or anyone else — are actually trustworthy? This is exactly the question **CASP (Critical Assessment of protein Structure Prediction)** was built to answer. 
+So how do we know whether any of these predicted structures, from AlphaFold or anyone else, can be trusted?  That's what **CASP (Critical Assessment of protein Structure Prediction)** is for.
 
 CASP is a competition held every two years, where organizers work with biology labs around the world to identify target proteins that are being actively solved experimentally but haven't been published yet (i.e., no one publicly knows how it folds).  Organizers compile a set of proteins to test the ML models on.  At submission time these answers aren't known by the model-makers so this serves as an unbiased way of measuring model performance, where the test examples aren't leaked into the training data for these models.
 
-> **Extra info on CASP:** It's run by an independent, volunteer, worldwide research community — not a company — and has taken place every two years since 1994. Targets span the full difficulty spectrum, from routine sequences to genuinely novel folds with no close relatives in the PDB, so predictors are scored across easy and hard cases alike. CASP is also where the field's structure-comparison metrics were popularized — TM-score (covered below) and GDT-TS are the same metrics used to rank CASP submissions. And CASP isn't just for folding: recent rounds also run tracks for complexes and function prediction, tracking the field far beyond single-chain structure. CASP14 (2020) is the round where AlphaFold 2 crossed a score threshold widely regarded as "solving" the single-chain structure prediction problem.
+> **Extra info on CASP:** It's run by an independent, worldwide research community and has taken place every two years since 1994.  Targets range from easy ones with close relatives in the PDB to new folds with no close relatives at all, so models get scored on both.  CASP ranks submissions with structure-comparison scores like GDT-TS and TM-score (covered below).  Recent rounds also have categories for protein complexes, RNA, protein–ligand complexes, and proteins with multiple shapes.  CASP14 (2020) is the round where AlphaFold 2 crossed a score threshold widely regarded as "solving" single-chain structure prediction.
 {: .prompt-info}
 
 #### 4. Verifying is difficult
@@ -386,11 +386,11 @@ This too, is learned by the model as part of its output.  It is important to use
 
 The best way to visualize / interpret PAE is through a grid, like what's below:
 
-Take a toy 6-residue protein made of two contiguous domains: residues 1–3 form domain A, residues 4–6 form domain B. Since each domain folds rigidly on its own, any pair of residues *within* the same domain gets a confident, low-PAE score — even residues 4 and 6, which are far apart in sequence number but sit in the same rigid block. Pairs that straddle the two domains get a high-PAE, uncertain score instead, since the domains' relative orientation is exactly what's hard to pin down — even residues 3 and 6, which are close together in sequence number. Sequence distance and PAE confidence are simply not the same thing.
+Take a toy 6-residue protein made of two contiguous domains: residues 1–3 form domain A, residues 4–6 form domain B. Since each domain folds rigidly on its own, any pair of residues *within* the same domain gets a confident, low PAE score.  This includes residues 4 and 6, which aren't next to each other in the sequence but sit in the same rigid block. Pairs that straddle the two domains get a high, uncertain PAE score, because how the two domains are oriented relative to each other is hard to pin down.  This includes residues 3 and 4, which are right next to each other in the sequence.  So being close in sequence doesn't make a pair low-PAE.
 
 ![A PAE grid for a toy 6-residue protein with two contiguous domains, showing confident diagonal blocks and uncertain off-diagonal blocks]({{ site.baseurl }}/assets/files/protein/pae_grid_contiguous_blocks.png){:.light}
 ![A PAE grid for a toy 6-residue protein with two contiguous domains, showing confident diagonal blocks and uncertain off-diagonal blocks]({{ site.baseurl }}/assets/files/protein/pae_grid_contiguous_blocks_dark.png){:.dark}
-*Diagonal blocks (same domain) are dark blue — low PAE, confident. Off-diagonal blocks (different domains) are amber — high PAE, uncertain. What matters is domain membership, not how close two residue numbers are.*
+*Diagonal blocks (same domain) are dark blue: low PAE, confident. Off-diagonal blocks (different domains) are amber: high PAE, uncertain. The color depends on which domain each residue is in.*
 
 > Take a look at [this resource](https://pae-viewer.uni-goettingen.de/) from University of Göttingen to see an interactive view of PAE.  **It has a visual for PAE in a similar style to the other ones in this blog**
 {: .prompt-tip}
@@ -414,10 +414,10 @@ $$
 where:
 
 - $r_{ij}$: the distance between two atoms in our model. This is the raw error signal — just how far apart these two atoms actually ended up.
-- $p(r_{ij})$: we don't judge this distance in isolation. Instead we ask, across thousands of real, experimentally solved protein structures, how often this specific pair of atom types shows up at this specific distance. This is empirically derived, not assumed.
-- $p^{rs}(r_{ij})$: this is the reference state. Even with zero chemistry involved, distances aren't equally likely — imagine scattering two random points inside a ball the size of a folded protein: pure geometry alone makes very short and very long distances rare, and medium distances common. We compute this purely geometric baseline so it can be divided out, leaving behind only the real chemical preference.
-- $k_B$: Boltzmann's constant. It shows up here simply to keep the formula in the same "shape" as the classic Boltzmann relation $p \propto e^{-E/k_BT}$, letting us convert a probability ratio into something **that behaves like an energy.**
-- $T$: a fixed reference temperature. There's no real simulation happening, no actual thermal system — this is just carried along to complete the inverse-Boltzmann conversion from probability into a pseudo-energy scale.
+- $p(r_{ij})$: how often this pair of atom types shows up at this distance, counted across thousands of real, experimentally solved protein structures.
+- $p^{rs}(r_{ij})$: the reference state.  Even with no chemistry involved, some distances are more likely than others.  If you scatter two random points inside a ball the size of a folded protein, very short and very long distances are rare and medium distances are common.  Dividing by this geometric baseline leaves only the chemical preference.
+- $k_B$: Boltzmann's constant.  It keeps the formula in the same form as the Boltzmann relation $p \propto e^{-E/k_BT}$, which lets us turn a probability ratio into something **that behaves like an energy.**
+- $T$: a fixed reference temperature.  Nothing is actually being simulated at this temperature.  It's only there to complete the conversion from probability to a pseudo-energy.
 
 {% include interactive.html
   id="dope-frame"
@@ -467,9 +467,9 @@ Side chains (i.e. R groups) rotate too.  Lysine, for example, has a whole tail o
   autoresize=true
   alt="Lysine's side chain has a tail of rotatable chi angles (χ1, χ2, ...), counting outward from the Cα." %}
 
-Here's the interesting part: those bonds don't spin freely. Same idea as φ/ψ — they cluster into a few preferred positions, roughly three per bond, about 120° apart. A side chain sitting in one of those preferred spots is called a rotamer, and — like the Ramachandran regions — the "preferred" list isn't derived from theory, it's just what shows up over and over in real, solved structures.
+Those bonds don't spin freely either.  Like φ/ψ, they cluster into a few preferred positions, roughly three per bond and about 120° apart.  A side chain in one of those preferred positions is called a **rotamer**.  Like the Ramachandran regions, the list of preferred positions comes from what shows up over and over in real, solved structures.
 
-A **rotamer outlier** is a side chain that missed all of those spots. Nothing's necessarily clashing — it's just a shape real proteins basically never use. It's the third thing MolProbity checks, alongside clashes and backbone angle: not "are atoms touching," but "does this specific twist actually happen in nature." 
+A **rotamer outlier** is a side chain that isn't in any of those positions.  It might not clash with anything, but it's a shape real proteins almost never use.  This is the third thing MolProbity checks, after clashes and backbone angles.
 
 
 ### The model landscape
@@ -496,7 +496,7 @@ output: P(distance(i,j) < 8Å)
 Note that Å is an Angstrom, or $10^{-10}$ meters, where 8Å is a close enough distance to assume the two residues contact each other.
 
 
-This is also the answer to a question from the very start of this post: why should a transformer trained only to fill in masked amino acids — with no structural supervision at all — end up learning anything about how a protein folds? The masked-language-modeling objective forces the model to predict a residue from everything else in the sequence, and the best way to do that is to pick up on **coevolution**: pairs of positions that mutate together across evolutionary history because they're in physical contact and constrain each other structurally. That coevolutionary signal is learnable through self-attention, and it shows up directly in the attention maps themselves — which is exactly what the unsupervised contact-prediction probe above is reading out.
+Remember the question from the [four levels of structure](#four-levels-of-structure) section: how can a model that only sees sequences learn anything about how a protein folds?  The answer is **coevolution**.  To fill in a masked residue, the model has to predict it from the rest of the sequence.  A good way to do that is to notice pairs of positions that mutate together across evolution.  Those pairs usually mutate together because they're in physical contact, so a change at one needs a matching change at the other.  Self-attention can learn these pairings, and they show up in the attention maps.  That's what the contact-prediction probe above reads out.
 
 Below is a real ESM-1b forward pass over ubiquitin, no fine-tuning, with attention heads ranked by how well they predict real contacts. Some heads are near-random; others land startlingly close to the true contact map, just from being trained to fill in the blanks.
 
@@ -512,7 +512,7 @@ What matters is whether a head's attention shows up **off the diagonal**. On-dia
 
 Now it might be a bit confusing visualizing what the contact map on the left actually means.  See below for how to interpret the graph.
 
-Look at the real contact map on the left of that widget. Cell $i,j$ indicates whether residue $i$ is connected to residue $j$. The main diagonal isn't a single line — there's a second, thinner line running right alongside it. Pick "Helix turn" below to see why: the alpha helix hydrogen-bonds residue $i$ to residue $i{+}4$ as it coils, so every residue along the helix ends up close to one a few positions ahead of it. That repeating offset is the second band. "Sheet pairing" shows a different case: two stretches of sequence tens of residues apart, pulled next to each other because the chain folds back on itself, showing up as a contact far off the diagonal.
+Look at the real contact map on the left of that widget. Cell $i,j$ indicates whether residue $i$ is in contact with residue $j$. The main diagonal isn't a single line — there's a second, thinner line running right alongside it. Pick "Helix turn" below to see why: the alpha helix hydrogen-bonds residue $i$ to residue $i{+}4$ as it coils, so every residue along the helix ends up close to one a few positions ahead of it. That repeating offset is the second band. "Sheet pairing" shows a different case: two stretches of sequence tens of residues apart, pulled next to each other because the chain folds back on itself, showing up as a contact far off the diagonal.
 
 {% include interactive.html
   id="contact-3d-frame"
@@ -537,7 +537,7 @@ But does scaling actually work here? Drag the slider through all six real checkp
   alt="Drag the slider through ESM-2's six real checkpoints (8M to 15B parameters) to see contact precision and structure quality improve early, then flatten out." %}
 Maybe the 15B ESM-2 model didn't actually hit a limit—it just didn't see enough data. Researchers at BioMap and Tsinghua University [(paper)](https://proceedings.neurips.cc/paper_files/paper/2024/file/8066ae1446b2bbccb5159587cc3b3bcc-Paper-Conference.pdf) tested this. Every ESM-2 size was trained on the same ~1 trillion tokens: roughly 22 billion unique tokens repeated 45 times. Their analysis suggested that compute would've been better spent on a larger model with fresher data. They trained a **10.7B model on ~260B mostly fresh tokens**, which beat ESM-2 3B and matched or beat ESM-2 15B on most benchmarks.
 
-The ESM team later took a similar approach with **ESM C**, released in December 2024, training each size on **6.2T tokens** instead of ESM-2's ~1T. The result is essentially the flattening curve from above, fixed: ESM C 300M matches ESM-2 650M, 600M rivals 3B, and 6B beats every ESM-2 model. In other words, **ESM-2 may not have hit a model-size limit—it may have hit a data limit.** ESM C also deliberately overtrained its smaller models, since spending more on training a cheap-to-run model can be worthwhile in practice.
+The ESM team later took a similar approach with **ESM C**, released in December 2024, training each size on **6.2T tokens** instead of ESM-2's ~1T. The result is essentially the flattening curve from above, fixed: ESM C 300M matches ESM-2 650M, 600M rivals 3B, and 6B beats every ESM-2 model.  ESM C also deliberately overtrained its smaller models, since spending more on training a cheap-to-run model can be worthwhile in practice.
 
 #### AlphaFold 2: bake priors through architecture 
 
