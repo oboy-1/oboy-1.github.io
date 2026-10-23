@@ -122,7 +122,7 @@ Proteins have four levels of structure, each emerging from the one below.
 
 **Tertiary structure** is the full 3D shape of a single protein chain — how those helices and sheets pack together in space. This is what AlphaFold predicts. It's determined by long-range interactions between residues that may be hundreds of positions apart in the sequence. This is where it gets hard.
 
-**Quaternary structure** is multiple chains coming together into a complex. Hemoglobin is four chains. AlphaFold3 extended structure prediction to this level.
+**Quaternary structure** is multiple chains coming together into a complex. Hemoglobin is four chains. AlphaFold 3 extended structure prediction to this level.
 
 ![Protein structure levels](https://upload.wikimedia.org/wikipedia/commons/a/a6/Protein-structure.png)
 *The four levels of protein structure. (Source: [wikimedia](https://upload.wikimedia.org/wikipedia/commons/a/a6/Protein-structure.png))*
@@ -137,7 +137,7 @@ Below is an interactive showing the different levels.  Click the top buttons to 
   autoresize=true
   alt="Click the top buttons to view hemoglobin's primary, secondary, tertiary, and quaternary structure." %}
 
-The key thing to take away: each level emerges from the level below, but in a way that's not locally predictable. The sequence determines everything — but you can't read off the 3D shape by looking at any short stretch of it. You need to understand the whole thing at once. That's why this problem is hard, and you'll see why it's surprising that protein language models learn anything about tertiary structure from sequence statistics alone.
+Each level comes from the one below it, but you can't predict it locally.  The sequence determines the 3D shape, yet no short stretch of the sequence tells you what that shape is.  You have to consider the whole sequence at once, which is why this problem is hard.  So it's surprising that protein language models, which only ever see sequences, learn anything about tertiary structure at all.  We'll see how they do it in the [ESM-1b section](#esm-1b-what-does-masked-language-modeling-learn-from-protein-sequences).
 
 ### The different protein modeling problems
 
@@ -170,7 +170,7 @@ See below for an illustration of how ESM-2 turns a sequence into embeddings — 
   autoresize=true
   alt="An illustration of how ESM-2 turns a sequence into embeddings for a sequence, using illustrative (not real) vector values." %}
 
-Just like BERT, each vector isn't just "what amino acid is this" — it captures context. The three T residues at positions 7, 9, and 12 all get different vectors, even though they're the same character. Same token, different neighbors, different embedding.
+Just like BERT, each vector depends on the residue's context as well as its amino acid.  The three T residues at positions 7, 9, and 12 all get different vectors, even though they're the same letter, because their neighbors are different.
 
 All these models are called **Protein Language Models (PLMs)** — transformers trained on protein sequences the same way BERT and GPT are trained on text. Some models combine multiple problems: ESMFold uses PLM embeddings to predict structure directly, skipping the need for a separate folding model. ESM3 goes furthest — it jointly reasons over sequence, structure, and function in a single model, so any modality can prompt any other.
 
@@ -178,8 +178,8 @@ See the table below for an overview—but don't feel nervous if it looks dauntin
 
 | Problem | Models | Input → Output |
 |---|---|---|
-| Representation | [ESM-1b](https://www.pnas.org/doi/10.1073/pnas.2016239118), [ESM-2](https://www.science.org/doi/10.1126/science.ade2574), [ProtBERT](https://arxiv.org/abs/2007.06225), [ESM-C](https://evolutionaryscale.ai/blog/esm-cambrian) | Sequence → Embeddings |
-| Folding | [AlphaFold2](https://www.nature.com/articles/s41586-021-03819-2), [RoseTTAFold](https://www.science.org/doi/10.1126/science.abj8754), [AF3](https://www.nature.com/articles/s41586-024-07487-w) | Sequence → 3D coordinates |
+| Representation | [ESM-1b](https://www.pnas.org/doi/10.1073/pnas.2016239118), [ESM-2](https://www.science.org/doi/10.1126/science.ade2574), [ProtBERT](https://arxiv.org/abs/2007.06225), [ESM C](https://evolutionaryscale.ai/blog/esm-cambrian) | Sequence → Embeddings |
+| Folding | [AlphaFold 2](https://www.nature.com/articles/s41586-021-03819-2), [RoseTTAFold](https://www.science.org/doi/10.1126/science.abj8754), [AF3](https://www.nature.com/articles/s41586-024-07487-w) | Sequence → 3D coordinates |
 | Folding (from embeddings) | [ESMFold](https://www.science.org/doi/10.1126/science.ade2574) | PLM embeddings → 3D coordinates |
 | Function prediction | [ESM-2 + head](https://www.science.org/doi/10.1126/science.ade2574), [SaProt](https://openreview.net/forum?id=6MRm3G4NiU) | Sequence → Function |
 | Inverse folding | [ProteinMPNN](https://www.science.org/doi/10.1126/science.add2187), [RFdiffusion](https://www.nature.com/articles/s41586-023-06415-8) | Structure → Sequence |
@@ -222,7 +222,7 @@ There are three main datasets in this space: [UniProt](https://www.uniprot.org/)
 
 ##### UniProt: tons of amino acid sequences
 
-UniProt contains a bunch of amino acid sequences of different proteins—about ~250 million sequences in fact!  This is awesome—you can train models to predict the next amino acid (self-supervised learning) really easily at scale.  The problem is that not all of these sequences have *labels*—what each sequence actually corresponds to in terms of the protein's function.  This means it is really difficult to train models to predict downstream tasks, such as whether a mutation will cause a disease, or a protein's enzyme activity (i.e. how well it accelerates a reaction).  Of all the sequences only around 550,000 sequences have been manually curated by expert biologists — the rest are automatically annotated by rule systems.
+UniProt contains a bunch of amino acid sequences of different proteins—about ~250 million sequences in fact!  This is awesome—you can train models to predict the next amino acid (self-supervised learning) really easily at scale.  The problem is that not all of these sequences have *labels*—what each sequence actually corresponds to in terms of the protein's function.  This means it is really difficult to train models to predict downstream tasks, such as whether a mutation will cause a disease, or a protein's enzyme activity (i.e. how well it accelerates a reaction).  Of all the sequences only around 570,000 sequences have been manually curated by expert biologists — the rest are automatically annotated by rule systems.
 
 {% capture uniprot_flow_content %}
 
@@ -273,11 +273,11 @@ As you can see, there is a major data shortage in this domain—despite being ab
 
 ##### CASP: a competition, not a dataset
 
-So how do we know any of these predicted structures — from AlphaFold or anyone else — are actually trustworthy? This is exactly the question **CASP (Critical Assessment of protein Structure Prediction)** was built to answer. 
+So how do we know whether any of these predicted structures, from AlphaFold or anyone else, can be trusted?  That's what **CASP (Critical Assessment of protein Structure Prediction)** is for.
 
 CASP is a competition held every two years, where organizers work with biology labs around the world to identify target proteins that are being actively solved experimentally but haven't been published yet (i.e., no one publicly knows how it folds).  Organizers compile a set of proteins to test the ML models on.  At submission time these answers aren't known by the model-makers so this serves as an unbiased way of measuring model performance, where the test examples aren't leaked into the training data for these models.
 
-> **Extra info on CASP:** It's run by an independent, volunteer, worldwide research community — not a company — and has taken place every two years since 1994. Targets span the full difficulty spectrum, from routine sequences to genuinely novel folds with no close relatives in the PDB, so predictors are scored across easy and hard cases alike. CASP is also where the field's structure-comparison metrics were popularized — TM-score (covered below) and GDT-TS are the same metrics used to rank CASP submissions. And CASP isn't just for folding: recent rounds also run tracks for complexes and function prediction, tracking the field far beyond single-chain structure. CASP14 (2020) is the round where AlphaFold2 crossed a score threshold widely regarded as "solving" the single-chain structure prediction problem.
+> **Extra info on CASP:** It's run by an independent, worldwide research community and has taken place every two years since 1994.  Targets range from easy ones with close relatives in the PDB to new folds with no close relatives at all, so models get scored on both.  CASP ranks submissions with structure-comparison scores like GDT-TS and TM-score (covered below).  Recent rounds also have categories for protein complexes, RNA, protein–ligand complexes, and proteins with multiple shapes.  CASP14 (2020) is the round where AlphaFold 2 crossed a score threshold widely regarded as "solving" single-chain structure prediction.
 {: .prompt-info}
 
 #### 4. Verifying is difficult
@@ -366,7 +366,7 @@ lDDT measures **local** structural accuracy. For each residue, it compares the p
 
 During training, the true structure is available, so the correct lDDT score can be computed for every residue. The model learns to predict these scores from many examples. At inference time, the true structure is unknown, so instead of computing lDDT, the model estimates what the lDDT score would be if the true structure were available. This predicted score is called **pLDDT**, and it ranges from 0 to 100 for each residue.
 
-Here's a real AlphaFold2 prediction — human lysozyme C — with its pLDDT scores baked directly into the structure (AlphaFold stores per-residue pLDDT in the B-factor column, which is exactly what's driving the coloring below). Toggle between AlphaFold DB's four discrete confidence bins and a continuous gradient over the same underlying values, and notice which parts of the structure the model is least sure about.
+Here's a real AlphaFold 2 prediction — human lysozyme C — with its pLDDT scores baked directly into the structure (AlphaFold stores per-residue pLDDT in the B-factor column, which is exactly what's driving the coloring below). Toggle between AlphaFold DB's four discrete confidence bins and a continuous gradient over the same underlying values, and notice which parts of the structure the model is least sure about.
 
 {% include interactive.html
   id="plddt-frame"
@@ -374,7 +374,7 @@ Here's a real AlphaFold2 prediction — human lysozyme C — with its pLDDT scor
   title="AlphaFold pLDDT Confidence Viewer — Lysozyme C"
   height=700
   autoresize=true
-  alt="A real AlphaFold2 prediction of human lysozyme C colored by pLDDT. Toggle between AlphaFold DB's four confidence bins and a continuous gradient to see which parts of the structure the model is least sure about." %}
+  alt="A real AlphaFold 2 prediction of human lysozyme C colored by pLDDT. Toggle between AlphaFold DB's four confidence bins and a continuous gradient to see which parts of the structure the model is least sure about." %}
 
 ##### PAE: Predicted Aligned Error
 
@@ -386,11 +386,11 @@ This too, is learned by the model as part of its output.  It is important to use
 
 The best way to visualize / interpret PAE is through a grid, like what's below:
 
-Take a toy 6-residue protein made of two contiguous domains: residues 1–3 form domain A, residues 4–6 form domain B. Since each domain folds rigidly on its own, any pair of residues *within* the same domain gets a confident, low-PAE score — even residues 4 and 6, which are far apart in sequence number but sit in the same rigid block. Pairs that straddle the two domains get a high-PAE, uncertain score instead, since the domains' relative orientation is exactly what's hard to pin down — even residues 3 and 6, which are close together in sequence number. Sequence distance and PAE confidence are simply not the same thing.
+Take a toy 6-residue protein made of two contiguous domains: residues 1–3 form domain A, residues 4–6 form domain B. Since each domain folds rigidly on its own, any pair of residues *within* the same domain gets a confident, low PAE score.  This includes residues 4 and 6 (outlined in the grid below), which aren't next to each other in the sequence but sit in the same rigid block. Pairs that straddle the two domains get a high, uncertain PAE score, because how the two domains are oriented relative to each other is hard to pin down.  This includes residues 3 and 4, which are right next to each other in the sequence.  So being close in sequence doesn't make a pair low-PAE.
 
 ![A PAE grid for a toy 6-residue protein with two contiguous domains, showing confident diagonal blocks and uncertain off-diagonal blocks]({{ site.baseurl }}/assets/files/protein/pae_grid_contiguous_blocks.png){:.light}
 ![A PAE grid for a toy 6-residue protein with two contiguous domains, showing confident diagonal blocks and uncertain off-diagonal blocks]({{ site.baseurl }}/assets/files/protein/pae_grid_contiguous_blocks_dark.png){:.dark}
-*Diagonal blocks (same domain) are dark blue — low PAE, confident. Off-diagonal blocks (different domains) are amber — high PAE, uncertain. What matters is domain membership, not how close two residue numbers are.*
+*Diagonal blocks (same domain) are dark blue: low PAE, confident. Off-diagonal blocks (different domains) are amber: high PAE, uncertain. The color depends on which domain each residue is in.*
 
 > Take a look at [this resource](https://pae-viewer.uni-goettingen.de/) from University of Göttingen to see an interactive view of PAE.  **It has a visual for PAE in a similar style to the other ones in this blog**
 {: .prompt-tip}
@@ -414,10 +414,10 @@ $$
 where:
 
 - $r_{ij}$: the distance between two atoms in our model. This is the raw error signal — just how far apart these two atoms actually ended up.
-- $p(r_{ij})$: we don't judge this distance in isolation. Instead we ask, across thousands of real, experimentally solved protein structures, how often this specific pair of atom types shows up at this specific distance. This is empirically derived, not assumed.
-- $p^{rs}(r_{ij})$: this is the reference state. Even with zero chemistry involved, distances aren't equally likely — imagine scattering two random points inside a ball the size of a folded protein: pure geometry alone makes very short and very long distances rare, and medium distances common. We compute this purely geometric baseline so it can be divided out, leaving behind only the real chemical preference.
-- $k_B$: Boltzmann's constant. It shows up here simply to keep the formula in the same "shape" as the classic Boltzmann relation $p \propto e^{-E/k_BT}$, letting us convert a probability ratio into something **that behaves like an energy.**
-- $T$: a fixed reference temperature. There's no real simulation happening, no actual thermal system — this is just carried along to complete the inverse-Boltzmann conversion from probability into a pseudo-energy scale.
+- $p(r_{ij})$: how often this pair of atom types shows up at this distance, counted across thousands of real, experimentally solved protein structures.
+- $p^{rs}(r_{ij})$: the reference state.  Even with no chemistry involved, some distances are more likely than others.  If you scatter two random points inside a ball the size of a folded protein, very short and very long distances are rare and medium distances are common.  Dividing by this geometric baseline leaves only the chemical preference.
+- $k_B$: Boltzmann's constant.  It keeps the formula in the same form as the Boltzmann relation $p \propto e^{-E/k_BT}$, which lets us turn a probability ratio into something **that behaves like an energy.**
+- $T$: a fixed reference temperature.  Nothing is actually being simulated at this temperature.  It's only there to complete the conversion from probability to a pseudo-energy.
 
 {% include interactive.html
   id="dope-frame"
@@ -467,9 +467,9 @@ Side chains (i.e. R groups) rotate too.  Lysine, for example, has a whole tail o
   autoresize=true
   alt="Lysine's side chain has a tail of rotatable chi angles (χ1, χ2, ...), counting outward from the Cα." %}
 
-Here's the interesting part: those bonds don't spin freely. Same idea as φ/ψ — they cluster into a few preferred positions, roughly three per bond, about 120° apart. A side chain sitting in one of those preferred spots is called a rotamer, and — like the Ramachandran regions — the "preferred" list isn't derived from theory, it's just what shows up over and over in real, solved structures.
+Those bonds don't spin freely either.  Like φ/ψ, they cluster into a few preferred positions, roughly three per bond and about 120° apart.  A side chain in one of those preferred positions is called a **rotamer**.  Like the Ramachandran regions, the list of preferred positions comes from what shows up over and over in real, solved structures.
 
-A **rotamer outlier** is a side chain that missed all of those spots. Nothing's necessarily clashing — it's just a shape real proteins basically never use. It's the third thing MolProbity checks, alongside clashes and backbone angle: not "are atoms touching," but "does this specific twist actually happen in nature." 
+A **rotamer outlier** is a side chain that isn't in any of those positions.  It might not clash with anything, but it's a shape real proteins almost never use.  This is the third thing MolProbity checks, after clashes and backbone angles.
 
 
 ### The model landscape
@@ -496,7 +496,7 @@ output: P(distance(i,j) < 8Å)
 Note that Å is an Angstrom, or $10^{-10}$ meters, where 8Å is a close enough distance to assume the two residues contact each other.
 
 
-This is also the answer to a question from the very start of this post: why should a transformer trained only to fill in masked amino acids — with no structural supervision at all — end up learning anything about how a protein folds? The masked-language-modeling objective forces the model to predict a residue from everything else in the sequence, and the best way to do that is to pick up on **coevolution**: pairs of positions that mutate together across evolutionary history because they're in physical contact and constrain each other structurally. That coevolutionary signal is learnable through self-attention, and it shows up directly in the attention maps themselves — which is exactly what the unsupervised contact-prediction probe above is reading out.
+Remember the question from the [four levels of structure](#four-levels-of-structure) section: how can a model that only sees sequences learn anything about how a protein folds?  The answer is **coevolution**.  To fill in a masked residue, the model has to predict it from the rest of the sequence.  A good way to do that is to notice pairs of positions that mutate together across evolution.  Those pairs usually mutate together because they're in physical contact, so a change at one needs a matching change at the other.  Self-attention can learn these pairings, and they show up in the attention maps.  That's what the contact-prediction probe above reads out.
 
 Below is a real ESM-1b forward pass over ubiquitin, no fine-tuning, with attention heads ranked by how well they predict real contacts. Some heads are near-random; others land startlingly close to the true contact map, just from being trained to fill in the blanks.
 
@@ -512,7 +512,9 @@ What matters is whether a head's attention shows up **off the diagonal**. On-dia
 
 Now it might be a bit confusing visualizing what the contact map on the left actually means.  See below for how to interpret the graph.
 
-Look at the real contact map on the left of that widget. Cell $i,j$ indicates whether residue $i$ is connected to residue $j$. The main diagonal isn't a single line — there's a second, thinner line running right alongside it. Pick "Helix turn" below to see why: the alpha helix hydrogen-bonds residue $i$ to residue $i{+}4$ as it coils, so every residue along the helix ends up close to one a few positions ahead of it. That repeating offset is the second band. "Sheet pairing" shows a different case: two stretches of sequence tens of residues apart, pulled next to each other because the chain folds back on itself, showing up as a contact far off the diagonal.
+Look at the real contact map on the left of that widget.  Cell $i,j$ is filled in if residue $i$ is in contact with residue $j$.  Right next to the main diagonal, there's a second, thinner line.  Pick "Helix turn" below to see where it comes from.  As an alpha helix coils, residue $i$ hydrogen-bonds to residue $i{+}4$, so every residue in the helix is close to the one four positions ahead.  That fixed offset is what draws the second line.
+
+Now pick "Sheet pairing."  Here the chain folds back on itself, so two strands that are tens of residues apart in the sequence end up lying side by side.  Those contacts show up far from the diagonal.
 
 {% include interactive.html
   id="contact-3d-frame"
@@ -522,7 +524,7 @@ Look at the real contact map on the left of that widget. Cell $i,j$ indicates wh
   autoresize=true
   alt="Cell (i,j) in the contact map shows whether residues i and j are in contact; try \"Helix turn\" and \"Sheet pairing\" to see how local and long-range folding patterns show up as bands off the main diagonal." %}
 
-#### ESM-2 & ESM-C: do scaling laws hold for proteins?
+#### ESM-2 & ESM C: do scaling laws hold for proteins?
 
 ESM-2 is basically ESM-1b's architecture scaled up. It comes in six sizes, from 8M parameters up to 15B.
 
@@ -537,24 +539,53 @@ But does scaling actually work here? Drag the slider through all six real checkp
   alt="Drag the slider through ESM-2's six real checkpoints (8M to 15B parameters) to see contact precision and structure quality improve early, then flatten out." %}
 Maybe the 15B ESM-2 model didn't actually hit a limit—it just didn't see enough data. Researchers at BioMap and Tsinghua University [(paper)](https://proceedings.neurips.cc/paper_files/paper/2024/file/8066ae1446b2bbccb5159587cc3b3bcc-Paper-Conference.pdf) tested this. Every ESM-2 size was trained on the same ~1 trillion tokens: roughly 22 billion unique tokens repeated 45 times. Their analysis suggested that compute would've been better spent on a larger model with fresher data. They trained a **10.7B model on ~260B mostly fresh tokens**, which beat ESM-2 3B and matched or beat ESM-2 15B on most benchmarks.
 
-The ESM team later took a similar approach with **ESM C**, released in December 2024, training each size on **6.2T tokens** instead of ESM-2's ~1T. The result is essentially the flattening curve from above, fixed: ESM C 300M matches ESM-2 650M, 600M rivals 3B, and 6B beats every ESM-2 model. In other words, **ESM-2 may not have hit a model-size limit—it may have hit a data limit.** ESM C also deliberately overtrained its smaller models, since spending more on training a cheap-to-run model can be worthwhile in practice.
+The ESM team later took a similar approach with **ESM C**, released in December 2024, training each size on **6.2T tokens** instead of ESM-2's ~1T. The result is essentially the flattening curve from above, fixed: ESM C 300M matches ESM-2 650M, 600M rivals 3B, and 6B beats every ESM-2 model.  ESM C also deliberately overtrained its smaller models, since spending more on training a cheap-to-run model can be worthwhile in practice.
 
 #### AlphaFold 2: bake priors through architecture 
 
-Now we'll talk about AlphaFold 2, the huge breakthrough model in this space.  To understand it best, let me show you how it looks like from a high level.
+Now we'll talk about AlphaFold 2 (AF2), the huge breakthrough model in this space.  To understand it best, let me show you how it looks like from a high level.
 
-AlphaFold2 fundamentally splits the task of protein folding into two steps:
+AlphaFold 2 fundamentally splits the task of protein folding into two steps:
 
 1. Generate a good representation of which residues connect to which (Evoformer)
 2. Iteratively generate the protein 3D structure given the representations (Structure module)
 
-Let's first talk about step 1.  This part of AlphaFold is called the **Evoformer**.  It works by keeping two representations of the same protein side by side, and repeatedly updates each one using the other — the same block, repeated 48 times.
+Here's the full pipeline.  We'll go through each box in order.
+
+```mermaid
+flowchart TD
+  SEQ["**Sequence**"]
+  SEARCH["**MSA + template search**
+  jackhmmer, HHblits"]
+
+  subgraph EVOFORMER [" Evoformer — 48 blocks "]
+    direction LR
+    MSA["MSA
+    row + column attention"]
+    PAIR["Pair grid
+    triangle update + attention"]
+    MSA -->|outer product mean| PAIR
+    PAIR -.->|bias| MSA
+  end
+
+  STRUCT["**Structure module**
+  Invariant Point Attention"]
+  FINISH["Side chains + confidence
+  χ angles · pLDDT · PAE"]
+  OUT["**3D structure**"]
+
+  SEQ --> SEARCH --> EVOFORMER
+  EVOFORMER --> STRUCT --> FINISH --> OUT
+  OUT -.->|recycled 3×| EVOFORMER
+```
+
+Let's first talk about step 1.  This part of AlphaFold is called the **Evoformer**.  It works by keeping two representations of the same protein side by side, and repeatedly updates each one using the other.  There are 48 Evoformer blocks stacked up.  They all have the same design, but each one has its own weights.
 
 The first representation is the **Multiple Sequence Alignment (MSA)**.  MSA has similar protein sequences from different organisms lined up.  This is used by the model to detect evolutionary / coevolutionary patterns (just like what ESM-1b tried in its pretraining).  Essentially, imagine lining up the amino acid sequences for a human, a dog, and a cat.  If positions 1 and 3 mutate together across species, there is a good chance they do so because they are connected.  This is what AlphaFold leverages to enrich its representations.
 
-The second is the **pair grid:** one cell per pair of positions, and it starts out holding almost nothing, just how far apart two positions sit in the sequence. This is AlphaFold's place where it writes its opinion for each pair combination of residues, which it later uses to actually predict how the protein folds.  
+The second is the **pair grid**, which the paper calls the *pair representation*.  It has one cell per pair of positions.  It starts out holding very little: the two amino acid types and how far apart the positions are in the sequence.  If the search found similar proteins with known structures (called *templates*), their residue distances get added in too.  The pair grid is where AlphaFold writes down what it thinks about each pair of residues, and it later uses this to actually predict how the protein folds.
 
-Everything in this section is these two forms trading information back and forth. Take a look at both below.
+The rest of the Evoformer is these two representations trading information back and forth.  Take a look at both below.
 
 {% include interactive.html
   id="intro-two-data-frame"
@@ -562,62 +593,63 @@ Everything in this section is these two forms trading information back and forth
   title="Two data forms — MSA and pair grid"
   height=550
   autoresize=true
-  alt="AlphaFold2's two core representations: the Multiple Sequence Alignment (MSA) and the pair grid, which repeatedly trade information." %}
+  alt="AlphaFold 2's two core representations: the Multiple Sequence Alignment (MSA) and the pair grid, which repeatedly trade information." %}
 
-Let's start with the MSA. A residue's letter on its own doesn't say much. Knowing position 1 is Methionine doesn't tell you what role it plays. What matters is how position 1 relates to the residues around it, and those relationships aren't all equally informative — some carry real signal, some are close to noise.
+##### Row attention
 
-This is what attention computes: for a given residue, how relevant is each other residue, and by how much. Row attention applies this within a single sequence — for one position, look at every other position in that same row and score how relevant each one is. It doesn't score relevance from content alone, either: the pair grid already has an opinion about each pair, built up from earlier blocks, and that opinion gets folded in as a bias term alongside the raw content comparison.
+Let's start with the MSA.  A residue's letter on its own doesn't say much.  Knowing position 1 is Methionine doesn't tell you what role it plays.  What matters is how position 1 relates to the other residues in the protein, and some of those relationships matter a lot more than others.
+
+Attention is how the model figures out which ones matter.  **Row attention** runs attention within a single sequence (one row of the MSA).  For one position, it scores how relevant every other position in that row is.  The score has two parts.  One is the usual attention comparison of the two residues' vectors.  The other is a bias term read from the pair grid, so whatever the pair grid has learned about that pair in earlier blocks feeds into the score.
 
 {% include interactive.html
   id="row-attention-frame"
   src="/assets/files/protein/row_attention_why.html"
-  title="Row attention — why first"
+  title="Row attention"
   height=650
   autoresize=true
   alt="Row attention scores how relevant each position in a sequence is to a given position, biased by the pair grid's existing opinion about that pair." %}
 
-Column attention looks at the same alignment along the other axis. Fix one position, and compare what every species has there. Dog has a K at position 2. On its own, that tells us nothing. What tells us something is what the other species have at that exact same spot: if they agree, the agreement is itself a signal that this position is constrained; if they vary freely, the position probably isn't under much selective pressure. Column attention compares every species' version of a position to every other, and uses how much they agree to decide how much each one should inform the rest.
+##### Column attention
+
+**Column attention** runs along the other axis of the MSA.  It fixes one position and compares what every species has there.  For example, say the dog has a K at position 2.  The useful signal is in what the other species have at that same spot.  If they all agree, this position is probably constrained.  If they vary freely, it probably isn't under much selective pressure.  Column attention lets every species' version of a position look at every other species' version, so the model can pick up on how conserved that position is.
 
 {% include interactive.html
   id="column-attention-frame"
   src="/assets/files/protein/column_attention_why.html"
-  title="Column attention — why first"
+  title="Column attention"
   height=700
   autoresize=true
   alt="Column attention compares what every species has at one fixed position, using how much they agree to decide how much each one should inform the rest." %}
 
-Row and column attention update the MSA, using the MSA. The pair grid is still sitting there almost empty. Outer product mean is the first mechanism that actually writes real values into it.
+##### Outer product mean
 
-Here's the reasoning. Two positions that sit close together in the folded protein can't mutate independently forever — if one changes, the other tends to change with it, to keep the structure intact. Across enough species, that constraint shows up as correlated variation. But the signal is thin, and it's scattered across every row of the alignment rather than sitting in any one place. Outer product mean's job is to gather that scattered signal into something concentrated enough to see.
+Row and column attention both update the MSA using the MSA.  So far the pair grid has only been read from.  **Outer product mean** is the first step that writes MSA information into it.
 
-The mechanism: take each pair of positions' vectors, multiply them together species by species, then average the results. Averaging is what makes this work. Do it over species that vary together, and the average stays sharp. Do it over species that vary independently, and the average washes out toward nothing.
+The idea comes from coevolution.  If two positions are close together in the folded protein, a mutation at one usually needs a matching mutation at the other to keep the structure intact.  Across many species, that shows up as the two positions varying together.  This signal is spread out over every row of the MSA, and it is weak in any single row.
+
+So for each pair of positions $i$ and $j$, outer product mean takes the vectors for $i$ and $j$ in one species and multiplies them together (an outer product).  It does this for every species and averages the results.  If $i$ and $j$ vary together, the products line up and the average stays large.  If they vary independently, the products point in random directions and the average shrinks toward zero.  The result is written into pair grid cell $(i,j)$.
 
 {% include interactive.html
   id="outer-product-frame"
   src="/assets/files/protein/outer_product_why.html"
-  title="Outer product mean — why first"
+  title="Outer product mean"
   height=800
   autoresize=true
   alt="Outer product mean multiplies each pair of positions' vectors together species by species and averages the results, concentrating scattered coevolutionary signal into the pair grid." %}
 
-Row attention, column attention, and outer product mean all move information between the MSA and the pair grid. None of them let two pair grid cells check each other. Triangle update is where that happens — a cell gets updated using other cells, not the MSA.
+##### Triangle update
 
-The problem is that pairwise relationships are connected: information about $i \leftrightarrow k$ and $k \leftrightarrow j$ should be useful when reasoning about $i \leftrightarrow j$. Triangle update is the mechanism that lets pair representations communicate through a shared third residue.
+Every step so far moves information between the MSA and the pair grid.  None of them let one pair grid cell update another.  The next two steps, triangle update and triangle attention, do exactly that.
 
-For a target cell $z_{ij}$, the model looks at every possible third residue $k$. It combines $z_{ik}$ and $z_{kj}$ to form a message about $i \leftrightarrow j$, then sums those messages over all $k$:
+The intuition comes from geometry.  If residue $i$ is close to residue $k$, and $k$ is close to $j$, then $i$ can't be very far from $j$.  This is the *triangle inequality*.  So what the pair grid says about $(i,k)$ and $(k,j)$ should be useful when figuring out $(i,j)$.
+
+For a target cell $z_{ij}$, the **triangle update** looks at every possible third residue $k$.  It combines $z_{ik}$ and $z_{kj}$ into a message about $(i,j)$, then sums those messages over all $k$:
 
 $$
 z_{ij} \leftarrow z_{ij} + \sum_k f(z_{ik}, z_{kj})
 $$
 
-In other words, instead of treating every pair independently, the model can reason about **relationships between relationships**:
-
-$$
-(i,k) + (k,j) \rightarrow (i,j)
-$$
-
-That's why it's called a **triangle update**: every (k) creates a triangle (i-k-j), and each triangle provides information that can update the (i,j) edge.
-
+Each $k$ forms a triangle $i$–$k$–$j$, which is where the name comes from.
 
 Explore this below: pick a cell, and see how it is updated through triangle update.
 
@@ -629,12 +661,12 @@ Explore this below: pick a cell, and see how it is updated through triangle upda
   autoresize=true
   alt="Pick a pair grid cell (i,j) and see how it's updated by summing messages from every third residue k, forming a triangle i-k-j." %}
 
-> - Each cell above is one number, but a real pair grid cell is a 128-dimensional vector — nothing here is literally measured in Ångströms.
-> - The triangle inequality is why this update exists, not what it computes: there's no distance check, just cell (i,k) and cell (k,j) combined through learned weights and summed into cell (i,j).
+> - Each cell above is one number.  A real pair grid cell is a 128-dimensional vector, and none of it is literally a distance in Ångströms.
+> - The triangle inequality is the motivation for this step.  The step itself never checks any distances.  It combines cells $(i,k)$ and $(k,j)$ through learned weights and adds the result to cell $(i,j)$.
 {: .prompt-warning}
 
 {% capture triangle_update_math %}
-AlphaFold2 calls this the **triangular multiplicative update**, and runs two variants — one using outgoing edges, one using incoming edges. Here's the outgoing-edge version, for pair grid cell $z_{ij}$:
+AlphaFold 2 calls this the **triangular multiplicative update**.  It runs two variants, one using "outgoing" edges and one using "incoming" edges.  Here's the outgoing version, for pair grid cell $z_{ij}$:
 
 $$
 a_{ik} = \sigma\big(W_{a_1}\,\mathrm{LN}(z_{ik})\big) \odot \big(W_{a_2}\,\mathrm{LN}(z_{ik})\big)
@@ -645,77 +677,65 @@ b_{jk} = \sigma\big(W_{b_1}\,\mathrm{LN}(z_{jk})\big) \odot \big(W_{b_2}\,\mathr
 $$
 
 $$
-z_{ij}^{\text{new}} = \sigma\big(W_{g}\,\mathrm{LN}(z_{ij})\big) \;\odot\; W_{\text{out}}\,\mathrm{LN}\!\left(\sum_{k} a_{ik} \odot b_{jk}\right)
+\Delta z_{ij} = \sigma\big(W_{g}\,\mathrm{LN}(z_{ij})\big) \;\odot\; W_{\text{out}}\,\mathrm{LN}\!\left(\sum_{k} a_{ik} \odot b_{jk}\right)
+$$
+
+$$
+z_{ij} \leftarrow z_{ij} + \Delta z_{ij}
 $$
 
 where $\mathrm{LN}$ is LayerNorm, $\sigma$ is the sigmoid function, $\odot$ is elementwise multiplication, and every $W$ is a learned linear projection.
 
-A few things worth tracing back to the interactive above:
+How this maps to the interactive above:
 
-- $a_{ik}$ and $b_{jk}$ are gated, projected versions of cells $(i,k)$ and $(k,j)$ — not their raw values. This is the "128-dimensional vector, not a distance" fact from the warning above, made concrete: content only enters through these learned projections.
-- $\sum_{k} a_{ik} \odot b_{jk}$ is exactly the sweep this widget animates — combine and sum over every third vertex $k$.
-- The leading $\sigma(W_g \mathrm{LN}(z_{ij}))$ term is a gate on the *old* value of $(i,j)$, deciding how much of the summed update actually gets written in versus how much of the original cell survives.
-- The incoming-edges variant has the same shape, just built from $z_{ki}$ and $z_{kj}$ instead of $z_{ik}$ and $z_{jk}$.
-
-That's the whole mechanism. Everything else in the Evoformer block moves information between the MSA and the pair grid; this is the only step where the pair grid checks itself.
+- $a_{ik}$ and $b_{jk}$ are gated, projected versions of cells $(i,k)$ and $(j,k)$.  The raw cell values never get combined directly.
+- The outgoing version uses $(j,k)$ where the simplified equation above used $(k,j)$.  The pair grid isn't symmetric, so this is a different cell.  The incoming version uses $z_{ki}$ and $z_{kj}$ instead.  Running both covers both directions.
+- $\sum_{k} a_{ik} \odot b_{jk}$ is the sweep the widget animates: combine, then sum over every third residue $k$.
+- $\sigma(W_g \mathrm{LN}(z_{ij}))$ is a gate computed from the current value of cell $(i,j)$.  It controls how much of the summed update gets added to the cell.
 {% endcapture %}
 
 {% include collapsible.html summary="Click here for the real math behind triangle update" content=triangle_update_math mermaid=true %}
 
-Triangle update pools. For cell $(i,j)$, every third vertex $k$ contributes a message $m_k$, and the update combines them all:
+##### Triangle attention
+
+Triangle update adds up a message $m_k$ from every third residue $k$, all with equal standing:
 
 $$
 m_{ij} = m_1 + m_2 + m_3 + m_4
 $$
 
-There's no mechanism asking which $k$ matters more. Every triangle contributes to the same pooled message, and $(i,j)$ receives the result all at once.
-
-Triangle attention adds that missing question: **which $k$ is actually relevant to $(i,j)$?** Instead of giving every candidate the same treatment, it lets them compete for influence:
+But some third residues are probably more informative than others.  **Triangle attention** learns a weight for each $k$:
 
 $$
 m_{ij} = 0.05\,m_1 + 0.10\,m_2 + 0.80\,m_3 + 0.05\,m_4
 $$
 
-Now $k_3$ dominates the update, while the others contribute very little. The weights aren't hand-picked. They're produced by attention.
+Here $k_3$ dominates the update and the others contribute very little.  These weights come from attention.
 
-For the target cell $z_{ij}$, the model first turns it into a **query**:
-
-> *What kind of relationship am I looking for?*
-
-Each candidate $z_{ik}$ becomes a **key**:
-
-> *What kind of relationship do I represent?*
-
-The query and each key are compared, while the third edge $z_{jk}$ contributes an additional bias:
+The target cell $z_{ij}$ is projected into a **query** $q_{ij}$.  Each candidate cell $z_{ik}$ is projected into a **key** $k_{ik}$.  The query and key are compared with a dot product, and the third side of the triangle, $z_{jk}$, adds a bias:
 
 $$
 s_{ijk} = q_{ij} \cdot k_{ik} + b_{jk}
 $$
 
-So each $k$ gets its own score:
+A softmax over all $k$ then turns the scores into weights that add up to 1.  So if one $k$ gets more weight, the others get less.
 
-> *Does the $i \leftrightarrow k$ relationship look relevant to what $i \leftrightarrow j$ is looking for, and does the $j \leftrightarrow k$ relationship support it?*
-
-The scores are then passed through a softmax **across all $k$'s together**, turning them into competing weights. A candidate with a high score gets more influence; increasing its share necessarily reduces the relative share of the others.
-
-That's the key difference: **triangle update pools all the triangles; triangle attention lets the triangles compete for influence.**
-
-Try it below: pick a cell, and see which triangles win the competition. The widget's "q·k" is $q_{ij}\cdot k_{ik}$ and "bias" is $b_{jk}$, so the score you see building up in each row is $s_{ijk}$ above.
+Try it below: pick a cell, and see which triangles get the most weight.  The widget's "q·k" is $q_{ij}\cdot k_{ik}$ and "bias" is $b_{jk}$, so the score building up in each row is $s_{ijk}$ above.
 
 {% include interactive.html
   id="triangle-attention-frame"
   src="/assets/files/protein/triangle_attention_why.html"
-  title="Triangle attention — why first"
+  title="Triangle attention"
   height=700
   autoresize=true
-  alt="Pick a cell and see which candidate triangles win the competition -- unlike triangle update's sum, triangle attention lets candidates compete for influence via softmax." %}
+  alt="Pick a cell and see which candidate triangles get the most weight -- unlike triangle update's plain sum, triangle attention weights each third residue with a softmax." %}
 
-> - q&middot;k in the widget stands in for a real dot product between projected vectors; here both are simplified to one scalar, so it's just their product.
-> - The query doesn't gate the result after the fact — it drives the competition up front. $(i,j)$'s own value decides what gets compared against, which is why q&middot;k depends on the target too, not just the candidate.
+> - In the real model, q&middot;k is a dot product between projected vectors.  The widget simplifies both to one number, so it's just their product.
+> - The query comes from $(i,j)$ itself.  That's why q&middot;k changes when you pick a different target cell, even for the same candidate $k$.
 {: .prompt-warning}
 
 {% capture triangle_attention_math %}
-AlphaFold2 calls this **triangular self-attention**, and like triangle update it runs two variants — attending around the starting node (row) or the ending node (column). Here's the starting-node version, for pair grid cell $z_{ij}$ attending over every $k$ in row $i$:
+AlphaFold 2 calls this **triangular self-attention**.  Like triangle update, it runs two variants: attending around the starting node (row $i$) or the ending node (column $j$).  Here's the starting-node version, for pair grid cell $z_{ij}$ attending over every $k$ in row $i$:
 
 $$
 q_{ij} = W_Q\,z_{ij} \qquad k_{ik} = W_K\,z_{ik} \qquad v_{ik} = W_V\,z_{ik} \qquad b_{jk} = W_B\,z_{jk}
@@ -735,58 +755,53 @@ $$
 
 where $d$ is the key dimension and every $W$ is a learned linear projection.
 
-A few things worth tracing back to the interactive above:
+How this maps to the interactive above:
 
-- $z_{ij}$ only enters through $q_{ij}$. It sets what the pair is looking for; it never touches the output directly. Everything in $z_{ij}^{\text{new}}$ comes from the $v_{ik}$'s.
-- $b_{jk}$ is projected from $z_{jk}$ — the third side of the triangle, the one edge connecting the two positions neither $z_{ij}$ nor $z_{ik}$ share. This is the piece that makes it *triangle* attention rather than plain self-attention.
-- $\alpha_{ijk}$ is one softmax across every $k$ in the row at once, so the weights are forced to compete — raising one lowers the others. That's the difference from triangle update's sum, where every $k$ contributes independently and none of them compete for influence.
-- The ending-node variant has the same shape, attending over column $j$ instead of row $i$: keys and values come from $z_{kj}$, and the bias comes from $z_{ki}$.
+- $z_{ij}$ only enters through $q_{ij}$.  The output is built entirely from the $v_{ik}$'s.
+- $b_{jk}$ comes from $z_{jk}$, the third side of the triangle.  This bias is what makes it *triangle* attention instead of plain self-attention.
+- $\alpha_{ijk}$ is one softmax across every $k$ in the row, so raising one weight lowers the others.  In triangle update, every $k$ is added in with no weighting.
+- The ending-node variant has the same shape, attending over column $j$: keys and values come from $z_{kj}$, and the bias comes from $z_{ki}$.
 
-Same three inputs as triangle update — $z_{ij}$, $z_{ik}$, $z_{jk}$ — but here they're split into a query, a set of keys and values, and a bias, and combined through competition instead of a sum.
+It uses the same three cells as triangle update: $z_{ij}$, $z_{ik}$, $z_{jk}$.  Here they become a query, keys and values, and a bias.
 {% endcapture %}
 
 {% include collapsible.html summary="Click here for the real math behind triangle attention" content=triangle_attention_math mermaid=true %}
 
-The Evoformer has spent all this time building the pair representation: for every pair of residues, it has learned what their relationship might look like. But a grid of pair representations isn't a protein structure. At some point, AlphaFold has to actually put the residues somewhere in 3D.
+##### Structure Module and Invariant Point Attention
 
-That's the job of the **Structure Module**. The key idea is that it doesn't predict every coordinate independently. Instead, it gives each residue a **rigid frame**:
+After 48 Evoformer blocks, AlphaFold has a pair grid full of learned information about every pair of residues.  Now it has to actually place the residues in 3D.  This is step 2, the **Structure Module**.  It takes the pair grid, plus one vector per residue called the *single representation* (taken from the MSA row for the target protein).
+
+The Structure Module gives each residue a **rigid frame**:
 
 $$
 T_i = (R_i, t_i)
 $$
 
-Think of this as a little coordinate system attached to residue $i$: $R_i$ says which way it's pointing, and $t_i$ says where it is. The Structure Module repeatedly adjusts these frames until the whole protein settles into a plausible 3D arrangement.
+Think of this as a little coordinate system attached to residue $i$: $R_i$ is a rotation that says which way it's pointing, and $t_i$ says where it is.  Every frame starts at the origin.  The Structure Module then runs 8 times (with shared weights), adjusting the frames a little each time until the protein settles into a 3D arrangement.
 
-The interesting part is how it decides what each residue should pay attention to. That's **Invariant Point Attention (IPA)**.
+Each run uses **Invariant Point Attention (IPA)** to decide which residues each residue should pay attention to.  IPA adds up three terms for each pair of residues $i$ and $j$:
 
-
-IPA is attention made up of three components:
-
-1. Scalar features: do their learned representations match?
-2. Pair information: what does the model already know about this pair?
+1. Scalar features: do their learned vectors match?
+2. Pair information: what does the pair grid say about $(i,j)$?
 3. 3D geometry: are their learned points close in space?
 
-For each residue $i$, IPA maintains a local **frame** ($T_i$): essentially a position and orientation that defines how to place points associated with that residue into 3D space. A learned query point $q_i^p$, for example, is transformed into global coordinates as
+The third term is the new part.  Residue $i$ learns a query point $q_i^p$, written in its own local coordinates.  Its frame places that point in the global coordinates of the protein:
 
 $$
-T_i(q_i^p).
+T_i(q_i^p) = R_i\,q_i^p + t_i
 $$
 
-Likewise, residue $j$'s key point becomes
+Residue $j$'s key point is placed the same way, as $T_j(k_j^p)$.  Then the two points are compared by their distance:
 
 $$
-T_j(k_j^p).
+\left\lVert T_i(q_i^p)-T_j(k_j^p) \right\rVert
 $$
 
-We can then compare the two points by their distance:
+This distance doesn't change if you move or rotate the entire protein.  A translation shifts both points equally, so it cancels out.  A rotation doesn't change distances.
 
-$$
-\left\lVert T_i(q_i^p)-T_j(k_j^p) \right\rVert.
-$$
+There's a name for this property.  **SE(3)** is the set of every way you can move a rigid object around in 3D: any rotation combined with any shift.  (It stands for the *special Euclidean group* in 3 dimensions.)  Something is **SE(3)-invariant** if it comes out exactly the same no matter which of these moves you apply to the input first.  IPA's attention scores are SE(3)-invariant.  This matters because the protein's position and orientation in space are arbitrary, so the model's prediction shouldn't depend on them.
 
-The important thing is that this distance is **invariant to moving or rotating the entire protein**. If we translate the protein, the translation cancels out; if we rotate it, distances are preserved. So IPA can reason about the protein's geometry without caring about the arbitrary coordinate system used to represent it.
-
-None of this is abstract — it runs on real atoms. Step through it on an actual structure below.
+Step through this on a real structure below.
 
 {% include interactive.html
   id="ipa-real-frames"
@@ -796,7 +811,7 @@ None of this is abstract — it runs on real atoms. Step through it on an actual
   autoresize=true
   alt="Step through Invariant Point Attention on an actual protein structure, comparing learned query and key points placed into 3D space via each residue's local frame." %}
 
-This geometric information becomes a third term in the attention score:
+Putting the three terms together gives the attention weight:
 
 $$
 a_{ij}
@@ -805,7 +820,7 @@ a_{ij}
 \left(
 \underbrace{\frac{q_i\cdot k_j}{\sqrt{c}}}_{\text{scalar attention}}
 +
-\underbrace{b_{ij}}_{\text{pair representation}}
+\underbrace{b_{ij}}_{\text{pair grid}}
 -
 \underbrace{
 \frac{\gamma}{2}
@@ -814,65 +829,32 @@ a_{ij}
 T_i(q_i^p)-T_j(k_j^p)
 \right\rVert^2
 }_{\text{3D point attention}}
-\right).
+\right)
 $$
 
-So attention now combines **learned feature similarity, pairwise information, and 3D geometry**. The key idea is that geometry isn't added after attention—it directly influences **which residues attend to each other**.
+The distance term is subtracted, so residues whose points are close together get more attention.  This means the current 3D geometry affects which residues attend to each other.
 
-IPA only ever moves the backbone frames — it doesn't touch side chains at all. Once the backbone settles, a separate small network predicts each residue's **χ (chi) angles**, the torsion angles that swing its side chain into place, and the model also emits the confidence scores this whole post leaned on earlier: **pLDDT** per residue and the **PAE** grid between every pair. And this entire loop — Evoformer, then Structure Module, then confidence — doesn't run just once. The output gets fed back in as a new starting point and the whole thing **recycles** three or four times, each pass refining what the last one got roughly right.
+##### Finishing up
 
-Here's the full pipeline, start to finish:
+A few more pieces complete the pipeline from the diagram at the top of this section:
 
-```mermaid
-flowchart TD
-  SEQ["**Sequence**"]
-  SEARCH["**MSA + template search**
-  jackhmmer, HHblits"]
-
-  subgraph EVOFORMER [" Evoformer — repeated 48× "]
-    direction LR
-    MSA["MSA representation
-    row + column attention"]
-    PAIR["Pair grid
-    triangle update + attention"]
-    MSA -->|outer product mean| PAIR
-    PAIR -.->|bias| MSA
-  end
-
-  STRUCT["**Structure module**
-  Invariant Point Attention"]
-  FINISH["Side chains + confidence
-  χ angles · pLDDT · PAE"]
-  OUT["**3D structure**"]
-
-  SEQ --> SEARCH --> EVOFORMER
-  EVOFORMER --> STRUCT --> FINISH --> OUT
-  OUT -.->|recycled ~3–4×| EVOFORMER
-```
+- **Side chains.**  IPA only moves the backbone frames.  A separate small network predicts each residue's **χ (chi) angles**, the torsion angles that rotate its side chain into place.
+- **Confidence.**  The model also outputs the confidence scores from the [metrics section](#model-confidence-plddt-and-pae): **pLDDT** for each residue and **PAE** for each pair.
+- **Recycling.**  The whole thing (Evoformer, then Structure Module) runs again with its own output fed back in as input.  By default AF2 recycles 3 times, so there are 4 passes in total.
 
 #### AlphaFold 3: same reasoning, different bets
 
-AlphaFold 3 is not simply “AlphaFold 2, but better.” It keeps some of AF2’s core ideas, but changes several of the architectural assumptions underneath them.
+The biggest change in AlphaFold 3 (AF3) is **what it predicts**.  AF2 was built to predict the structure of a protein.  AF3 predicts structures of **complexes made from many kinds of molecules**: proteins, DNA, RNA, small-molecule ligands, ions, and chemically modified residues.  Most of the other changes follow from that.
 
-The biggest change is **what it predicts**. AlphaFold 2 was designed primarily around predicting the structure of proteins. AlphaFold 3 instead models **interactions between many types of molecules** — proteins, DNA, RNA, ligands, ions, and modified residues. That broader scope changes what the model needs to represent.
+The first change is how AF3 breaks its input into **tokens**.  AF2 had one token per residue.  AF3 still uses one token per standard amino acid or nucleotide.  But a ligand or modified residue doesn't fit a fixed vocabulary, so each of its atoms gets its own token.
 
-The **Evoformer is replaced by a Pairformer**. AF2 maintained two representations throughout its main network: an MSA representation describing evolutionary information, and a pair representation describing relationships between residues. These repeatedly exchanged information. AF3 still uses MSA information, but much less of it: after an initial MSA-processing stage, the MSA representation is discarded, and the Pairformer continues refining the single and pair representations on their own.
+The second change is that **the Evoformer becomes the Pairformer**.  AF3 still uses an MSA, but much less.  A small MSA module (4 blocks) folds the MSA into the pair grid, and then the MSA is thrown away.  The main trunk is the **Pairformer**, 48 blocks that update only the pair grid and the single representation.  The pair grid still gets the same triangle updates and triangle attention we went through above.  So most of what you learned in the AF2 section carries over.
 
-The other major change is the **Structure Module**. AF2 turned its learned representations into coordinates using **Invariant Point Attention (IPA)** — the geometric attention mechanism we just looked at. AF3 instead uses a **diffusion-based module** to generate the molecular structure. Rather than iteratively updating coordinates with IPA, it starts from noisy atomic positions and learns to progressively denoise them into a physically plausible structure.
+The third change is that **the Structure Module becomes a diffusion module**.  *Diffusion* is a way of generating data by starting from random noise and removing it a little at a time.  We'll go through how it works in more detail in the [RFdiffusion section](#rfdiffusion).  AF3 starts with every atom at a random position and learns to move them, step by step, into a plausible structure.  It works on all atoms directly, so there are no residue frames and no separate χ-angle step for side chains.
 
-That also means AF3 makes a different choice about **geometric invariance**. AF2 built rotation and translation invariance directly into IPA through its use of local coordinate frames. AF3 does not impose the same invariant-point mechanism in its structure module; instead, its diffusion model is trained to handle structures presented in different spatial orientations.
+The fourth change is that AF3 **drops built-in invariance**.  IPA was [SE(3)-invariant](#structure-module-and-invariant-point-attention) by design.  AF3's diffusion module isn't.  Instead, during training each structure is randomly rotated and shifted, so the model learns to give the same answer no matter how the input is oriented.
 
-So the interesting thing about AF3 isn't that it throws away everything AF2 discovered. **The pair representation remains central, and geometric relationships remain the language through which the model reasons about molecular structure.** What changes is how those relationships are processed and, especially, how the final 3D structure is generated.
-
-In other words, AF2's central question was roughly:
-
-> **Given a protein sequence and its evolutionary context, what structure is consistent with all of these constraints?**
-
-AF3 asks a broader question:
-
-> **Given all of these interacting molecular components, what 3D arrangement of atoms is plausible?**
-
-That shift in scope — from **protein folding** toward **general molecular structure prediction** — is the real story behind AlphaFold 3.
+So the pair grid and triangle operations stay at the center of AF3.  The two big changes are the scope (proteins plus DNA, RNA, and small molecules) and how the final 3D coordinates are generated.
 
 #### RFdiffusion + ProteinMPNN: solving inverse folding
 
@@ -880,34 +862,28 @@ So far we've just been talking about protein folding.  But remember, earlier on 
 
 ```mermaid
 flowchart LR
-    A[RFdiffusion] --> B[ProteinMPNN] --> C[AlphaFold]
+    A[RFdiffusion] --> B[ProteinMPNN] --> C[AlphaFold 2]
 ```
 
 1. RFdiffusion generates a new protein backbone/structure.  It essentially is here to "fill in the details" given a general shape of the protein provided by the human.
 2. ProteinMPNN takes that backbone and designs an amino-acid sequence that should encode it.
-3. AlphaFold2 then predicts the structure from that sequence to check whether it actually folds back to the intended design.
+3. AlphaFold 2 then predicts the structure from that sequence to check whether it actually folds back to the intended design.
 
 ##### RFdiffusion
 
-RFdiffusion approaches protein design from the opposite direction of AlphaFold:
+RFdiffusion doesn't need a sequence at all.  It generates a new backbone structure from random noise.
+
+It starts from **RoseTTAFold**, the Baker Lab's structure prediction model.  RoseTTAFold processes proteins using three tracks that pass information to each other: a **1D track** for individual residues, a **2D track** for residue pairs (like AF2's pair grid), and a **3D track** for the backbone coordinates.  RFdiffusion takes a trained RoseTTAFold and fine-tunes it to be a diffusion model.
+
+Here's how the diffusion part works.  During training, take a real protein structure $x_0$ and add noise to it, producing a corrupted version $x_t$.  The larger $t$ is, the more noise.  The network is trained to predict the original structure from the noisy one:
 
 $$
-\text{sequence} \rightarrow \text{structure}
-\qquad\text{vs.}\qquad
-\text{structure} \rightarrow \text{sequence}.
+x_t \xrightarrow{f_\theta} \hat{x}_0
 $$
 
-Its starting point is **RoseTTAFold**, which processes proteins using three interacting representations: a **1D representation** for individual residues, a **2D representation** for residue pairs, and a **3D representation** of the protein's geometry. RFdiffusion adapts this architecture into a diffusion model that operates on the 3D backbone.
+To generate a new protein, we start from pure noise (random residue positions and orientations) and apply the network over and over.  Each step removes a bit of noise, until we end up with a plausible backbone.
 
-The diffusion setup is the familiar idea from DDPMs. During training, take a real protein structure $x_0$ and progressively add noise to its backbone coordinates, producing $x_t$. The network is trained to reverse this corruption:
-
-$$
-x_t \xrightarrow{f_\theta} \hat{x}_0.
-$$
-
-At generation time, we start with a noisy, essentially random backbone and repeatedly apply the network, gradually turning it into a plausible protein structure.
-
-The interesting part is **conditioning**. We usually don't want just any protein—we may want the new protein to satisfy a particular structural constraint. For example, suppose we already know a small binding motif that we want the final protein to contain — some residues stay fixed, exactly where they need to be, while the rest of the backbone diffuses from noise around them:
+Usually we don't want just any protein.  We want one that satisfies some structural constraint.  For example, suppose we already know a small binding motif that we want the final protein to contain.  The motif residues stay fixed exactly where they need to be, and the rest of the backbone is generated from noise around them:
 
 {% include interactive.html
   id="rfdiffusion-motif-frame"
@@ -917,67 +893,45 @@ The interesting part is **conditioning**. We usually don't want just any protein
   autoresize=true
   alt="A known binding motif stays fixed in place while the rest of the backbone diffuses from noise around it." %}
 
-We encode the known motif as a condition $c$, containing information about its structure and position. The network now receives both the noisy protein and this condition:
+We encode the known motif as a condition $c$, containing its structure and position.  The network now receives both the noisy protein and this condition:
 
 $$
-\boxed{
-\hat{x}_0 = f_\theta(x_t,c)
-}
+\hat{x}_0 = f_\theta(x_t, c)
 $$
 
-$$
-\underbrace{x_t}_{\text{what needs to be denoised}}
-\qquad+\qquad
-\underbrace{c}_{\text{what the final structure must satisfy}}.
-$$
+The conditions for training come from the training set itself.  Take a real protein, pick part of its structure to be the motif, and give the model that part's true coordinates as $c$.  The model has to reconstruct the rest of the protein from noise.  After many examples like this, the model learns how backbones tend to arrange themselves around a fixed piece.  At generation time, we give it the motif we care about, and it builds a new backbone around it.
 
-But where does $c$ come from? **The training structures provide it.** Take a real protein from the training set, designate part of its structure as the region to condition on, and use that known portion as $c$. The remaining structure provides the target the model must learn to reconstruct. Training therefore teaches the network a relationship like
-
-$$
-(x_t,c) \longrightarrow \text{how the noisy structure should change}.
-$$
-
-After seeing many such examples, the model learns how protein backbones tend to organize themselves **around structural constraints**. At generation time, we can supply a motif that we want to preserve and let the learned denoising process build the rest of the backbone around it.
-
-The result is a designed **3D backbone**, but we still haven't figured out the ordering of amino acids that can make this. That's the job of **ProteinMPNN**.
+The result is a designed **3D backbone**, but we still haven't figured out the ordering of amino acids that can make this.  That's the job of **ProteinMPNN**.
 
 ##### ProteinMPNN
 
-We now have the opposite problem from protein folding. Instead of starting with an amino-acid sequence and asking what structure it produces, we start with a protein backbone and ask:
+ProteinMPNN starts from a protein backbone and asks: what amino acid sequence would fold into this structure?
 
-> What amino-acid sequence could actually produce this structure?
+It treats the backbone as a graph.  Each residue is a node.  Each residue is connected by edges to its 48 nearest neighbors in 3D.  Using 3D neighbors matters because two residues can be far apart in the sequence but right next to each other in the folded protein.
 
-ProteinMPNN approaches this by treating the backbone as a graph. Each residue is a node, and residues that are physically close in 3D are connected by edges. This matters because two residues can be far apart in the sequence but right next to each other in the folded protein.
+Each node has a vector $h_i$ for what the network currently knows about residue $i$.  Each edge has a vector $e_{ij}$ describing the geometry between residues $i$ and $j$, built from the distances between their backbone atoms.
 
-Each node has a representation $h_i$, describing what the network currently knows about residue $i$, while each edge has a representation $e_{ij}$, describing the geometry between residues $i$ and $j$ — for example, their distance and relative orientation.
-
-Suppose we're trying to determine what amino acid belongs at residue $i$. Its neighboring residues contain useful information, so each neighbor $j$ sends a message to $i$. The message is computed from the neighbor's representation, the current representation of $i$, and the geometry connecting them:
+Suppose we're trying to figure out what amino acid belongs at residue $i$.  Each neighbor $j$ sends a message to $i$, computed from both residues' vectors and the geometry between them:
 
 $$
-m_{ij}=\phi_\theta(h_i,h_j,e_{ij}).
+m_{ij}=\phi_\theta(h_i,h_j,e_{ij})
 $$
 
-The important idea is that the message isn't simply "here is what I know about residue $j$." It's more like:
-
-> "Given what I know about myself, what I know about you, and the geometry between us, here's what I can tell you about what should go at your position."
-
-Residue $i$ receives messages from all of its neighbors and aggregates them:
+Residue $i$ adds up the messages from all of its neighbors:
 
 $$
-m_i=\sum_{j\in N(i)}m_{ij}.
+m_i=\sum_{j\in N(i)}m_{ij}
 $$
 
-It then uses those messages to update its representation:
+and uses the total to update its vector:
 
 $$
-h_i'=\psi_\theta(h_i,m_i).
+h_i'=\psi_\theta(h_i,m_i)
 $$
 
-This is the basic message-passing neural network (MPNN) idea:
+This is the basic idea of a **message-passing neural network (MPNN)**: neighbors send messages, the node adds them up, and the node updates its vector.
 
-> Neighbors send messages → the node aggregates them → the node updates its representation.
-
-Step through it below — pick a residue, watch its neighbors send messages, watch those messages sum together, then watch the update land. Click any other node to repeat the whole thing somewhere else in the graph.
+Step through it below.  Pick a residue, watch its neighbors send messages, watch those messages get added up, then watch the update.  Click any other node to repeat it somewhere else in the graph.
 
 {% include interactive.html
   id="mpnn-message-passing-frame"
@@ -987,66 +941,49 @@ Step through it below — pick a residue, watch its neighbors send messages, wat
   autoresize=true
   alt="Pick a residue and watch its neighbors send messages, sum them together, and update its representation -- the basic message-passing idea behind ProteinMPNN." %}
 
-After several layers, information about the local 3D environment has propagated through the graph. Each $h_i$ therefore contains information about the structural environment surrounding position $i$.
+After several layers of this, each $h_i$ contains information about the 3D environment around position $i$.
 
-Now we need to turn those structural representations into actual amino acids.
-
-This is where the autoregressive decoder comes in. The representations $h_i$ describe the positions in the backbone, but the amino acids themselves are not known yet. ProteinMPNN therefore generates the sequence one residue at a time.
-
-Suppose we've already chosen
+Next, ProteinMPNN turns those vectors into actual amino acids.  It does this with an **autoregressive decoder**, which picks the sequence one residue at a time.  Suppose we've already chosen
 
 $$
-x_1=A,\qquad x_2=L,\qquad x_3=G.
+x_1=A,\qquad x_2=L,\qquad x_3=G
 $$
 
-When predicting position 4, the decoder combines the structural representation $h_4$ with the sequence generated so far:
+To predict position 4, the decoder uses $h_4$ together with the residues chosen so far:
 
 $$
-p(x_4\mid h_4,x_1,x_2,x_3).
+p(x_4\mid h_4,x_1,x_2,x_3)
 $$
 
-It might decide, for example,
+For example, it might give $P(x_4=V\mid h_4,A,L,G)=0.42$.  After $V$ is chosen, it becomes part of the context for the next position:
 
 $$
-P(x_4=V\mid h_4,A,L,G)=0.42.
+p(x_5\mid h_5,A,L,G,V)
 $$
 
-After choosing $V$, that residue becomes part of the context for the next prediction:
-
-$$
-p(x_5\mid h_5,A,L,G,V).
-$$
-
-> One simplification above, worth correcting now that the idea is clear: real ProteinMPNN doesn't decode left to right. It picks a **random** order each time. Position 4 might get decided before position 1. This matters for the same reason row attention's relevance was never about sequence position: a position's prediction should be shaped by whichever *graph neighbors* are already known, not by which residue numbers happen to come first. Decoding randomly means every position gets a fair shot at rich context, instead of early positions always going first with the least information available.
+> I've simplified one thing above.  Real ProteinMPNN doesn't decode left to right.  During training, it picks a **random** order every time, so position 4 might be decided before position 1.  The main payoff is flexibility at design time.  If you already know the amino acids at some positions (say, a binding site), you can fix them and let the model fill in everything else around them.
 {: .prompt-warning}
 
-So the full sequence probability isn't really a fixed left-to-right chain — it factors over whatever order got sampled:
+So the full sequence probability is a product over whatever order got sampled:
 
 $$
 p(x_1,\ldots,x_L \mid X) = \prod_{i=1}^{L} p\big(x_{\sigma(i)} \mid x_{\sigma(1)},\ldots,x_{\sigma(i-1)},\, X\big)
 $$
 
-for some random permutation $\sigma$ of the positions.
+where $X$ is the backbone and $\sigma$ is a random ordering of the positions.
 
-So the two parts of the architecture have distinct jobs:
-
-- Message passing learns a representation of what each position looks like geometrically.
-- Autoregressive decoding uses those representations to construct a sequence, taking previously chosen amino acids into account — in whatever order they happened to be decided.
-
-The overall picture is therefore:
+Here's the whole pipeline:
 
 ```mermaid
 flowchart TD
   A[Backbone] --> B[3D graph] --> C[Message passing] --> D[Structural representations] --> E[Autoregressive decoder] --> F[Amino-acid sequence]
 ```
 
-The key insight is that ProteinMPNN uses the 3D neighborhood of each residue — not merely its position in the sequence — to decide which amino acid is compatible with the desired structure.
-
 #### ESM3: one model, three modalities
 
-Every model so far has picked one direction: sequence to embedding, sequence to structure, structure to sequence. ESM3 is the one entry in the table above marked **multimodal, any → any** — sequence, structure, and function all enter the same model and any of them can predict any other.
+Every model so far goes in one direction: sequence to embedding, sequence to structure, or structure to sequence.  ESM3 is the model in the table near the start of this post marked **multimodal, any → any**.  Sequence, structure, and function all go into the same model, and it can predict any of them from the others.
 
-Click through the architecture below, then the sections after walk through each piece in detail.
+Click through the architecture below.  The sections after it go through each piece in detail.
 
 {% include interactive.html
   id="esm3-architecture-frame"
@@ -1058,47 +995,37 @@ Click through the architecture below, then the sections after walk through each 
 
 ##### Structure tokenizer
 
-Unlike sequence, which naturally has a discrete vocabulary of 20 amino acids, protein structure is continuous 3D geometry. ESM3 therefore uses a **learned structure tokenizer** to convert local 3D shapes into discrete tokens.
+Sequence already comes in discrete tokens, one of 20 amino acids.  Structure is continuous 3D geometry, so ESM3 uses a **learned structure tokenizer** to turn it into tokens.
 
-For each residue, the tokenizer considers its local neighborhood (16 nearest neighbors) and passes the geometry through a learned encoder. The resulting representation is mapped to the nearest entry in a learned codebook of **4,096 structural codes**:
+For each residue, the tokenizer looks at its local neighborhood (its 16 nearest neighbors) and runs that geometry through a learned encoder.  The output is matched to the nearest entry in a learned codebook of **4,096 structure codes**.  This setup is called a *VQ-VAE* (vector-quantized autoencoder).
 
 ```mermaid
 flowchart LR
     A[local 3D geometry] --> B[learned encoder] --> C[continuous representation] --> D[nearest code] --> E[structure token]
 ```
 
-Thus a protein's structure might become
+So a protein's structure might become
 
 $$
-[1832,\;204,\;3991,\;88,\ldots].
+[1832,\;204,\;3991,\;88,\ldots]
 $$
 
-Each token represents a recurring local geometric pattern. The token IDs themselves have no inherent meaning—they simply index the learned structural vocabulary.
-
-> **Key Point:** The structure tokenizer is a learned compression mechanism that turns continuous 3D geometry into a discrete, language-like representation.
-{: .prompt-tip}
-
+Each token stands for a recurring local shape.  The numbers themselves don't mean anything.  They're just indexes into the codebook.
 
 ##### Function tokens
 
-Function is handled differently.
-
-There isn't an obvious fixed vocabulary of "function words" analogous to the 20 amino acids. Instead, ESM3 starts from **InterPro annotations** associated with the protein and converts those annotations into tokens.
-
-The process is roughly:
+Function is handled differently.  There's no obvious fixed vocabulary of "function words" like the 20 amino acids.  ESM3 starts from the protein's **InterPro annotations** (labels from a database of known protein families and domains) and converts those into tokens:
 
 ```mermaid
 flowchart LR
     A[InterPro annotations] --> B[TF-IDF weighting] --> C[locality-sensitive hashing] --> D[function tokens]
 ```
 
-The TF-IDF step is a way of deciding which annotations are informative.
+**TF-IDF** (term frequency–inverse document frequency) decides which annotations are informative.  If an annotation appears in almost every protein, it doesn't say much about any specific one, so it gets a low weight.  A rare annotation gets a higher weight.
 
-For example, if a particular annotation appears in almost every protein, it doesn't tell us much about a specific protein. Its IDF component will therefore make it less important. An annotation that appears much more rarely can receive a larger weight because it carries more distinguishing information.
+**Locality-sensitive hashing (LSH)** then compresses the weighted annotations into **eight function tokens per residue**.  LSH is a hash where similar inputs tend to get the same output, so proteins with similar functions end up with similar tokens.
 
-The resulting weighted representation is then compressed using **locality-sensitive hashing (LSH)** into a small set of discrete tokens — eight function tokens per residue.
-
-Both steps are simple enough to run by hand on a toy example. Pick a protein below and watch its annotations get reweighted by rarity, then switch to the hashing tab and drag a point around to see when its token actually changes.
+Both steps are simple enough to run by hand on a toy example.  Pick a protein below and watch its annotations get reweighted by rarity.  Then switch to the hashing tab and drag a point around to see when its token changes.
 
 {% include interactive.html
   id="esm3-function-tokenizer-frame"
@@ -1108,9 +1035,7 @@ Both steps are simple enough to run by hand on a toy example. Pick a protein bel
   autoresize=true
   alt="Pick a protein to see its InterPro annotations reweighted by TF-IDF rarity, then switch to the hashing tab to see when locality-sensitive hashing changes a token." %}
 
-The important distinction from the structure tokenizer is that this process is **not a learned neural tokenizer**. There is no encoder network being trained to discover a function vocabulary. The TF-IDF weighting and hashing procedure is a fixed preprocessing algorithm.
-
-So the three modalities enter the model in slightly different ways:
+Unlike the structure tokenizer, nothing here is learned.  TF-IDF and LSH are fixed algorithms.  Here's how all three modalities become tokens:
 
 | Modality  | How it becomes tokens               | Learned? |
 | --------- | ------------------------------------ | -------- |
@@ -1118,13 +1043,9 @@ So the three modalities enter the model in slightly different ways:
 | Structure | VQ-VAE encoder + learned codebook   | **Yes**  |
 | Function  | TF-IDF + locality-sensitive hashing | **No**   |
 
-That difference is easy to miss, but it matters. ESM3 isn't learning every tokenizer from scratch. **Only the structure tokenizer is a learned geometric compression system; sequence and function tokenization are deterministic preprocessing steps.**
-
 ##### Combining sequence, structure, and function
 
-Now we have three descriptions of the same protein.
-
-At each residue position $i$, we have a sequence representation, a structure representation, and function information. Each is converted into an embedding, and those embeddings are combined:
+At each residue position $i$, ESM3 now has a sequence token, a structure token, and function tokens.  Each one is turned into an embedding, and the embeddings are added together:
 
 $$
 h_i =
@@ -1132,30 +1053,22 @@ e_i^{\text{sequence}}
 +
 e_i^{\text{structure}}
 +
-e_i^{\text{function}}.
+e_i^{\text{function}}
 $$
 
-So position $i$ gets one vector containing information from all three modalities.
-
-We aren't concatenating the modalities into a longer sequence. Instead, we're making the representation at each position richer.
-
-You can think of it as three people describing the same residue from different perspectives:
+So position $i$ gets one vector with information from all three.  The sequence stays the same length.  Each position's vector just carries more information:
 
 - **Sequence:** what amino acid is here?
 - **Structure:** what does its local 3D environment look like?
 - **Function:** what biological role is associated with it?
 
-The transformer receives the combination.
+ESM3 also has a few smaller tracks added in the same way, like secondary structure and how exposed each residue is to water.  I'm leaving those out to keep things simple.
 
-##### The ESM3 transformer
+##### Geometric attention
 
-Once the modalities have been converted into representations, ESM3 can process them with a transformer.
+After that, ESM3 is mostly a standard transformer.  Self-attention lets each residue pull in information from other residues, including ones that are far apart in the sequence but close together in the folded protein.
 
-For most of the network, this looks familiar. Self-attention allows each residue to incorporate information from other residues, including residues that may be very far away in the sequence but close together in the folded protein.
-
-There is, however, one important exception: **the first transformer block also gets direct access to the 3D coordinates.**
-
-This gives ESM3 two paths for structure information:
+The one exception is the **first transformer block**, which also gets the 3D coordinates directly.  So structure gets into ESM3 two ways:
 
 ```mermaid
 flowchart LR
@@ -1163,29 +1076,17 @@ flowchart LR
     A --> D["geometric attention in block 1"]
 ```
 
-The second path is important because the structure tokens are a compressed representation of the original geometry. The first block can therefore use geometric information that isn't necessarily captured perfectly by a single discrete token.
+The second path is there because a structure token is a compressed summary.  Some detail in the original geometry gets lost, and block 1 can use it.
 
-##### Geometric attention
-
-The first Transformer block is different from the others because it receives, just like in AlphaFold2, the **3D frames** associated with each residue.
-
-Each residue $i$ has a local frame
-
-$$
-T_i=(R_i,t_i),
-$$
-
-where $R_i$ describes its orientation and $t_i$ its position. For a pair of residues $i,j$, these frames can be used to express points from $j$'s local frame in $i$'s coordinate system:
+Just like in AlphaFold 2, each residue $i$ has a frame $T_i=(R_i,t_i)$, where $R_i$ is its orientation and $t_i$ its position.  For a pair of residues $i,j$, the frames can describe where $j$ is from $i$'s point of view.  Take a point $x$ in $j$'s local coordinates and convert it into $i$'s local coordinates:
 
 $$
 x_{j\rightarrow i}
 =
-R_i^{T}(R_jx+t_j-t_i).
+R_i^{T}(R_jx+t_j-t_i)
 $$
 
-In other words, the model can ask not just **"what does residue $j$ look like?"**, but **"where is $j$, and how is it oriented, relative to $i$?"**
-
-These relative 3D features are incorporated into the attention calculation. To do so, it's useful to treat each frame $T_i=(R_i,t_i)$ as a rigid transformation: applying $T_i$ to a point $x$ means $T_i(x) = R_ix+t_i$. Composing transforms and inverting them then behaves just like function composition, with $T_i^{-1}$ undoing $T_i$. The quantity $T_i^{-1}T_j$ is exactly the relative transform used above — it's the single rigid motion that carries $j$'s frame into $i$'s frame, combining a relative rotation $R_i^{T}R_j$ and a relative translation $R_i^{T}(t_j-t_i)$. Schematically,
+This combines a relative rotation $R_i^{T}R_j$ and a relative translation $R_i^{T}(t_j-t_i)$.  Together they're written as $T_i^{-1}T_j$, the transform that takes $j$'s frame into $i$'s frame.  Attention then uses it alongside the usual query and key:
 
 $$
 \text{attention}_{ij}
@@ -1194,32 +1095,27 @@ f\left(
 q_i,\,
 k_j,\,
 \underbrace{T_i^{-1}T_j}_{\text{relative geometry}}
-\right).
+\right)
 $$
 
-Thus, when updating residue $i$, attention can depend simultaneously on:
+So when updating residue $i$, attention depends on:
 
-* the learned representation of $i$,
-* the learned representation of $j$, and
-* the **relative 3D arrangement of $i$ and $j$**.
+* the learned vector of $i$,
+* the learned vector of $j$, and
+* **where $j$ is, and which way it's facing, relative to $i$**.
 
-The calculation uses relative frames rather than absolute coordinates, making it **SE(3)-invariant**: translating or rotating the entire protein leaves these relationships unchanged.
-
-After this first block, the resulting geometric information has been incorporated into the residue representations, and the remaining Transformer blocks operate on those representations normally.
-
-> **Key Point:** The first block turns pairwise relationships between residue frames into information that modifies attention. It is essentially giving the Transformer a geometric version of “how should $i$ attend to $j$ given where $j$ actually is in 3D?”
-> {: .prompt-tip}
+Since only relative frames are used, this is SE(3)-invariant, just like IPA: rotating or moving the whole protein doesn't change anything.  After block 1, the geometric information is baked into the residue vectors, and the rest of the blocks are standard transformer blocks.
 
 #### Differing philosophies
 
-> This section is my own interpretation, not an established taxonomy — take it as a lens, not a fact.
+> This section is my own interpretation.  It isn't an established taxonomy.
 {: .prompt-warning}
 
 Stepping back, the three labs seem to disagree on where domain knowledge should live:
 
-- **AlphaFold** bakes geometry into *how attention is computed* — triangle updates encode the triangle inequality, IPA encodes SE(3)-invariance directly into the attention score. The transformer itself is heavily non-standard.
-- **ESM** pushes the opposite way: tokenize sequence, structure, and function so a near-vanilla transformer can eat them, and let coevolution and geometry emerge from attention rather than be architected in. ESM3's one exception — geometric attention in block 1 — is a small admission that pure tokenization loses something.
-- **Baker Lab** splits by task. RoseTTAFold (and RFdiffusion, which reuses its architecture) is a close cousin of AlphaFold's approach — attention over multiple tracks, geometry baked into how attention is computed, not avoided. ProteinMPNN is the real outlier: no tokens, no attention — its graph edges *are* physical proximity, fixed before the network ever runs. Geometry there isn't a bias term or an input token, it's the substrate itself.
+- **AlphaFold** builds geometry into *how attention is computed*.  Triangle updates and triangle attention are designed around the triangle inequality, and IPA builds SE(3)-invariance into the attention score.  The transformer itself is heavily non-standard.  AF3 keeps the triangle operations but drops the built-in invariance.
+- **ESM** goes the other way.  It tokenizes sequence, structure, and function so a near-standard transformer can take them in, and lets coevolution and geometry be learned through attention.  ESM3's one exception is geometric attention in block 1, which suggests tokenizing alone loses some structural information.
+- **Baker Lab** splits by task.  RoseTTAFold (and RFdiffusion, which is built on it) is close to AlphaFold's approach: multiple tracks, with geometry built into attention.  ProteinMPNN is the outlier.  It has no tokens and no attention.  Its graph edges come straight from which residues are physically close, so the geometry is decided before the network even runs.
 
 ### References
 
@@ -1237,7 +1133,7 @@ Stepping back, the three labs seem to disagree on where domain knowledge should 
 
 **Structure prediction**
 
-- Jumper, J. et al. ["Highly accurate protein structure prediction with AlphaFold."](https://www.nature.com/articles/s41586-021-03819-2) *Nature* 596, 2021. (AlphaFold2)
+- Jumper, J. et al. ["Highly accurate protein structure prediction with AlphaFold."](https://www.nature.com/articles/s41586-021-03819-2) *Nature* 596, 2021. (AlphaFold 2)
 - Baek, M. et al. ["Accurate prediction of protein structures and interactions using a three-track neural network."](https://www.science.org/doi/10.1126/science.abj8754) *Science* 373(6557), 2021. (RoseTTAFold)
 - Abramson, J. et al. ["Accurate structure prediction of biomolecular interactions with AlphaFold 3."](https://www.nature.com/articles/s41586-024-07487-w) *Nature* 630, 2024.
 

@@ -51,7 +51,7 @@
 <body>
 
 <div class="top-label">Diffusion in 3D — conditioning on a known motif</div>
-<p class="sub">Same real helix (ubiquitin, residues 20–36). <b style="color:var(--teal)">Five residues (23–27) are a known motif</b> — held fixed the entire time, never noised. <b style="color:var(--accent)">Everything else diffuses from noise</b>, built around that fixed anchor. Hit <b>Play</b>, watch the fixed residues never move while the rest coalesces around them. Drag to rotate anytime.</p>
+<p class="sub">Same real helix (ubiquitin, residues 20–36). <b style="color:var(--teal)">Five residues (23–27) are a known motif</b>. They stay fixed the whole time and never get noised. <b style="color:var(--accent)">Everything else is generated from noise</b> around them. Hit <b>Play</b> to watch the rest of the helix form around the fixed residues. Drag to rotate anytime.</p>
 
 <div id="viewer"></div>
 
@@ -70,7 +70,7 @@
   <span class="status" id="status">step 0 / 16</span>
 </div>
 
-<div class="disclosure">This is a scripted interpolation from noise to the real ubiquitin helix, not a real RFdiffusion model run — it's meant to illustrate what motif-conditioned denoising looks like geometrically, not to reproduce actual RFdiffusion output.</div>
+<div class="disclosure">This is a scripted animation from noise to the real ubiquitin helix. It isn't output from the actual RFdiffusion model. It only shows what motif-conditioned denoising looks like geometrically.</div>
 
 <script>
 // real Cα positions, residues 20-36 of 1UBQ — the actual α-helix (23-34) plus flanking context
