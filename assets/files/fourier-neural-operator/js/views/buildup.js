@@ -256,7 +256,7 @@ export function buildUpPanel(app, { l }) {
 
   const out = el("div", { class: "bu" },
     el("h4", { class: "drill-sub" }, "2 · Putting a channel back together"),
-    el("p", { class: "lead-in" }, `Those squares really are the input. To see it, take channel ${best} and add its waves back one at a time, strongest first. The rebuild gets closer and closer to the real channel.`),
+    el("p", { class: "lead-in" }, `Those squares hold the whole input. To check, take channel ${best} and add its waves back one at a time, strongest first. The rebuild gets closer and closer to the real channel.`),
     el("div", { class: "bu-row" },
       el("figure", { class: "ftile bu-tile bu-gridfig" },
         el("div", { class: "heat-stack bu-stack" }, grid, over),

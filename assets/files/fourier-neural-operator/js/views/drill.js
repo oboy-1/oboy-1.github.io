@@ -43,13 +43,13 @@ function fftPanel() {
     el("p", {}, "A wave of a given speed can sit anywhere: peak in the middle, peak at the edge, anything between. Speed alone doesn't pin it down. So each frequency gets two coefficients — how much cosine and how much sine — and their combination slides the wave along."),
     host,
     el("h4", { class: "drill-sub" }, "Complex packaging"),
-    el("p", {}, "Those two numbers are stored as one complex number ", M(String.raw`a + bi`), ". Its magnitude ", M(String.raw`\sqrt{a^2 + b^2}`), " is how strong the wave is, and its angle ", M(String.raw`\operatorname{atan2}(b, a)`), " is where the peaks sit. That's the only reason complex numbers show up here: they're a compact way to store a wave's size and shift together."),
+    el("p", {}, "Those two numbers are stored as one complex number ", M(String.raw`a + bi`), ". Its magnitude ", M(String.raw`\sqrt{a^2 + b^2}`), " is how strong the wave is, and its angle ", M(String.raw`\operatorname{atan2}(b, a)`), " is where the peaks sit. Complex numbers appear here only for that: they store a wave's size and shift together."),
     el("p", {}, "It's also why ", M(String.raw`R`), ", the learned weight, is complex: multiplying by a complex number rescales a wave ", el("em", {}, "and"), " shifts it, in one operation."),
     el("h4", { class: "drill-sub" }, "Why it's called fast"),
     el("p", {}, "Measuring each of ", M(String.raw`n`), " frequencies against ", M(String.raw`n`), " samples is ", M(String.raw`n^2`), " work. The FFT uses the fact that the even-indexed and odd-indexed samples give overlapping sub-problems. It splits the transform in two and repeats, which brings the work down to ", M(String.raw`n \log n`), "."),
     el("p", { class: "drill-note" }, "The FFT only makes this faster. A slow transform and a fast one give identical coefficients, so truncation would blur edges either way."),
     el("h4", { class: "drill-sub" }, "The convolution theorem"),
-    el("p", {}, "Sliding a filter across an image — a convolution — is the same thing as multiplying coefficients one by one in frequency space. That's why the spectral path is worth the two transforms. With one multiply per kept wave, you get a filter as wide as the whole grid, so the layer can move information across the whole domain in a single step."),
+    el("p", {}, "Sliding a filter across an image (a convolution) gives the same result as multiplying coefficients one by one in frequency space. The spectral path pays for two transforms to get this. With one multiply per kept wave, it applies a filter as wide as the whole grid, so one layer can move information across the whole domain."),
   ];
 }
 
@@ -148,7 +148,7 @@ export function truncateRealPanel(app, { l, part = "both" }) {
   const vmRem = maxAbs(cut) || 1;
   const out = [
     el("h4", { class: "drill-sub" }, "3 · Keeping only the slow block"),
-    el("p", { class: "lead-in" }, `Now the cut itself. We keep only the waves inside the orange block and drop everything else. Here's what that does to one of layer ${l}'s input channels, the one that loses the most.`),
+    el("p", { class: "lead-in" }, `Now the cut itself. We keep only the waves inside the orange block and drop everything else. The tiles below show what that does to the input channel of layer ${l} that loses the most.`),
     el("div", { class: "drill-row" },
       tile(x, res, vm, `input channel ${best}`, "before the cut"),
       el("span", { class: "op-chip" }, "keep |k| ≤ 8"),
@@ -156,7 +156,7 @@ export function truncateRealPanel(app, { l, part = "both" }) {
       el("span", { class: "op-chip" }, "difference"),
       tile(cut, res, vmRem, "what was removed", `own scale ±${fmt(vmRem, 3)}`)),
     el("p", { class: "drill-note" },
-      `This channel is smooth, so the cut barely changes it. The last tile has its own, much finer color scale (±${fmt(vmRem, 3)}, against ±${fmt(vm, 2)} for the other two), just so the difference is visible at all. Across all 32 channels, the cut keeps ${pct(stats.truncation_kept_excl_mean, 1)} of this input's energy, not counting the flat average.`),
+      `This channel is smooth, so the cut barely changes it. The last tile has its own, much finer color scale (±${fmt(vmRem, 3)}, against ±${fmt(vm, 2)} for the other two), so the difference is visible. Across all 32 channels, the cut keeps ${pct(stats.truncation_kept_excl_mean, 1)} of this input's energy, not counting the flat average.`),
   ];
 
   if (part === "real") return out;
@@ -174,14 +174,14 @@ export function truncateRealPanel(app, { l, part = "both" }) {
       el("figcaption", {}, el("span", { class: "cap-t" }, label), sub ? el("span", { class: "cap-s" }, sub) : null));
     out.push(
       el("h4", { class: "drill-sub" }, "5 · The same cut on sharp edges"),
-      el("p", { class: "lead-in" }, "The cut costs so little here because the fluid is smooth. Here's the same cut on an image with sharp edges, a map of two kinds of rock."),
+      el("p", { class: "lead-in" }, "The cut costs so little here because the fluid is smooth. Below is the same cut on an image with sharp edges, a map of two kinds of rock."),
       el("div", { class: "drill-row" },
         fig(inCv, "a rock map", "two materials, sharp edges"),
         el("span", { class: "op-chip" }, "keep |k| ≤ 8"),
         fig(keptCv, "after the cut", `same scale ±${fmt(rv, 2)}`),
         el("span", { class: "op-chip" }, "difference"),
         fig(cutCv, "what was removed", `own scale ±${fmt(rvr, 2)}`)),
-      el("p", { class: "drill-note" }, "This time the cut does real damage. The edges blur and ripple, and everything it removed sits right along them. Sharp edges are made of fast waves, and those are exactly what the cut throws away."));
+      el("p", { class: "drill-note" }, "On the rock the cut does real damage. The edges blur and ripple, and everything it removed sits along them. Sharp edges are made of fast waves, and the cut throws fast waves away."));
   } catch (e) { /* the rock data is only needed for this comparison */ }
   return out;
 }
@@ -258,7 +258,7 @@ export function waveIntroPanel(app) {
     el("figure", { class: "ftile wave-intro-tile one-wave" }, el("div", { class: "tile" }, waveCv),
       el("figcaption", {}, el("span", { class: "cap-t" }, "one wave, by itself"),
         el("span", { class: "cap-s mono" }, `${fmt(kmag, 1)} cycles across the grid, ${fmt(res / kmag, 1)} px wavelength`))),
-    el("p", { class: "cap-s" }, "Every image on this page — this one included — is a sum of waves like that one, at every speed and angle the grid can hold. Adding more of them, in order from slow to fast, is what reconstructs an image."),
+    el("p", { class: "cap-s" }, "Every image on this page, this one included, is a sum of waves like that one, at every speed and angle the grid can hold. Adding them back in order from slow to fast rebuilds the image."),
     buildRow,
     el("p", { class: "cap-s" }, "Each tile adds more, faster waves to the last one. By the last tile every wave the grid can hold is included, and the reconstruction matches the original exactly (up to rounding)."),
     splitRow,
@@ -415,9 +415,9 @@ export function rPanel(app, { l, truncOnly = false }) {
     const kept = pick(true, 1), cut = pick(false, 5);
     return el("div", { class: "lost-waves" },
       el("h4", { class: "drill-sub" }, "4 · What the cut throws away"),
-      el("p", { class: "lead-in" }, "So what exactly did we lose? Here are the biggest waves outside the block, drawn out, next to the biggest wave we keep."),
+      el("p", { class: "lead-in" }, "Below are the biggest waves outside the block, drawn out, next to the biggest wave we keep."),
       el("div", { class: "drill-row" }, ...(kept.length ? [fig(kept[0], "kept:"), el("span", { class: "op-chip" }, "vs")] : []), ...cut.map((i) => fig(i, "cut:"))),
-      el("p", { class: "drill-note" }, "Even the biggest wave we throw away holds a tiny sliver of the energy, compared with the biggest wave we keep. In smooth data like this fluid, there just isn't much up here to lose."));
+      el("p", { class: "drill-note" }, "The biggest wave we throw away holds a tiny fraction of the energy of the biggest wave we keep. Smooth data like this fluid has little energy in its fast waves."));
   };
 
   if (truncOnly) return [
@@ -457,7 +457,7 @@ export function convPanel(app, { l, c, F }) {
   const exact = !!app.sample.live;
   return [
     el("h3", { class: "drill-title" }, "1×1 conv: the path that keeps the edges"),
-    el("p", {}, "A 1×1 convolution looks at one pixel at a time and mixes the 32 channel values found there. It has no notion of frequency, so it can't lose any. Whatever sharpness its input has, it passes on."),
+    el("p", {}, "A 1×1 convolution looks at one pixel at a time and mixes the 32 channel values found there. It never splits the input into waves, so it has no cutoff, and the sharp detail in its input carries through to its output."),
     el("h4", { class: "drill-sub" }, `Only the detail above the cutoff, channel ${c}`),
     el("div", { class: "drill-row" },
       tile(sp.high, res, vm, "Spectral path, above cutoff", "", "p-spectral"),

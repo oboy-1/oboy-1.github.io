@@ -242,7 +242,7 @@ function buildConvWave() {
       math.textContent = `output at point ${st.n} = ${terms.join(" + ")} = ${n2(y[st.n])}`;
       const shift = shiftOf(taps, k, R);
       const where = Math.abs(shift) < 0.005 ? "in the same place" : `moved ${fmt(Math.abs(shift), 2)} points to the ${shift > 0 ? "right" : "left"}`;
-      verdict.replaceChildren(el("strong", {}, `A sine wave in, a sine wave out.`),
+      verdict.replaceChildren(el("strong", {}, `The output is a sine wave too.`),
         ` Both repeat ${k} times. The one coming out is ${fmt(R.mag, 2)}× as tall and ${where}.`);
       vC.replaceChildren(M(tex`C = ${fmt(R.C, 3)}`)); vS.replaceChildren(M(tex`S = ${fmt(R.S, 3)}`));
       vA.textContent = `${fmt(R.mag, 2)}× as tall`;
