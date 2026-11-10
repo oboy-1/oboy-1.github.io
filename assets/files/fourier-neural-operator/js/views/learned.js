@@ -213,7 +213,7 @@ export function limitsStage(viz, app) {
     el("div", { class: "lim-text" }, el("h5", {}, el("span", { class: "lim-n" }, n), title), el("p", {}, text)));
 
   viz.append(el("div", { class: "panel-body limits" },
-    el("h4", { class: "drill-sub" }, "Three places this model is not as general as it sounds"),
+    el("h4", { class: "drill-sub" }, "Three limits of this model"),
     el("div", { class: "lim-grid" },
       card("1", "The grid wraps around",
         el("div", { class: "lim-pair" }, el("div", { class: "tile lim-tile" }, nsTile), el("div", { class: "tile lim-tile" }, dcTile)),

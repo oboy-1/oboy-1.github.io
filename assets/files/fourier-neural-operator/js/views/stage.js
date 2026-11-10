@@ -282,7 +282,7 @@ function invarianceStage(viz, app) {
       el("h4", { class: "drill-sub" }, "The same weights, three different grids"),
       el("span", { class: "inv-badge mono" }, `${m.model.params.toLocaleString("en-US")} weights · unchanged`)),
     row,
-    el("p", { class: "cap-s" }, `Predicted ${words().output} for one sample at each grid size, on one color scale. Test error is the mean over ${m.stats.test_error["64"].n} unseen samples. Nothing about the model changes between them — no retraining, no resizing, no interpolation of weights.`),
+    el("p", { class: "cap-s" }, `Predicted ${words().output} for one sample at each grid size, on one color scale. Test error is the mean over ${m.stats.test_error["64"].n} unseen samples. The same weights run on all three grids, with no retraining and no resizing or interpolation of weights.`),
     isNS() ? el("p", { class: "cap-s" }, `Why the three errors nearly match: the 32×32 and 64×64 grids are every 4th and every 2nd point of the same 128×128 data, and the fluid is smooth. The model only uses waves up to ${Math.max(...m.kept_modes_centered.map(([a]) => a)) - m.resolutions[1] / 2} in each direction, and even 32×32 can hold waves up to 16, so all three grids give it the same waves to work with.`) : null));
 }
 
@@ -387,11 +387,11 @@ function pathsStage(viz, app) {
   const sS = spatialStd(F.spectral), sL = spatialStd(F.local);
   const bigger = sS >= sL
     ? `The spectral path is the bigger signal here: its values spread ${fmt(sS / sL, 1)}× as wide as the local path's (standard deviation ${fmt(sS, 2)} against ${fmt(sL, 2)}).`
-    : `In this channel the local path is actually the bigger signal (standard deviation ${fmt(sL, 2)} against ${fmt(sS, 2)}). Try a few other channels above.`;
+    : `In this channel the local path is the bigger signal (standard deviation ${fmt(sL, 2)} against ${fmt(sS, 2)}). Try a few other channels above.`;
   viz.append(...layerHeader(app));
   viz.append(el("div", { class: "paths-grid" },
     el("h4", { class: "drill-sub" }, "1 · Both paths, side by side"),
-    el("p", { class: "lead-in" }, `Here's channel ${c} of layer ${l} coming out of each path, all on one color scale. ${bigger}`),
+    el("p", { class: "lead-in" }, `Channel ${c} of layer ${l} as it comes out of each path, all on one color scale. ${bigger}`),
     el("div", { class: "paths-row" },
       fieldTile(F.spectral, res, shared, { big: true, label: "Spectral path", sub: `std ${fmt(spatialStd(F.spectral), 2)}`, path: "spectral" }),
       fieldTile(F.local, res, shared, { big: true, label: "Local path", sub: `std ${fmt(spatialStd(F.local), 2)}`, path: "local" }),
@@ -404,7 +404,7 @@ function pathsStage(viz, app) {
     el("div", { class: "paths-row" },
       fieldTile(sp.high, res, hiMax, { label: "Spectral, above cutoff", sub: "nothing to draw", path: "spectral" }),
       fieldTile(lc.high, res, hiMax, { label: "Local, above cutoff", sub: `shared scale ±${fmt(hiMax, 3)}`, path: "local" })),
-    el("p", { class: "cap-s" }, `Across all 32 channels, ${pct(1 - stats.truncation_kept_excl_mean, 1)} of the energy coming into layer ${l} sits above the cutoff (not counting the flat average). That's the sharp part, and of the two paths, only the local one passes it on.`)));
+    el("p", { class: "cap-s" }, `Across all 32 channels, ${pct(1 - stats.truncation_kept_excl_mean, 1)} of the energy coming into layer ${l} sits above the cutoff (not counting the flat average). That's the sharp detail, and only the local path passes it on.`)));
 }
 
 // ---------- the spectral path, first node: every wave of the real input, the block we keep, the cut ----------
@@ -516,14 +516,14 @@ function stillFailsStage(viz, app) {
   const A = (k) => an[k].ablation_64;
   viz.append(el("div", { class: "panel-body" },
     el("h4", { class: "drill-sub" }, "1 · Where the mistakes are"),
-    el("p", { class: "lead-in" }, `Here's the true swirl for sample #${s.entry.test_index}, next to the model's mistake: its prediction minus the truth. The mistake is small, and it sits along the thin streaks.`),
+    el("p", { class: "lead-in" }, `Below are the true swirl for sample #${s.entry.test_index} and the model's mistake: its prediction minus the truth. The mistake is small, and it sits along the thin streaks.`),
     el("div", { class: "fail-top" },
       el("figure", { class: "ftile fail-tile" }, el("div", { class: "tile" }, truthCv),
         el("figcaption", {}, el("span", { class: "cap-t" }, "true swirl"), el("span", { class: "cap-s" }, `sample #${s.entry.test_index}, 64×64`))),
       el("figure", { class: "ftile fail-tile" }, el("div", { class: "tile" }, errCv),
         el("figcaption", {}, el("span", { class: "cap-t" }, "prediction − truth"), el("span", { class: "cap-s" }, `own scale, ±${fmt(maxAbs(err), 2)}`)))),
     el("h4", { class: "drill-sub" }, "2 · How much of each is fine detail"),
-    el("p", { class: "lead-in" }, "Each bar asks the same question: how much of this picture is fine detail, meaning the fast waves the spectral path throws away? The forcing, the true swirl and the model's prediction are all smooth, with well under 1% fine detail each. The mistake is the odd one out: almost half of it is fine detail. So the sharp stuff makes up a big share of what the model gets wrong, even though the swirl itself has almost none."),
+    el("p", { class: "lead-in" }, "Each bar shows how much of a picture is fine detail, meaning the fast waves the spectral path throws away. The forcing, the true swirl and the model's prediction are all smooth, with well under 1% fine detail each. The mistake is different: almost half of it is fine detail. So sharp detail makes up a big share of what the model gets wrong, even though the swirl itself has almost none."),
     el("div", { class: "fail-bars" },
       el("div", { class: "fail-bar fail-head" }, el("span", {}, ""), el("span", { class: "fb-scale" }, el("span", {}, "0%"), el("span", {}, "50%"), el("span", {}, "100%")), el("span", { class: "fb-val" }, "fine detail")),
       ...bars.map(([label, v]) => el("div", { class: `fail-bar${label === "the model's mistake" ? " hot" : ""}` },

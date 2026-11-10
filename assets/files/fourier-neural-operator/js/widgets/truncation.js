@@ -142,9 +142,9 @@ export function mountTruncationWidget(host, { cutoff = 8, n = 64 } = {}) {
     } else {
       verdict.className = "verdict warn";
       verdict.textContent = pE > 90 && worst > 0.15
-        ? `${pE.toFixed(0)}% of the energy captured, and the corners are still wrong. The overshoot won't go away, it only gets narrower. High energy is not high fidelity when there's an edge.`
+        ? `${pE.toFixed(0)}% of the energy captured, and the corners are still wrong. More waves make the overshoot narrower but no shorter. With an edge, most of the energy can be captured while the shape is still wrong.`
         : worst > 0.4
-          ? "A few slow waves can't form a sharp corner. The best they can do is a rounded ramp."
+          ? "A few slow waves can't form a sharp corner. They make a rounded ramp instead."
           : `Closer, but the overshoot at each corner is still ${worst.toFixed(2)}. An instant jump needs every wave.`;
     }
   }
