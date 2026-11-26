@@ -78,8 +78,8 @@ const weights = softmax(scores);
 const updated = [0,1].map(d => weights.reduce((sum,w,i)=> sum + w*VEC[seq1[i]][d], 0));
 
 const STAGES = [
-  { id:0, label:'1. Why', caption: 'Position 1 starts as just "M". To understand what it\'s really doing, we need information from the other positions. We don\'t know yet how much each one matters.' },
-  { id:1, label:'2. Compute relevance', caption: 'Relevance comes from two numbers per position, added together: content similarity (how alike the two residues look) and the pair-grid bias (what the pair grid already says about this specific pair, built up over earlier blocks by outer product mean and the triangle steps).' },
+  { id:0, label:'1. Why', caption: 'Position 1 starts as just "M". Working out what it does takes information from the other positions. We don\'t know yet how much each one matters.' },
+  { id:1, label:'2. Compute relevance', caption: 'Relevance comes from two numbers per position, added together. First, content similarity: how alike the two residues look. Second, the pair-grid bias: what the pair grid already says about this pair, built up over earlier blocks by outer product mean and the triangle steps.' },
   { id:2, label:'3. Combine and update', caption: 'Those two numbers get added, then passed through softmax across all four positions to get a weight. Position 1\'s new representation is a blend of all four, weighted this way. It now carries information from position 3 most of all, and a little from the others.' },
 ];
 

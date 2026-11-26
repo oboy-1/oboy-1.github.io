@@ -141,7 +141,7 @@
       <div class="stat-label">1 / (1 + x²)</div>
       <div class="stat-value" id="y-val">1.00</div>
     </div>
-    <div class="verdict full" id="verdict">Residue lines up almost perfectly — full credit</div>
+    <div class="verdict full" id="verdict">Residue lines up almost perfectly. Nearly full credit.</div>
   </div>
 </div>
 
@@ -154,7 +154,7 @@
 </div>
 
 <div class="caption">
-  As a residue's aligned distance $d_i$ grows relative to the normalizer $d_0(L_{\mathrm{target}})$, the score doesn't fall off linearly — it drops fast near the middle and flattens out near zero. That's what keeps a handful of badly-misaligned residues from swamping the average the way raw distance would.
+  The score falls as a residue's aligned distance $d_i$ grows relative to the normalizer $d_0(L_{\mathrm{target}})$. It drops fast near the middle and flattens out near zero. So a few badly misaligned residues can't swamp the average the way raw distance would.
 </div>
 
 <script>
@@ -241,13 +241,13 @@ function render() {
   verdictEl.classList.remove('full', 'partial', 'none');
   if (y >= 0.7) {
     verdictEl.classList.add('full');
-    verdictEl.textContent = 'Residue lines up almost perfectly — nearly full credit';
+    verdictEl.textContent = 'Residue lines up almost perfectly. Nearly full credit.';
   } else if (y >= 0.25) {
     verdictEl.classList.add('partial');
-    verdictEl.textContent = 'Residue is somewhat off — partial credit';
+    verdictEl.textContent = 'Residue is somewhat off. Partial credit.';
   } else {
     verdictEl.classList.add('none');
-    verdictEl.textContent = 'Residue is far away — almost no credit';
+    verdictEl.textContent = 'Residue is far off. Almost no credit.';
   }
 }
 

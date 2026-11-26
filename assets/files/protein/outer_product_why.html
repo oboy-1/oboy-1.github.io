@@ -79,8 +79,8 @@ const allSeqs = [['M','K','T','A'],['M','K','T','A'],['M','R','T','S']]; // Dog,
 const speciesNames = ['Dog','Cat','Fish'];
 
 const STAGES = [
-  { id:0, label:'1. Why', caption: 'Four species, two positions each. Left: the two positions always move together. Right: they vary independently. Average their outer products and watch what survives.' },
-  { id:1, label:'2. The real example', caption: 'Same idea, real data: three species, positions 1 and 4. Position 1 barely varies (M, M, M); position 4 varies a bit (A, A, S). The averaged pattern still shows some structure, so there is a weak signal.' },
+  { id:0, label:'1. Why', caption: 'Four species, two positions each. Left: the two positions always move together. Right: they vary independently. Average their outer products and compare.' },
+  { id:1, label:'2. The real example', caption: 'Same idea with real data: three species, positions 1 and 4. Position 1 doesn.t vary (M, M, M). Position 4 varies a bit (A, A, S). The averaged pattern still shows some structure, so there\'s a weak signal.' },
   { id:2, label:'3. Written into the grid', caption: 'That averaged matrix, after a learned projection, gets written into pair grid cell (1,4).' },
 ];
 
@@ -134,8 +134,8 @@ function stage0(){
   marker.appendChild(el('path',{ d:'M2 1L8 5L2 9', fill:'none', stroke:'var(--text-muted)', 'stroke-width':1.5, 'stroke-linecap':'round', 'stroke-linejoin':'round' }));
   defs.appendChild(marker); svg.appendChild(defs);
 
-  panel(30, 'positions move together', coupledPairs, coupledAvg, 'sharp diagonal — real signal', 'var(--accent)');
-  panel(370, 'positions move independently', uncoupledPairs, uncoupledAvg, 'flat smear — no signal', 'var(--text-muted)');
+  panel(30, 'positions move together', coupledPairs, coupledAvg, 'sharp diagonal: real signal', 'var(--accent)');
+  panel(370, 'positions move independently', uncoupledPairs, uncoupledAvg, 'flat smear: no signal', 'var(--text-muted)');
 
   return svg;
 }
@@ -178,7 +178,7 @@ function stage1(){
   svg.appendChild(text(350,290,'average across species',10,'var(--text-muted)','start'));
 
   heat(svg, 260, 325, 60, realAvg, 0.2, true, 12);
-  svg.appendChild(text(320,470,'leans structured, not flat',11,'var(--accent)',null,500));
+  svg.appendChild(text(320,470,'leans structured',11,'var(--accent)',null,500));
 
   return svg;
 }

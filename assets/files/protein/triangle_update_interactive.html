@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Triangle update — a sweep over the pair grid</title>
+<title>Triangle update: a sweep over the pair grid</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,11 +54,11 @@
 <body>
 
 <div class="top-label">Triangle update</div>
-<p class="sub">Click any off-diagonal cell to make it the target, then run the sweep. Every other position k forms a triangle with the target — cell (i,k) and cell (k,j) — and each triangle contributes to the update for cell (i,j).</p>
+<p class="sub">Click any off-diagonal cell to make it the target, then run the sweep. Each other position k forms a triangle with the target through cells (i,k) and (k,j). Every triangle adds to the update for cell (i,j).</p>
 
 <div class="visual"><svg id="gridSvg" viewBox="0 0 460 460" width="100%"></svg></div>
 
-<div class="status" id="status">Target: cell (1, 4). Click "Run sweep" to update it from every triangle through this edge.</div>
+<div class="status" id="status">Target: cell (1, 4). Click "Run sweep" to update it from every triangle that includes it.</div>
 
 <div class="actions">
   <button class="act primary" id="runBtn">Run sweep →</button>
@@ -155,7 +155,7 @@ function selectTarget(i,j){
   if (sweeping) return;
   target = {i,j};
   highlightK = null;
-  statusEl.innerHTML = `Target: cell (${i+1}, ${j+1}). Click "Run sweep" to update it from every triangle through this edge.`;
+  statusEl.innerHTML = `Target: cell (${i+1}, ${j+1}). Click "Run sweep" to update it from every triangle that includes it.`;
   draw();
 }
 
@@ -189,7 +189,7 @@ async function runSweep(){
   highlightK = null;
   draw();
 
-  statusEl.innerHTML = `Summed <span class="mono">${products.length}</span> triangles and averaged: cell (${i+1}, ${j+1}) went from <b>${oldVal.toFixed(2)}</b> to <b>${newVal.toFixed(2)}</b> — pulled toward what every other triangle through this edge agrees on.`;
+  statusEl.innerHTML = `Averaged the products from <span class="mono">${products.length}</span> triangles. Cell (${i+1}, ${j+1}) went from <b>${oldVal.toFixed(2)}</b> to <b>${newVal.toFixed(2)}</b>.`;
 
   sweeping = false;
   runBtn.disabled = false;
@@ -199,7 +199,7 @@ function resetValues(){
   if (sweeping) return;
   PAIR = ORIGINAL.map(row => row.slice());
   highlightK = null;
-  statusEl.innerHTML = `Target: cell (${target.i+1}, ${target.j+1}). Click "Run sweep" to update it from every triangle through this edge.`;
+  statusEl.innerHTML = `Target: cell (${target.i+1}, ${target.j+1}). Click "Run sweep" to update it from every triangle that includes it.`;
   draw();
 }
 

@@ -88,7 +88,7 @@
 <body>
 
 <div class="top-label">ESM3 function tokenizer</div>
-<p class="sub">Neither step here is a trained network. <b>TF-IDF</b> just reweights annotations by rarity; <b>hashing</b> just checks which side of a few fixed lines a point falls on. Nothing is learned, yet proteins doing similar things still end up close together.</p>
+<p class="sub">Neither step here is a trained network. <b>TF-IDF</b> reweights annotations by how rare they are. <b>Hashing</b> checks which side of a few fixed lines a point falls on. Nothing is learned, and proteins that do similar things still end up close together.</p>
 
 <div class="tabs mode-tabs" id="modeTabs">
   <button data-mode="tfidf" class="active">1 · TF-IDF weighting</button>
@@ -96,7 +96,7 @@
 </div>
 
 <div class="panel active" id="panel-tfidf">
-  <p class="stage-caption">Six toy proteins, each tagged with InterPro annotations from a shared vocabulary of 8 terms. Pick one to see its annotations reweighted by rarity — <b>idf = log&#8322;(N / df)</b>, where <b>df</b> is how many of the 6 proteins carry that term. Common terms shrink toward zero; rare ones dominate.</p>
+  <p class="stage-caption">Six toy proteins, each tagged with InterPro annotations from a shared list of 8 terms. Pick one to see its annotations reweighted by rarity: <b>idf = log&#8322;(N / df)</b>. N is 6, the number of proteins. <b>df</b> is how many of them carry the term. Common terms get small weights. Rare terms get large ones.</p>
   <div class="tabs protein-tabs" id="proteinTabs"></div>
   <div class="chips" id="chips"></div>
   <div id="termRows"></div>
@@ -111,7 +111,7 @@
         <span class="legend-chip"><span class="chip-dot" style="background:var(--accent)"></span>selected protein</span>
         <span class="legend-chip"><span class="chip-dot" style="background:var(--msa)"></span>other proteins</span>
       </div>
-      <div class="hint">drag the orange point — watch when the bucket number changes</div>
+      <div class="hint">drag the orange point. The bucket number changes when it crosses a line.</div>
     </div>
     <div class="side">
       <div class="token-readout" id="tokenReadout"></div>
@@ -273,7 +273,7 @@ function updateReadout(){
     <span class="name">${PROTEINS[lshSelected].name}</span>
     side of A / B / C: <b>(${bits.join(', ')})</b> &rarr; function token bucket <span class="bucket">#${bucket}</span>
   `;
-  document.getElementById('lshCaption').innerHTML = `Three fixed lines (A, B, C) split the plane into 8 regions — a stand-in for the real hash's many more hyperplanes producing many more buckets. A protein's <b>token</b> is just which side of each line it lands on. <b>Kinase A</b> and <b>Kinase B</b> land in the same bucket without ever being told they're both kinases; <b>Membrane receptor</b> and <b>Antibody fragment</b> do too, because they share an Ig-like fold annotation.`;
+  document.getElementById('lshCaption').innerHTML = `Three fixed lines (A, B, C) cut the plane into regions. The real hash uses more hyperplanes, so it has more buckets. A protein's <b>token</b> is which side of each line it lands on. <b>Kinase A</b> and <b>Kinase B</b> land in the same bucket, and nothing told the hash they're both kinases. <b>Membrane receptor</b> and <b>Antibody fragment</b> share a bucket too, because they share an Ig-like fold annotation.`;
 }
 
 document.getElementById('resetBtn').addEventListener('click', () => { resetPositions(); drawLSH(); updateReadout(); sendHeight(); });

@@ -62,7 +62,7 @@
 <body>
 
 <div class="top-label">Real frames, real backbone</div>
-<p class="sub">Real ubiquitin (1UBQ), residues 1–20. Each frame — <b>rotation</b> and <b>position</b> — is computed live from actual N, Cα, C atoms, the same construction IPA uses. Step through how a single attention score gets built.</p>
+<p class="sub">Real ubiquitin (1UBQ), residues 1–20. Each frame is a <b>rotation</b> plus a <b>position</b>. It's computed live from the real N, Cα and C atoms, the same way IPA does it. Step through to see how one attention score is built.</p>
 
 <div class="tabs" id="tabs">
   <button data-step="1" class="active">1 · Frame</button>
@@ -80,8 +80,8 @@
 <p class="caption" id="caption"></p>
 
 <div class="legend">
-  <span><i style="background:var(--teal)"></i>residue 1 — frame + query point</span>
-  <span><i style="background:var(--coral)"></i>residue 10 — frame + key point</span>
+  <span><i style="background:var(--teal)"></i>residue 1: frame + query point</span>
+  <span><i style="background:var(--coral)"></i>residue 10: frame + key point</span>
   <span><i style="background:#FF6600"></i>Q–K distance</span>
 </div>
 
@@ -323,10 +323,10 @@ function drawFrame(frame, color){
 const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const CAPTIONS = {
-  1: 'Residue 1 gets a local <b>frame</b> — an origin plus three axes, built from its own real N, Cα, C atoms. Every point this residue proposes will be placed relative to this frame.',
-  2: 'A learned <b>query point</b> is generated in residue 1\'s local coordinates, then placed into the real backbone using that frame — <code>T&#8321;(q&#8321;&#7477;)</code>.',
-  3: 'Zooming out to bring residue 10 into view. It gets its own frame from its own atoms, and proposes a <b>key point</b> the same way — <code>T&#8321;&#8320;(k&#8321;&#8320;&#7477;)</code>.',
-  4: 'The distance between <b>Q</b> and <b>K</b> becomes a term in the attention score. Rotate the whole molecule and this number never changes — the frames rotate together, so the distance between the points they generate is preserved.'
+  1: 'Residue 1 gets a local <b>frame</b>: an origin plus three axes, built from its own N, Cα and C atoms. Every point this residue makes is placed relative to this frame.',
+  2: 'A learned layer outputs a <b>query point</b> in residue 1\'s local coordinates. The frame then places it on the real backbone: <code>T&#8321;(q&#8321;&#7477;)</code>.',
+  3: 'Zoomed out to show residue 10. It gets its own frame from its own atoms and makes a <b>key point</b> the same way: <code>T&#8321;&#8320;(k&#8321;&#8320;&#7477;)</code>.',
+  4: 'The distance between <b>Q</b> and <b>K</b> becomes a term in the attention score. Rotate the whole molecule and this number stays the same. Both frames rotate with it, so the distance between their points doesn\'t change.'
 };
 
 const ZOOM_CLOSE = {resi:[1,2,3]};

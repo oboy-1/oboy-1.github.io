@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diffusion in 3D — noise to helix</title>
+<title>Diffusion in 3D: noise to helix</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.5.3/3Dmol-min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -50,14 +50,14 @@
 </head>
 <body>
 
-<div class="top-label">Diffusion in 3D — conditioning on a known motif</div>
-<p class="sub">Same real helix (ubiquitin, residues 20–36). <b style="color:var(--teal)">Five residues (23–27) are a known motif</b>. They stay fixed the whole time and never get noised. <b style="color:var(--accent)">Everything else is generated from noise</b> around them. Hit <b>Play</b> to watch the rest of the helix form around the fixed residues. Drag to rotate anytime.</p>
+<div class="top-label">Diffusion in 3D: conditioning on a known motif</div>
+<p class="sub">Same real helix (ubiquitin, residues 20–36). <b style="color:var(--teal)">Five residues (23–27) are a known motif</b>. They stay fixed the whole time and never get noised. <b style="color:var(--accent)">Everything else is generated from noise</b> around them. Hit <b>Play</b> to watch the rest of the helix form around them. Drag to rotate.</p>
 
 <div id="viewer"></div>
 
 <div class="legend">
-  <span><i style="background:var(--teal)"></i>fixed motif (residues 23–27) — the condition</span>
-  <span><i style="background:var(--accent)"></i>diffusing — built around it</span>
+  <span><i style="background:var(--teal)"></i>fixed motif (residues 23–27), the condition</span>
+  <span><i style="background:var(--accent)"></i>diffusing, built around the motif</span>
 </div>
 
 <div class="noise-bar-wrap">
@@ -70,7 +70,7 @@
   <span class="status" id="status">step 0 / 16</span>
 </div>
 
-<div class="disclosure">This is a scripted animation from noise to the real ubiquitin helix. It isn't output from the actual RFdiffusion model. It only shows what motif-conditioned denoising looks like geometrically.</div>
+<div class="disclosure">This is a scripted animation from noise to the real ubiquitin helix. It isn't output from the actual RFdiffusion model. It shows what motif-conditioned denoising looks like in 3D.</div>
 
 <script>
 // real Cα positions, residues 20-36 of 1UBQ — the actual α-helix (23-34) plus flanking context

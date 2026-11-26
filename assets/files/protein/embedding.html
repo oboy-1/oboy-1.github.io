@@ -147,22 +147,22 @@
 </div>
 
 <div class="detail" id="detail">← click a residue</div>
-<div class="disclosure">Illustrative values, not real ESM-2 activations — meant to show the shape of the process (discrete tokens → fixed-length context vectors), not an actual forward pass.</div>
+<div class="disclosure">Made-up values for illustration. These aren't real ESM-2 activations. They show the shape of the process: discrete tokens in, fixed-length context vectors out.</div>
 
 <script>
 const AAS = [
-  { letter:'M', name:'Methionine',    chem:'special',     vals:[ 0.82,-0.34, 1.21, 0.56,-0.91], body:'Always the start residue — coded by AUG. Its embedding at position 1 is distinct from M appearing anywhere else in a sequence.' },
+  { letter:'M', name:'Methionine',    chem:'special',     vals:[ 0.82,-0.34, 1.21, 0.56,-0.91], body:'Always the start residue, coded by AUG. Its embedding at position 1 differs from an M anywhere else in a sequence.' },
   { letter:'Q', name:'Glutamine',     chem:'polar',       vals:[ 0.21, 0.67,-0.43, 1.02, 0.38], body:'Polar, hydrogen bond donor and acceptor. Highly conserved at position 2 of ubiquitin across all eukaryotes.' },
-  { letter:'I', name:'Isoleucine',    chem:'hydrophobic', vals:[-1.04, 0.88, 0.31,-0.62, 1.15], body:'Branched hydrophobic residue. Strongly prefers the buried protein core. ESM attention heads connect it to other hydrophobic residues nearby.' },
+  { letter:'I', name:'Isoleucine',    chem:'hydrophobic', vals:[-1.04, 0.88, 0.31,-0.62, 1.15], body:'Branched and hydrophobic. Usually buried in the protein core. ESM attention heads link it to other hydrophobic residues nearby.' },
   { letter:'F', name:'Phenylalanine', chem:'aromatic',    vals:[ 1.33,-0.71, 0.54, 0.22,-1.08], body:'Aromatic ring enabling π–π stacking. One of the most conformationally restricted residues.' },
-  { letter:'V', name:'Valine',        chem:'hydrophobic', vals:[-0.45, 1.09,-0.87, 0.63, 0.28], body:'Small branched hydrophobic. Strong β-sheet preference. ESM connects it to residues physically close in 3D — learned from sequence alone.' },
-  { letter:'K', name:'Lysine',        chem:'positive',    vals:[ 0.77,-1.23, 0.95,-0.41, 1.04], body:'Positively charged, long side chain. K48 and K63 in ubiquitin are critical polyubiquitin attachment points for protein degradation.' },
-  { letter:'T', name:'Threonine',     chem:'polar',       vals:[ 0.39, 0.82,-0.56, 1.17,-0.73], body:'Polar hydroxyl group — a common phosphorylation site. Acts as both structural residue and signalling switch depending on context.' },
+  { letter:'V', name:'Valine',        chem:'hydrophobic', vals:[-0.45, 1.09,-0.87, 0.63, 0.28], body:'Small branched hydrophobic. Strong β-sheet preference. ESM links it to residues that are close in 3D. It learned this from sequence alone.' },
+  { letter:'K', name:'Lysine',        chem:'positive',    vals:[ 0.77,-1.23, 0.95,-0.41, 1.04], body:'Positively charged, long side chain. K48 and K63 in ubiquitin are where polyubiquitin chains attach. K48 chains mark proteins for degradation. K63 chains mostly act as signals.' },
+  { letter:'T', name:'Threonine',     chem:'polar',       vals:[ 0.39, 0.82,-0.56, 1.17,-0.73], body:'Polar, with a hydroxyl group. A common phosphorylation site. Depending on context it plays a structural role or acts as a signalling switch.' },
   { letter:'L', name:'Leucine',       chem:'hydrophobic', vals:[-0.92, 0.45, 1.06,-0.38, 0.71], body:'Most common amino acid in proteins. Its embedding reflects a buried, core-stabilising role in ubiquitin\'s fold.' },
-  { letter:'T', name:'Threonine',     chem:'polar',       vals:[ 0.51,-0.34, 0.79, 0.93,-0.62], body:'Same letter as position 7, but a different vector — surrounding context differs. This is what transformers do that older models couldn\'t.' },
-  { letter:'G', name:'Glycine',       chem:'special',     vals:[ 1.44, 0.07,-1.31, 0.24, 0.88], body:'No side chain — maximum backbone flexibility. Nearly irreplaceable at tight turns. ESM learned this entirely from sequence statistics.' },
-  { letter:'K', name:'Lysine',        chem:'positive',    vals:[-0.68, 1.35, 0.42,-0.97, 0.53], body:'Second K — different embedding from K at position 6 despite the same letter. Context-dependent representations are ESM\'s core strength.' },
-  { letter:'T', name:'Threonine',     chem:'polar',       vals:[ 0.64,-0.89, 1.08,-0.31, 0.77], body:'Third T, third distinct embedding. Positions 7, 9, and 12 are all T — but all three vectors differ. Same token, different context, different meaning.' },
+  { letter:'T', name:'Threonine',     chem:'polar',       vals:[ 0.51,-0.34, 0.79, 0.93,-0.62], body:'Same letter as position 7, but a different vector, because the context around it differs. Older models couldn\'t do this.' },
+  { letter:'G', name:'Glycine',       chem:'special',     vals:[ 1.44, 0.07,-1.31, 0.24, 0.88], body:'No side chain, so the backbone is very flexible. Hard to replace at tight turns. ESM picked this up from sequence statistics alone.' },
+  { letter:'K', name:'Lysine',        chem:'positive',    vals:[-0.68, 1.35, 0.42,-0.97, 0.53], body:'Second K. Its embedding differs from the K at position 6, even though the letter is the same.' },
+  { letter:'T', name:'Threonine',     chem:'polar',       vals:[ 0.64,-0.89, 1.08,-0.31, 0.77], body:'Third T. Positions 7, 9 and 12 are all T, and each gets a different vector because each has different neighbors.' },
 ];
 
 const CC = { hydrophobic:'#f97316', polar:'#3b82f6', positive:'#ef4444', aromatic:'#a855f7', special:'#22c55e' };

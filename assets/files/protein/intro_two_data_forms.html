@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Two data forms — MSA and pair grid</title>
+<title>Two data forms: MSA and pair grid</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,13 +57,13 @@
   <div class="panel">
     <div class="panel-card pair">
       <div class="panel-title pair-t">The pair grid</div>
-      <div class="panel-sub">One cell per pair of positions —<br>starts almost empty</div>
+      <div class="panel-sub">One cell per pair of positions.<br>It starts almost empty.</div>
       <svg id="pairSvg" viewBox="0 0 220 220" width="100%" style="max-width:220px"></svg>
     </div>
   </div>
 </div>
 
-<p class="caption">Two representations of the same protein, updated side by side. The MSA starts with real information: actual letters from actual species. The pair grid starts nearly blank, holding little more than how far apart two positions are in the sequence. <b>The Evoformer is these two trading information back and forth.</b></p>
+<p class="caption">Two views of the same protein, updated side by side. The MSA starts with real data: letters from real species. The pair grid starts nearly blank. It holds little more than how far apart two positions are in the sequence. <b>The Evoformer passes information back and forth between the two.</b></p>
 
 <script>
 const seq1 = ['M','K','T','A'], seq2 = ['M','K','T','A'], seq3 = ['M','R','T','S'];
