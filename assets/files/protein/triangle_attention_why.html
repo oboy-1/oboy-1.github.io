@@ -73,7 +73,7 @@
 <body>
 
 <div class="top-label">Triangle attention</div>
-<p class="sub">Click any off-diagonal cell to make it the target — it becomes the <b>query</b>. In starting-node mode it looks across its row, and in ending-node mode across its column. Every candidate cell becomes a <b>key</b> and is compared against the query. A <b>bias</b> comes from the third edge of the triangle, the one that doesn't share the position the target and candidate have in common.</p>
+<p class="sub">Click any off-diagonal cell to make it the target. The target supplies the <b>query</b>. In starting-node mode it looks along its row. In ending-node mode it looks down its column. Each candidate cell there supplies a <b>key</b>, which is compared against the query. A <b>bias</b> comes from the third edge of the triangle: the cell that skips the position the target and candidate share.</p>
 
 <div class="tabs mode-tabs" id="modeTabs">
   <button data-mode="start" class="active">Starting node (row)</button>
@@ -126,8 +126,8 @@ let mode = 'start'; // 'start' = attend over row i, bias from (j,k). 'end' = att
 let stage = 0;
 
 const STAGES = [
-  { label:'1. Why', caption: () => `Cell (${target.i+1}, ${target.j+1}) is the target. We don't know yet how much each other cell in its ${mode==='start'?'row':'column'} should count toward its update.` },
-  { label:'2. Score & weight', caption: () => `Each candidate gets a q·k — comparing its key to the target's query, both touching position ${mode==='start'?target.i+1:target.j+1}, plus a bias from the edge of the triangle that skips position ${mode==='start'?target.i+1:target.j+1}. Added together that's a score. Softmax turns the scores into weights that add up to 1, so the top candidate can take most of the weight and push the others toward zero. Triangle update's plain sum has no weighting like this.` },
+  { label:'1. Why', caption: () => `Cell (${target.i+1}, ${target.j+1}) is the target. The question is how much each other cell in its ${mode==='start'?'row':'column'} should count toward its update.` },
+  { label:'2. Score & weight', caption: () => `For each candidate, q·k compares its key to the target's query. Both cells touch position ${mode==='start'?target.i+1:target.j+1}. Add a bias from the triangle edge that skips position ${mode==='start'?target.i+1:target.j+1}, and you get a score. Softmax turns the scores into weights that add up to 1. The top candidate can take most of the weight and push the others toward zero. The triangle update's plain sum has no weighting like this.` },
 ];
 
 function candidatesFor(i,j,m){

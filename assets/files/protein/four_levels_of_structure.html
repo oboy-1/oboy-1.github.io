@@ -139,7 +139,7 @@
 <body>
 
 <div class="top-label">Four levels of structure — hemoglobin, click through</div>
-<p class="sub">One real structure throughout: PDB 4HHB, human deoxyhemoglobin (Fermi &amp; Perutz, 1984). Levels 1&ndash;3 follow just the alpha chain (chain A); quaternary zooms out to reveal all four chains assembling around their heme groups. Transitions are animated &mdash; the camera and the representation both morph between levels.</p>
+<p class="sub">One real structure throughout: PDB 4HHB, human deoxyhemoglobin (Fermi &amp; Perutz, 1984). Levels 1&ndash;3 show only the alpha chain (chain A). Quaternary zooms out to all four chains and their heme groups. The camera and the representation animate between levels.</p>
 
 <div class="tabs" id="tabs">
   <button data-level="primary" class="active">Primary</button>
@@ -160,7 +160,7 @@
   <div class="readout">
     <div class="stat">
       <div class="stat-label">what you're looking at</div>
-      <div class="stat-desc" id="desc">The raw sequence — a string of amino acids with no folding information applied.</div>
+      <div class="stat-desc" id="desc">The raw sequence. A string of amino acids, with no folding information.</div>
     </div>
     <div class="stat">
       <div class="stat-label">who works at this level</div>
@@ -170,7 +170,7 @@
 </div>
 
 <div class="caption" id="caption">
-  This is hemoglobin's alpha chain (chain A of 4HHB) with all folding information stripped from the rendering — just the backbone trace in sequence order. Nothing about helices or the 3D pack is shown yet.
+  This is hemoglobin's alpha chain (chain A of 4HHB) with folding information stripped from the rendering. You see just the backbone trace in sequence order. Helices and the 3D pack aren't shown yet.
 </div>
 
 <script>
@@ -2751,9 +2751,9 @@ END
   const LEVEL_INFO = {
     primary: {
       title: 'Primary structure',
-      desc: 'The raw sequence \u2014 a string of amino acids with no folding information applied.',
+      desc: 'The raw sequence. A string of amino acids, with no folding information.',
       who: 'ESM, ProtBERT',
-      caption: 'This is hemoglobin\u2019s alpha chain (chain A of 4HHB) with all folding information stripped from the rendering \u2014 just the backbone trace in sequence order. Nothing about helices or the 3D pack is shown yet.',
+      caption: 'This is hemoglobin\u2019s alpha chain (chain A of 4HHB) with folding information stripped from the rendering. You see just the backbone trace in sequence order. Helices and the 3D pack aren\u2019t shown yet.',
       legend: [],
       chains: ['A'],
       showHeme: false
@@ -2762,25 +2762,25 @@ END
       title: 'Secondary structure',
       desc: 'Local coiling driven by hydrogen bonds between nearby residues.',
       who: 'Relatively predictable from local sequence chemistry',
-      caption: 'Colors come directly from 4HHB\u2019s own HELIX records. Unlike ubiquitin\u2019s mix of helix and sheet, hemoglobin\u2019s globin fold is almost entirely alpha-helical \u2014 chain A alone has eight separate helices and no beta sheet at all, a different flavor of secondary structure built from the same hydrogen-bonding rules.',
+      caption: 'Colors come from 4HHB\u2019s own HELIX records. Ubiquitin mixes helix and sheet. Hemoglobin\u2019s globin fold is almost all alpha helix. Chain A has eight helices and no beta sheet. The hydrogen-bonding rules are the same as in ubiquitin.',
       legend: [['helix', 'var(--red)'], ['coil', '#8a97ab']],
       chains: ['A'],
       showHeme: false
     },
     tertiary: {
       title: 'Tertiary structure',
-      desc: 'The full 3D pack \u2014 how those eight helices fold together in space.',
+      desc: 'The full 3D pack: how those eight helices fold together in space.',
       who: 'AlphaFold2, RoseTTAFold, AF3',
-      caption: 'Same chain, now colored end-to-end (blue \u2192 red, N-terminus to C-terminus) so you can trace how the helices bundle into the compact globin fold \u2014 with a pocket at the core sized exactly to hold one heme group.',
+      caption: 'Same chain, now colored from blue (N-terminus) to red (C-terminus). Follow the colors to see how the helices bundle into the compact globin fold. The core has a pocket that holds one heme group.',
       legend: [['N-terminus', '#3b82f6'], ['C-terminus', '#ef4444']],
       chains: ['A'],
       showHeme: false
     },
     quaternary: {
       title: 'Quaternary structure',
-      desc: 'Four independently-folded chains assembling into one functional complex.',
+      desc: 'Four separately folded chains that assemble into one functional complex.',
       who: 'AlphaFold3',
-      caption: 'The real hemoglobin tetramer: two alpha chains (blue) and two beta chains (green), each folded exactly as in the tertiary view, now packed around four heme groups (orange sticks) \u2014 the iron-containing cofactors that actually bind oxygen. Every coordinate here is the genuine deposited 4HHB structure.',
+      caption: 'The real hemoglobin tetramer: two alpha chains (blue) and two beta chains (green). Each chain is folded as in the tertiary view. They pack around four heme groups (orange sticks), the iron-containing cofactors that bind oxygen. Every coordinate comes from the deposited 4HHB structure.',
       legend: [['\u03b1 chain A', '#3b82f6'], ['\u03b2 chain B', '#22c55e'], ['\u03b1 chain C', '#60a5fa'], ['\u03b2 chain D', '#4ade80'], ['heme', 'var(--accent)']],
       chains: ['A','B','C','D'],
       showHeme: true

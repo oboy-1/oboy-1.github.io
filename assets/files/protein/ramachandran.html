@@ -207,7 +207,7 @@
 <body>
 
 <div class="top-label">Ramachandran plot — drag the point</div>
-<p class="sub">The point sets the phi (φ) and psi (ψ) backbone dihedral angles for one residue. The fragment on the right is built live from those two angles using standard bond lengths and angles — not a lookup, the actual geometry those angles produce.</p>
+<p class="sub">The point sets the phi (φ) and psi (ψ) backbone dihedral angles for one residue. The fragment on the right is built live from those two angles, using standard bond lengths and angles. It's computed geometry, not a lookup table.</p>
 
 <div class="tabs">
   <button data-res="general" class="active">General residue</button>
@@ -250,11 +250,11 @@
     <div class="stat-label">ψ (psi)</div>
     <div class="stat-value" id="psi-val">-45°</div>
   </div>
-  <div class="verdict favored" id="verdict"><span class="dot"></span><span id="verdict-text">Favored — well within a stable region</span></div>
+  <div class="verdict favored" id="verdict"><span class="dot"></span><span id="verdict-text">Favored: a stable region</span></div>
 </div>
 
 <div class="caption">
-  Shaded regions approximate the classic beta-sheet, right-handed alpha, and left-handed alpha basins by location and rough size — not a precise density map traced from PDB statistics, but the quadrants and centers are correct. The two highlighted bonds in the viewer are the actual rotation axes: φ is rotation around N–Cα, ψ is rotation around Cα–C. <b>Glycine</b> has no side chain at all (just an extra H), so the fragment stays a bare backbone — that's why it tolerates conformations everything else can't, including the left-handed helix region. <b>General</b> residues show a single Cβ stub marking where a side chain would branch off (toggle its highlight off above to see it blend back into the backbone coloring). <b>Proline</b> renders its actual five-membered ring back to the backbone nitrogen — drag φ away from ~-60° and watch the chain swing toward a position the ring physically can't allow, which is the real mechanism behind proline's restricted region, not just a rule this widget enforces.
+  The shaded regions approximate the beta-sheet, right-handed alpha, and left-handed alpha basins by location and rough size. They aren't a density map traced from PDB statistics, though the quadrants and centers are right. The two highlighted bonds in the viewer are the rotation axes: φ turns around N–Cα, ψ turns around Cα–C. <b>Glycine</b> has no side chain, just an extra H, so the fragment stays a bare backbone. That's why it tolerates conformations the others can't, including the left-handed helix region. <b>General</b> residues show a single Cβ stub where a side chain would branch off. Toggle its highlight off above and it blends back into the backbone coloring. <b>Proline</b> draws its five-membered ring back to the backbone nitrogen. Drag φ away from about -60° and the chain swings toward a position the ring can't allow. That's where proline's restricted region comes from.
 </div>
 
 <script>
@@ -538,9 +538,9 @@
     const verdict = document.getElementById('verdict');
     verdict.className = 'verdict ' + cls;
     const messages = {
-      favored: 'Favored — well within a stable region',
-      allowed: 'Allowed — strained but physically possible',
-      outlier: 'Outlier — backbone atoms are clashing here'
+      favored: 'Favored: a stable region',
+      allowed: 'Allowed: strained but possible',
+      outlier: 'Outlier: backbone atoms clash here'
     };
     document.getElementById('verdict-text').textContent = messages[cls];
     document.getElementById('phi-val').textContent = Math.round(phi)+'°';

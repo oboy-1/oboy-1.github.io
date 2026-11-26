@@ -131,7 +131,7 @@
 <body>
 
 <div class="top-label">pLDDT confidence — human lysozyme C</div>
-<p class="sub">Real AlphaFold2 prediction for human lysozyme C (UniProt P61626), coordinates embedded directly in this page. AlphaFold stores its per-residue confidence score, pLDDT (0&ndash;100), in the B-factor column of the model &mdash; that's exactly what's driving the coloring below. Toggle between AlphaFold DB's four discrete confidence bins and a continuous gradient over the same values.</p>
+<p class="sub">Real AlphaFold2 prediction for human lysozyme C (UniProt P61626), with the coordinates embedded in this page. AlphaFold stores its per-residue confidence score, pLDDT (0&ndash;100), in the model's B-factor column. That column drives the coloring below. Toggle between AlphaFold DB's four confidence bins and a continuous gradient over the same values.</p>
 
 <div class="tabs" id="tabs">
   <button data-mode="bins" class="active">AlphaFold bins</button>
@@ -155,7 +155,7 @@
     </div>
     <div class="stat">
       <div class="stat-label">what you're looking at</div>
-      <div class="stat-desc">A small, compact, single-domain enzyme (148 residues) that folds into a stable globular shape on its own — the kind of target AlphaFold predicts most confidently. Expect near-uniform dark blue, with confidence dipping only right at the flexible N- and C-termini.</div>
+      <div class="stat-desc">A small, compact, single-domain enzyme (148 residues) that folds into a stable globular shape on its own. AlphaFold is most confident on targets like this. Expect near-uniform dark blue, with confidence dipping only at the N-terminal signal peptide (residues 1–18).</div>
     </div>
     <div class="stat">
       <div class="stat-label">predicted by</div>
@@ -164,7 +164,7 @@
   </div>
 </div>
 
-<div class="caption">Coordinates and B-factor (pLDDT) values are the genuine AlphaFold DB output for AF-P61626-F1, embedded as static PDB text — no live network request is made when this page renders.</div>
+<div class="caption">Coordinates and B-factor (pLDDT) values are the AlphaFold DB output for AF-P61626-F1, embedded as static PDB text. The page makes no network request to render them.</div>
 
 <script>
 (function(){

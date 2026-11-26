@@ -135,7 +135,7 @@
 <body>
 
 <div class="top-label">Lysine side chain — χ1 through χ4</div>
-<p class="sub">Four rotatable bonds, one slider each. Drag any of them and watch that specific segment of the tail swing — everything upstream of it stays put, since a dihedral only rotates the atoms downstream of its axis bond.</p>
+<p class="sub">Four rotatable bonds, one slider each. Each slider swings only the part of the tail past its bond. Everything upstream stays put, because a dihedral only moves atoms downstream of its axis bond.</p>
 
 <div class="layout">
   <div class="plot-wrap">
@@ -190,7 +190,7 @@
 </div>
 
 <div class="caption">
-  Each readout shows the nearest staggered position — <code>g+</code> (≈60°), <code>t</code> (≈180°), or <code>g-</code> (≈-60°) — and how far off it you are. Defaults start at all-trans, a real, commonly observed extended lysine rotamer. One simplification worth knowing: these four sliders move independently here, but in real proteins the chi angles aren't fully independent of each other — some combinations pack better than others, so rotamer libraries report which <i>combinations</i> are common, not just which single-bond positions are common in isolation.
+  Each readout shows the nearest staggered position and how far off it you are. The options are <code>g+</code> (≈60°), <code>t</code> (≈180°) and <code>g-</code> (≈-60°). The sliders start at all-trans, a common extended lysine rotamer. One simplification: here the four sliders move independently. In real proteins the chi angles depend on each other. Some combinations pack better than others, so rotamer libraries count which <i>combinations</i> are common.
 </div>
 
 <script>

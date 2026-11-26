@@ -12,9 +12,9 @@ image:
   alt: "3D ribbon structure of hemoglobin (PDB 4HHB): two alpha chains in blue, two beta chains in green, four orange heme groups"
 ---
 
-Proteins fold, function, and evolve according to rules written into their amino acid sequence — and it turns out transformers are shockingly good at learning those rules. This post walks through how models like ESM, AlphaFold, and RFdiffusion actually work, from first principles up to the real architectures.
+A protein's amino acid sequence determines how it folds and what it does, and transformers turn out to be very good at learning that mapping. This post walks through how models like ESM, AlphaFold, and RFdiffusion work, starting from the basics and building up to their real architectures.
 
-This isn't just a wall of text — nearly every section below has something you can click, drag, or step through yourself. Here's a taste, playing on its own:
+Most sections below have something you can click, drag, or step through. Here's a preview that plays on its own:
 
 {% include interactive.html
   id="intro-showcase-frame"
@@ -24,16 +24,16 @@ This isn't just a wall of text — nearly every section below has something you 
   autoresize=true
   alt="A preview of the kind of interactive widgets used throughout this post, playing on its own." %}
 
-> **Not trying to read all 60 minutes of this in order?** Jump to whatever you're actually here for:
+> **Don't want to read all 60 minutes in order?** Jump to the part you want:
 > - New to proteins? Start with the [crash course](#crash-course) on amino acids and structure.
-> - Just want the models themselves? Skip to [the model landscape](#the-model-landscape).
+> - Only want the models? Skip to [the model landscape](#the-model-landscape).
 > - Here for AlphaFold specifically? Go straight to [AlphaFold 2](#alphafold-2-bake-priors-through-architecture) or [AlphaFold 3](#alphafold-3-same-reasoning-different-bets).
 > - Want to know how folds get *scored*? See [metrics for protein folding](#metrics-for-protein-folding).
 > - More interested in designing proteins than predicting them? Jump to [RFdiffusion + ProteinMPNN](#rfdiffusion--proteinmpnn-solving-inverse-folding).
-> - Want the one model that does everything at once? Go to [ESM3](#esm3-one-model-three-modalities).
+> - Want one model that handles sequence, structure, and function together? Go to [ESM3](#esm3-one-model-three-modalities).
 {: .prompt-tip}
 
-> **Best viewed on a computer.** The interactive widgets throughout this post are click-and-drag heavy and assume a real cursor and a wide screen — they'll be cramped or hard to use on a phone.
+> **Best viewed on a computer.** The widgets in this post rely on clicking and dragging with a mouse on a wide screen. They're cramped and hard to use on a phone.
 {: .prompt-warning}
 
 ### Proteins are just like sentences
@@ -42,7 +42,7 @@ Proteins are sequences of amino acids, and every protein in living things is sim
 
 Essentially, we could just swap **words → amino acids**!
 
-Below are two sequences: an English sentence and the first 15 residues of ubiquitin, one of the most studied proteins in biology. Click any token to see what a language model (BERT) and a protein language model (ESM C 300M) think about swapping it out.
+Below are two sequences: an English sentence and the first 15 residues of ubiquitin, one of the most studied proteins in biology. Click any token to see what a language model (BERT) and a protein language model (ESM C 300M) predict in its place.
 
 {% include interactive.html
   id="mutation-frame-1"
@@ -52,7 +52,7 @@ Below are two sequences: an English sentence and the first 15 residues of ubiqui
   autoresize=true
   alt="Click any token in an English sentence or the first 15 residues of ubiquitin to see what BERT and ESM C 300M predict as substitutes." %}
 
-Both models actually show a similar pattern here. Some positions are flexible, some substitutions make the sentence (or amino acid sequence) still work. Some are locked — replacing the word destroys the grammar of the sentence (analogously, the structure of the protein).
+Both models show a similar pattern. At some positions, plenty of substitutions still give a working sentence (or protein). At others, almost any swap breaks the grammar of the sentence, or the structure of the protein.
 
 Notice how this illustrates the core problem.  To make a sentence, you must choose and order words in the right way for a target meaning.  To make a protein, you must choose and order amino acids the right way for a target functionality.  The entire problem is to make a model be able to do this effectively!
 
@@ -72,13 +72,13 @@ Amino ── Cα ── Carboxyl
 
 An amino acid is made of multiple parts.  The **amino group** and **carboxyl group** are the two ends that connect amino acids together into a long chain which is a protein. Every amino acid has the same amino and carboxyl groups, meaning the protein backbone is nearly identical regardless of the sequence.
 
-The **R group** (or side chain) is the only part that differs between amino acids. There are 20 standard amino acids, each with a different R group. These side chains determine each amino acid's chemical properties and interact with one another, ultimately causing the protein to fold into its three-dimensional structure. 
+The **R group** (or side chain) is the only part that differs between amino acids. There are 20 standard amino acids, each with a different R group. Side chains give each amino acid its chemical properties. How they interact with each other is what makes the protein fold into its 3D shape.
 
 When these amino acids link up to make a protein, each amino acid is called a **residue**.
 
 Finally, the **Cα (alpha carbon)** is the central carbon atom that connects all four components. Since every amino acid contains exactly one Cα atom, structural biology uses its 3D coordinates as a representative ***location for the entire residue***. 
 
-Here's what that skeleton actually looks like in 3D. Drag to rotate the molecule below, and notice how the amino group, α-carbon, and carboxyl group form a fixed, shared backbone — the R group is the only piece hanging off to the side, waiting to be swapped out for one of the 20 options.
+Below is that skeleton in 3D. Drag to rotate it. The amino group, α-carbon, and carboxyl group form the shared backbone. The R group hangs off the side, and it's the only part that changes between the 20 amino acids.
 
 {% include interactive.html
   id="amino-acid-anatomy-frame"
@@ -91,7 +91,7 @@ Here's what that skeleton actually looks like in 3D. Drag to rotate the molecule
 > These protein models are rendered via [3Dmol.js](https://academic.oup.com/bioinformatics/article/31/8/1322/213186?login=false) -- super cool library!  Drag around with your mouse to rotate, right click and drag to pan.
 {: .prompt-tip}
 
-For example, some R groups are hydrophobic ("water-fearing") and prefer to be buried inside the protein away from water, while others are hydrophilic ("water-loving") and tend to remain exposed on the protein's surface. Some side chains carry positive or negative charges, attracting or repelling one another like magnets, while others can form hydrogen bonds that stabilize specific parts of the structure. The final folded protein is the **result of balancing thousands of these local interactions**, finding a stable three-dimensional arrangement that minimizes the protein's free energy.
+Side chains differ in ways that matter for folding. Some are hydrophobic ("water-fearing") and get buried inside the protein, away from water. Others are hydrophilic ("water-loving") and stay on the surface. Some carry a positive or negative charge and attract or repel each other. Others form hydrogen bonds that hold parts of the structure in place. The folded protein is the **result of balancing thousands of these local interactions**. It settles into a stable arrangement with low free energy.
 
 {% include interactive.html
   id="side-chain-gallery-frame"
@@ -116,11 +116,11 @@ H2N ─ Cα ─ C ─ N ─ Cα ─ C ─ N ─ Cα ─ C ─ OH
 
 Proteins have four levels of structure, each emerging from the one below.
 
-**Primary structure** is just the sequence. A string of amino acids, one after another. MQIFVKTLTG... This is what ESM trains on. This is the "text."
+**Primary structure** is the sequence itself, like MQIFVKTLTG.... This is the "text" that ESM trains on.
 
 **Secondary structure** is what happens locally when the chain starts to fold. Certain stretches coil into helices, others flatten into sheets. These patterns are driven by hydrogen bonding between nearby residues and are relatively predictable from local sequence chemistry.
 
-**Tertiary structure** is the full 3D shape of a single protein chain — how those helices and sheets pack together in space. This is what AlphaFold predicts. It's determined by long-range interactions between residues that may be hundreds of positions apart in the sequence. This is where it gets hard.
+**Tertiary structure** is the full 3D shape of a single protein chain: how those helices and sheets pack together in space. It depends on long-range interactions between residues that can be hundreds of positions apart in the sequence, which makes it hard to predict. This is what AlphaFold predicts.
 
 **Quaternary structure** is multiple chains coming together into a complex. Hemoglobin is four chains. AlphaFold 3 extended structure prediction to this level.
 
@@ -160,7 +160,7 @@ flowchart LR
 
 Now a much simpler problem is the **representation problem**.  Before we even try to predict structure, we want to be able to represent amino acid sequences in a rich manner (embeddings).  Just like we have models like BERT for natural language, the protein domain has the same basic requirement: representing these amino acid sequences in a meaningful way that encodes important information about them.  Then we can use this model for downstream tasks, such as folding or function prediction, so they don't have to deal with understanding *what a sequence here means* and instead focus on *what to do with it*.
 
-See below for an illustration of how ESM-2 turns a sequence into embeddings — the vectors shown are illustrative, not real ESM-2 activations.
+Below is an illustration of how ESM-2 turns a sequence into embeddings. The vector values are made up, not real ESM-2 outputs.
 
 {% include interactive.html
   id="embedding-frame"
@@ -168,11 +168,11 @@ See below for an illustration of how ESM-2 turns a sequence into embeddings — 
   title="PLM Embedding Explorer"
   height=400
   autoresize=true
-  alt="An illustration of how ESM-2 turns a sequence into embeddings for a sequence, using illustrative (not real) vector values." %}
+  alt="An illustration of how ESM-2 turns a sequence into embeddings, using made-up vector values." %}
 
 Just like BERT, each vector depends on the residue's context as well as its amino acid.  The three T residues at positions 7, 9, and 12 all get different vectors, even though they're the same letter, because their neighbors are different.
 
-All these models are called **Protein Language Models (PLMs)** — transformers trained on protein sequences the same way BERT and GPT are trained on text. Some models combine multiple problems: ESMFold uses PLM embeddings to predict structure directly, skipping the need for a separate folding model. ESM3 goes furthest — it jointly reasons over sequence, structure, and function in a single model, so any modality can prompt any other.
+Transformers trained on protein sequences, the way BERT and GPT are trained on text, are called **Protein Language Models (PLMs)**. Some models cover more than one problem. ESMFold feeds ESM-2 embeddings into a folding module, so it predicts structure straight from a single sequence. ESM3 goes further: one model handles sequence, structure, and function, and can predict any of them from the others.
 
 See the table below for an overview—but don't feel nervous if it looks daunting, we'll break it down in this blog post!
 
@@ -201,12 +201,12 @@ There are only 20 amino acids in nature.  So every single protein is a sequence 
   autoresize=true
   alt="Comparing the 20-token amino acid vocabulary against GPT-4's vocabulary of hundreds of thousands of tokens." %}
 
-> Technically 22 amino acids occur naturally — selenocysteine and pyrrolysine are rare, genetically-encoded exceptions found in a handful of organisms — and most models also reserve a token for unknown/non-standard residues (often X). The "20" convention holds for the vast majority of sequence data and is what virtually all PLMs are trained on.
+> Technically 22 amino acids are genetically encoded. The extra two, selenocysteine and pyrrolysine, show up in only a small number of proteins. Most models also reserve a token for unknown or non-standard residues, often X. Nearly all sequence data uses the standard 20, and that's what PLMs are trained on.
 {: .prompt-warning}
 
 #### 2. Small errors yield catastrophic results
 
-A single swap of an amino acid from Glutamate to Valine causes the hemoglobin protein (which is used to carry oxygen by red blood cells) to become unable to carry oxygen.
+A single swap of an amino acid from Glutamate to Valine in hemoglobin (the protein red blood cells use to carry oxygen) causes sickle cell disease.  The mutated hemoglobin sticks together into long, stiff fibers after it releases its oxygen, and those fibers bend red blood cells into a rigid sickle shape.
 
 {% include interactive.html
   id="sickle-frame"
@@ -214,7 +214,7 @@ A single swap of an amino acid from Glutamate to Valine causes the hemoglobin pr
   title="One Mutation, Different World"
   height=450
   autoresize=true
-  alt="A single Glutamate-to-Valine substitution causes hemoglobin to lose its ability to carry oxygen, as seen in sickle cell disease." %}
+  alt="A single Glutamate-to-Valine substitution makes hemoglobin clump into fibers that deform red blood cells, causing sickle cell disease." %}
 
 #### 3. No ground truth at scale
 
@@ -222,11 +222,11 @@ There are three main datasets in this space: [UniProt](https://www.uniprot.org/)
 
 ##### UniProt: tons of amino acid sequences
 
-UniProt contains a bunch of amino acid sequences of different proteins—about ~250 million sequences in fact!  This is awesome—you can train models to predict the next amino acid (self-supervised learning) really easily at scale.  The problem is that not all of these sequences have *labels*—what each sequence actually corresponds to in terms of the protein's function.  This means it is really difficult to train models to predict downstream tasks, such as whether a mutation will cause a disease, or a protein's enzyme activity (i.e. how well it accelerates a reaction).  Of all the sequences only around 570,000 sequences have been manually curated by expert biologists — the rest are automatically annotated by rule systems.
+UniProt contains a bunch of amino acid sequences of different proteins—about 250 million sequences in fact!  This is awesome—you can train models to predict the next amino acid (self-supervised learning) really easily at scale.  The problem is that not all of these sequences have *labels*—what each sequence actually corresponds to in terms of the protein's function.  This means it is really difficult to train models to predict downstream tasks, such as whether a mutation will cause a disease, or a protein's enzyme activity (i.e. how well it accelerates a reaction).  Of all the sequences only around 570,000 sequences have been manually curated by expert biologists — the rest are automatically annotated by rule systems.
 
 {% capture uniprot_flow_content %}
 
-Protein sequences are collected from genome sequencing labs worldwide and flow into TrEMBL, a massive database of ~246 million sequences that are automatically annotated by rule-based systems and ML models. A tiny fraction — around 570,000 — gets promoted to Swiss-Prot through expert human curation, where annotations are verified against published experimental evidence. Both feed into UniRef, a deduplicated version of the database that protein language models actually train on.
+Protein sequences are collected from genome sequencing labs worldwide and flow into TrEMBL, a massive database of ~246 million sequences that are automatically annotated by rule-based systems and ML models. A tiny fraction, around 570,000, gets promoted to Swiss-Prot through expert human curation, where annotations are verified against published experimental evidence. Both feed into UniRef, a deduplicated version of the database that protein language models train on.
 
 ```mermaid
 flowchart TD
@@ -240,7 +240,7 @@ flowchart TD
   COMM["Researcher submissions<br/>scientists contribute annotations"]
   CURATE(["expert curation"])
   SWISSPROT["Swiss-Prot<br/>~570K sequences<br/>human-verified, high confidence"]
-  UNIREF["UniRef<br/>further deduplicated clusters<br/>what PLMs actually train on"]
+  UNIREF["UniRef<br/>further deduplicated clusters<br/>what PLMs train on"]
 
   INSDC --> UNIPARC
   ENS --> UNIPARC
@@ -267,7 +267,7 @@ The PDB has around 200,000 experimentally verified examples of protein structure
 
 ##### AlphaFold Database
 
-The AlphaFold DB now contains more than 241 million predicted structures, essentially covering all of UniProt. This sounds like it closes the gap completely—and in some ways it does.  But the caveat is that these are *predicted* structures from their AlphaFold model.  These predictions could be wrong, making this not a gold-standard dataset.
+The AlphaFold DB now contains more than 214 million predicted structures, covering nearly all of UniProt.  That sounds like it closes the gap.  The catch is that these are *predicted* structures from AlphaFold, and some of them are wrong, so this isn't a gold-standard dataset.
 
 As you can see, there is a major data shortage in this domain—despite being able to sequence the genome, which leads us to be able to store millions of amino acid sequences, the data of how these sequences behave as proteins simply isn't there at scale.
 
@@ -318,7 +318,7 @@ Fundamentally we want to compare pairs of residues in predicted and actual struc
 
 ![Two sticks with the same small bend, showing why distance error must be normalized by length]({{ site.baseurl }}/assets/files/protein/two_sticks_length_normalization.png){:.light}
 ![Two sticks with the same small bend, showing why distance error must be normalized by length]({{ site.baseurl }}/assets/files/protein/two_sticks_length_normalization_dark.png){:.dark}
-*A short stick and a long stick bend by the same small angle. The short stick's endpoints end up close together, but the long stick's endpoints end up far apart — same bend, very different raw distance error.*
+*A short stick and a long stick bent by the same small angle. The long stick's endpoints end up much farther apart, so the same bend gives a much bigger raw distance error.*
 
 To smoothen this out, this $d_i / d_0(L_{target})$ is put as input in the $y = 1/(1+ x^2)$ graph.
 
@@ -358,7 +358,7 @@ Now these metrics go over how we can get model confidence when model folds.
 
 ##### pLDDT: Local Distance Difference Test
 
-The naive approach would be to treat some internal network activation as a confidence score. But there is no reason a raw activation should correspond to anything meaningful. Instead, AlphaFold is trained to predict a well-defined quantity: **lDDT** (Local Distance Difference Test).
+To report how confident it is, AlphaFold is trained to predict a score for each residue called **lDDT** (Local Distance Difference Test).
 
 lDDT measures **local** structural accuracy. For each residue, it compares the predicted structure with the true structure by checking whether the distances to nearby atoms (within roughly 15 Å) are preserved. Because it only looks at a residue's local neighborhood, a residue can have a high lDDT score even if another part of the protein is positioned incorrectly.  Essentially, lDDT asks,
 
@@ -366,7 +366,7 @@ lDDT measures **local** structural accuracy. For each residue, it compares the p
 
 During training, the true structure is available, so the correct lDDT score can be computed for every residue. The model learns to predict these scores from many examples. At inference time, the true structure is unknown, so instead of computing lDDT, the model estimates what the lDDT score would be if the true structure were available. This predicted score is called **pLDDT**, and it ranges from 0 to 100 for each residue.
 
-Here's a real AlphaFold 2 prediction — human lysozyme C — with its pLDDT scores baked directly into the structure (AlphaFold stores per-residue pLDDT in the B-factor column, which is exactly what's driving the coloring below). Toggle between AlphaFold DB's four discrete confidence bins and a continuous gradient over the same underlying values, and notice which parts of the structure the model is least sure about.
+Below is a real AlphaFold 2 prediction of human lysozyme C, colored by pLDDT. AlphaFold saves each residue's pLDDT in the structure file's B-factor column (a column that normally records how much each atom jiggles in an experimental structure), and the coloring reads from it. Switch between AlphaFold DB's four confidence bins and a continuous gradient to see which parts the model is least sure about.
 
 {% include interactive.html
   id="plddt-frame"
@@ -413,7 +413,7 @@ $$
 
 where:
 
-- $r_{ij}$: the distance between two atoms in our model. This is the raw error signal — just how far apart these two atoms actually ended up.
+- $r_{ij}$: the distance between two atoms in the predicted structure.
 - $p(r_{ij})$: how often this pair of atom types shows up at this distance, counted across thousands of real, experimentally solved protein structures.
 - $p^{rs}(r_{ij})$: the reference state.  Even with no chemistry involved, some distances are more likely than others.  If you scatter two random points inside a ball the size of a folded protein, very short and very long distances are rare and medium distances are common.  Dividing by this geometric baseline leaves only the chemical preference.
 - $k_B$: Boltzmann's constant.  It keeps the formula in the same form as the Boltzmann relation $p \propto e^{-E/k_BT}$, which lets us turn a probability ratio into something **that behaves like an energy.**
@@ -435,17 +435,19 @@ where:
 MolProbity combines several independent geometric sanity checks into a single composite score.
 
 ##### Clash score
-Every atom has a physical size (its van der Waals radius — basically "how much space it takes up before it starts repelling neighboring atoms"). A clash happens when two atoms that aren't bonded to each other get placed closer together than physics allows — their electron clouds would be overlapping, which is energetically catastrophic and never happens in a real, stable protein.
+Every atom takes up some space, measured by its van der Waals radius. Push two atoms closer than that and they repel each other. A clash is when two atoms that aren't bonded are placed closer than their radii allow. Their electron clouds would overlap, which costs a huge amount of energy, so real proteins don't do it.
 
-Clash score is simply: the number of serious atomic clashes per 1,000 atoms in the structure. Lower is better — a good experimental structure typically has a clash score in the single digits; a bad or unrefined model can have scores in the dozens.
+Clash score is the number of serious clashes per 1,000 atoms. Lower is better. Good experimental structures usually score in the single digits, and unrefined models can score in the dozens.
 
-The reason it's normalized "per 1,000 atoms" rather than as a raw count is the same reason TM-score divides by protein length: bigger proteins have more atoms and more opportunities for clashes, so you need to normalize to compare a 100-residue protein fairly against a 500-residue one.
+It's counted per 1,000 atoms for the same reason TM-score divides by protein length. Bigger proteins have more atoms and more chances to clash, so a raw count would unfairly penalize a 500-residue protein next to a 100-residue one.
 
 ##### Ramachandran outliers
 
-Remember from the crash course: every amino acid shares the same backbone — amino group, Cα, carboxyl group — strung together into a chain. That backbone isn't rigid. Two of its bonds can rotate freely: the N–Cα bond and the Cα–C bond, called φ (phi) and ψ (psi) respectively. Everything else in the backbone (the peptide bond linking one residue to the next) is locked flat by resonance, so phi and psi are really the only two knobs each residue has to turn. Get enough residues turning their knobs in a coordinated way and you get a helix; turn them a different coordinated way and you get a sheet.
+From the crash course, every amino acid has the same backbone: amino group, Cα, carboxyl group. That backbone can bend. Each residue has two bonds that rotate: the N–Cα bond, whose angle is called φ (phi), and the Cα–C bond, whose angle is called ψ (psi). The peptide bond linking one residue to the next stays flat, so φ and ψ set the backbone's shape at each residue. When a stretch of residues all settle on one pair of φ/ψ values, you get a helix. A different pair gives a sheet.
 
-You'd think two continuous angles, each free to spin 360°, would give you a huge space of possible shapes per residue.  However, most (φ, ψ) combinations jam backbone atoms into each other, the same steric-clash problem from the clash-score section, just visualized locally instead of aggregated over a whole structure. **G.N. Ramachandran** [worked this out in 1963](https://pubmed.ncbi.nlm.nih.gov/13990617/), before anyone had a computer that could fold a protein: plot every residue's φ against its ψ, and the allowed conformations cluster into a handful of tight islands, surrounded by a sea of geometrically impossible space. That plot is now the standard first-pass sanity check for any modeled or solved structure — it's literally one of the three ingredients baked into the MolProbity score you already met. Below, you can drag a point around that space yourself and watch a real backbone fragment twist to match, including the two outliers — glycine and proline — that live by different rules.
+Two angles that can each spin 360° might seem to allow almost any shape.  In practice, most (φ, ψ) combinations push backbone atoms into each other, the same kind of clash as above. **G.N. Ramachandran** [mapped this out in 1963](https://pubmed.ncbi.nlm.nih.gov/13990617/). If you plot each residue's φ against its ψ, the allowed combinations fall into a few small regions, and most of the plot is off-limits. This **Ramachandran plot** is now a standard first check on any predicted or solved structure. Residues outside the allowed regions are called Ramachandran outliers, and they're the second thing MolProbity counts.
+
+Drag a point around the plot below to see a real backbone fragment twist to match. Glycine and proline follow different rules. Glycine has no side chain, so it can reach more of the plot. Proline's ring locks its φ angle in place.
 
 {% include interactive.html
   id="ramachandran-frame"
@@ -498,9 +500,9 @@ Note that Å is an Angstrom, or $10^{-10}$ meters, where 8Å is a close enough d
 
 Remember the question from the [four levels of structure](#four-levels-of-structure) section: how can a model that only sees sequences learn anything about how a protein folds?  The answer is **coevolution**.  To fill in a masked residue, the model has to predict it from the rest of the sequence.  A good way to do that is to notice pairs of positions that mutate together across evolution.  Those pairs usually mutate together because they're in physical contact, so a change at one needs a matching change at the other.  Self-attention can learn these pairings, and they show up in the attention maps.  That's what the contact-prediction probe above reads out.
 
-Below is a real ESM-1b forward pass over ubiquitin, no fine-tuning, with attention heads ranked by how well they predict real contacts. Some heads are near-random; others land startlingly close to the true contact map, just from being trained to fill in the blanks.
+Below is a real ESM-1b forward pass over ubiquitin, with no fine-tuning. Its attention heads are ranked by how well they predict real contacts. Some heads look close to random. Others match the true contact map surprisingly well, even though the model was only trained to fill in masked residues.
 
-What matters is whether a head's attention shows up **off the diagonal**. On-diagonal attention is trivial — adjacent residues are chemically bonded, so of course they're relevant to each other. Off-diagonal attention connects residues far apart in sequence, and the only reason that would matter is if the chain folded back and put them physically close in 3D.  This means the model has internally learned, to some extent, how a protein folds just by looking at the amino acid sequence.
+Now look at the attention **off the diagonal**.  Attention right next to the diagonal isn't very impressive, since neighboring residues are bonded to each other anyway.  Off-diagonal attention links residues that are far apart in the sequence, and that only helps the model if the chain folds back and puts them close together in 3D.  So the model has learned, to some extent, how a protein folds just by looking at amino acid sequences.
 
 {% include interactive.html
   id="esm1b-attention-frame"
@@ -508,7 +510,7 @@ What matters is whether a head's attention shows up **off the diagonal**. On-dia
   title="ESM-1b Attention vs. Real Contacts — Ubiquitin"
   height=750
   autoresize=true
-  alt="A real ESM-1b forward pass over ubiquitin, no fine-tuning, with attention heads ranked by how well they predict real physical contacts -- some heads land startlingly close to the true contact map." %}
+  alt="A real ESM-1b forward pass over ubiquitin, no fine-tuning, with attention heads ranked by how well they predict real physical contacts. Some heads closely match the true contact map." %}
 
 Now it might be a bit confusing visualizing what the contact map on the left actually means.  See below for how to interpret the graph.
 
@@ -526,9 +528,9 @@ Now pick "Sheet pairing."  Here the chain folds back on itself, so two strands t
 
 #### ESM-2 & ESM C: do scaling laws hold for proteins?
 
-ESM-2 is basically ESM-1b's architecture scaled up. It comes in six sizes, from 8M parameters up to 15B.
+ESM-2 is ESM-1b's architecture scaled up. It comes in six sizes, from 8M parameters up to 15B.
 
-But does scaling actually work here? Drag the slider through all six real checkpoints and watch what happens to contact precision and structure prediction quality. The published numbers are pretty clear about it: performance shoots up early, then flattens out hard. Going from 3B to 15B (a 5x jump in parameters) barely moves the needle compared to what that same 5x jump did way back at 8M to 35M.
+Drag the slider through the six checkpoints to see contact precision and structure prediction quality at each size. Performance climbs quickly at small sizes, then levels off. Going from 3B to 15B (5x the parameters) helps far less than going from 8M to 35M (about 4x).
 
 {% include interactive.html
   id="esm2-scaling-frame"
@@ -537,15 +539,16 @@ But does scaling actually work here? Drag the slider through all six real checkp
   height=600
   autoresize=true
   alt="Drag the slider through ESM-2's six real checkpoints (8M to 15B parameters) to see contact precision and structure quality improve early, then flatten out." %}
-Maybe the 15B ESM-2 model didn't actually hit a limit—it just didn't see enough data. Researchers at BioMap and Tsinghua University [(paper)](https://proceedings.neurips.cc/paper_files/paper/2024/file/8066ae1446b2bbccb5159587cc3b3bcc-Paper-Conference.pdf) tested this. Every ESM-2 size was trained on the same ~1 trillion tokens: roughly 22 billion unique tokens repeated 45 times. Their analysis suggested that compute would've been better spent on a larger model with fresher data. They trained a **10.7B model on ~260B mostly fresh tokens**, which beat ESM-2 3B and matched or beat ESM-2 15B on most benchmarks.
 
-The ESM team later took a similar approach with **ESM C**, released in December 2024, training each size on **6.2T tokens** instead of ESM-2's ~1T. The result is essentially the flattening curve from above, fixed: ESM C 300M matches ESM-2 650M, 600M rivals 3B, and 6B beats every ESM-2 model.  ESM C also deliberately overtrained its smaller models, since spending more on training a cheap-to-run model can be worthwhile in practice.
+Maybe ESM-2 15B didn't hit a real limit, and just didn't see enough data. Researchers at BioMap and Tsinghua University [(paper)](https://proceedings.neurips.cc/paper_files/paper/2024/file/8066ae1446b2bbccb5159587cc3b3bcc-Paper-Conference.pdf) tested this. Every ESM-2 size was trained on the same ~1 trillion tokens: roughly 22 billion unique tokens repeated 45 times. Their analysis suggested that compute would've been better spent on a larger model with fresher data. They trained a **10.7B model on ~260B mostly fresh tokens**, which beat ESM-2 3B and matched or beat ESM-2 15B on most benchmarks.
+
+The ESM team later took a similar approach with **ESM C**, released in December 2024, training each size on **6.2T tokens** instead of ESM-2's ~1T. That mostly fixes the flattening from above.  ESM C 300M matches ESM-2 650M, 600M rivals 3B, and 6B beats every ESM-2 model.  The smaller ESM C models were also trained well past the compute-optimal point on purpose.  Extra training is a one-time cost, and a small model stays cheap every time you run it.
 
 #### AlphaFold 2: bake priors through architecture 
 
-Now we'll talk about AlphaFold 2 (AF2), the huge breakthrough model in this space.  To understand it best, let me show you how it looks like from a high level.
+Now we'll talk about AlphaFold 2 (AF2), the huge breakthrough model in this space.  To understand it best, let me show you what it looks like from a high level.
 
-AlphaFold 2 fundamentally splits the task of protein folding into two steps:
+AlphaFold 2 splits the task of protein folding into two steps:
 
 1. Generate a good representation of which residues connect to which (Evoformer)
 2. Iteratively generate the protein 3D structure given the representations (Structure module)
@@ -581,9 +584,9 @@ flowchart TD
 
 Let's first talk about step 1.  This part of AlphaFold is called the **Evoformer**.  It works by keeping two representations of the same protein side by side, and repeatedly updates each one using the other.  There are 48 Evoformer blocks stacked up.  They all have the same design, but each one has its own weights.
 
-The first representation is the **Multiple Sequence Alignment (MSA)**.  MSA has similar protein sequences from different organisms lined up.  This is used by the model to detect evolutionary / coevolutionary patterns (just like what ESM-1b tried in its pretraining).  Essentially, imagine lining up the amino acid sequences for a human, a dog, and a cat.  If positions 1 and 3 mutate together across species, there is a good chance they do so because they are connected.  This is what AlphaFold leverages to enrich its representations.
+The first representation is the **Multiple Sequence Alignment (MSA)**.  An MSA lines up similar protein sequences from different organisms.  The model uses it to find coevolution patterns, the same signal ESM-1b picks up during pretraining.  Imagine lining up the amino acid sequences for a human, a dog, and a cat.  If positions 1 and 3 mutate together across species, they're probably in contact in the folded protein.
 
-The second is the **pair grid**, which the paper calls the *pair representation*.  It has one cell per pair of positions.  It starts out holding very little: the two amino acid types and how far apart the positions are in the sequence.  If the search found similar proteins with known structures (called *templates*), their residue distances get added in too.  The pair grid is where AlphaFold writes down what it thinks about each pair of residues, and it later uses this to actually predict how the protein folds.
+The second is the **pair grid**, which the paper calls the *pair representation*.  It has one cell per pair of positions.  It starts out holding very little: the two amino acid types and how far apart the positions are in the sequence.  If the search found similar proteins with known structures (called *templates*), their residue distances get added in too.  Over the Evoformer blocks, the pair grid fills up with information about each pair of residues.  Step 2 uses it to place the residues in 3D.
 
 The rest of the Evoformer is these two representations trading information back and forth.  Take a look at both below.
 
@@ -597,9 +600,9 @@ The rest of the Evoformer is these two representations trading information back 
 
 ##### Row attention
 
-Let's start with the MSA.  A residue's letter on its own doesn't say much.  Knowing position 1 is Methionine doesn't tell you what role it plays.  What matters is how position 1 relates to the other residues in the protein, and some of those relationships matter a lot more than others.
+Let's start with the MSA.  A residue's letter on its own doesn't say much.  Knowing position 1 is Methionine doesn't tell you what role it plays.  Its relationships with the other residues do, and some of those relationships matter much more than others.
 
-Attention is how the model figures out which ones matter.  **Row attention** runs attention within a single sequence (one row of the MSA).  For one position, it scores how relevant every other position in that row is.  The score has two parts.  One is the usual attention comparison of the two residues' vectors.  The other is a bias term read from the pair grid, so whatever the pair grid has learned about that pair in earlier blocks feeds into the score.
+Attention learns which ones matter.  **Row attention** runs attention within a single sequence (one row of the MSA).  For one position, it scores how relevant every other position in that row is.  The score has two parts.  One is the usual attention comparison of the two residues' vectors.  The other is a bias term read from the pair grid, so whatever the pair grid has learned about that pair in earlier blocks feeds into the score.
 
 {% include interactive.html
   id="row-attention-frame"
@@ -639,7 +642,7 @@ So for each pair of positions $i$ and $j$, outer product mean takes the vectors 
 
 ##### Triangle update
 
-Every step so far moves information between the MSA and the pair grid.  None of them let one pair grid cell update another.  The next two steps, triangle update and triangle attention, do exactly that.
+Every step so far moves information between the MSA and the pair grid.  None of them let one pair grid cell update another.  The next two steps, triangle update and triangle attention, do.
 
 The intuition comes from geometry.  If residue $i$ is close to residue $k$, and $k$ is close to $j$, then $i$ can't be very far from $j$.  This is the *triangle inequality*.  So what the pair grid says about $(i,k)$ and $(k,j)$ should be useful when figuring out $(i,j)$.
 
@@ -769,7 +772,7 @@ It uses the same three cells as triangle update: $z_{ij}$, $z_{ik}$, $z_{jk}$.  
 
 ##### Structure Module and Invariant Point Attention
 
-After 48 Evoformer blocks, AlphaFold has a pair grid full of learned information about every pair of residues.  Now it has to actually place the residues in 3D.  This is step 2, the **Structure Module**.  It takes the pair grid, plus one vector per residue called the *single representation* (taken from the MSA row for the target protein).
+After 48 Evoformer blocks, AlphaFold has a pair grid full of learned information about every pair of residues.  Now it has to place the residues in 3D.  This is step 2, the **Structure Module**.  It takes the pair grid, plus one vector per residue called the *single representation* (taken from the MSA row for the target protein).
 
 The Structure Module gives each residue a **rigid frame**:
 
@@ -799,7 +802,7 @@ $$
 
 This distance doesn't change if you move or rotate the entire protein.  A translation shifts both points equally, so it cancels out.  A rotation doesn't change distances.
 
-There's a name for this property.  **SE(3)** is the set of every way you can move a rigid object around in 3D: any rotation combined with any shift.  (It stands for the *special Euclidean group* in 3 dimensions.)  Something is **SE(3)-invariant** if it comes out exactly the same no matter which of these moves you apply to the input first.  IPA's attention scores are SE(3)-invariant.  This matters because the protein's position and orientation in space are arbitrary, so the model's prediction shouldn't depend on them.
+**SE(3)** (the *special Euclidean group* in 3D) is the set of every way to move a rigid object in 3D: any rotation combined with any shift.  Something is **SE(3)-invariant** if it comes out the same no matter which of these moves you apply to the input first.  IPA's attention scores are SE(3)-invariant.  That's what we want, since the protein's position and orientation in space are arbitrary.
 
 Step through this on a real structure below.
 
@@ -853,8 +856,6 @@ The second change is that **the Evoformer becomes the Pairformer**.  AF3 still u
 The third change is that **the Structure Module becomes a diffusion module**.  *Diffusion* is a way of generating data by starting from random noise and removing it a little at a time.  We'll go through how it works in more detail in the [RFdiffusion section](#rfdiffusion).  AF3 starts with every atom at a random position and learns to move them, step by step, into a plausible structure.  It works on all atoms directly, so there are no residue frames and no separate χ-angle step for side chains.
 
 The fourth change is that AF3 **drops built-in invariance**.  IPA was [SE(3)-invariant](#structure-module-and-invariant-point-attention) by design.  AF3's diffusion module isn't.  Instead, during training each structure is randomly rotated and shifted, so the model learns to give the same answer no matter how the input is oriented.
-
-So the pair grid and triangle operations stay at the center of AF3.  The two big changes are the scope (proteins plus DNA, RNA, and small molecules) and how the final 3D coordinates are generated.
 
 #### RFdiffusion + ProteinMPNN: solving inverse folding
 
@@ -961,7 +962,7 @@ $$
 p(x_5\mid h_5,A,L,G,V)
 $$
 
-> I've simplified one thing above.  Real ProteinMPNN doesn't decode left to right.  During training, it picks a **random** order every time, so position 4 might be decided before position 1.  The main payoff is flexibility at design time.  If you already know the amino acids at some positions (say, a binding site), you can fix them and let the model fill in everything else around them.
+> I've simplified one thing above.  Real ProteinMPNN doesn't decode left to right.  During training, it picks a **random** order every time, so position 4 might be decided before position 1.  This is useful at design time.  If you already know the amino acids at some positions (say, a binding site), you can fix them and let the model fill in everything else around them.
 {: .prompt-warning}
 
 So the full sequence probability is a product over whatever order got sampled:

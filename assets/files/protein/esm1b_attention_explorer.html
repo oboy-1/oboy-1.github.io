@@ -144,10 +144,10 @@
 <body>
 
 <div class="top-label">ESM-1b attention vs. real contacts — ubiquitin</div>
-<p class="sub">Do ESM-1b's attention heads know what a contact map is? Ubiquitin (PDB 1UBQ), 76 residues — click a cell in either panel to inspect a residue pair.</p>
+<p class="sub">How close do ESM-1b's attention heads come to a real contact map? Ubiquitin (PDB 1UBQ), 76 residues. Click a cell in either panel to inspect a residue pair.</p>
 
 <div class="provenance">
-  <b>Data provenance —</b> both panels are real. The left panel is the true contact map: Cα–Cα distances computed directly from the experimentally solved 1UBQ crystal structure (1.8&nbsp;Å resolution), thresholded at 8&nbsp;Å. The right panel is real ESM-1b (650M) attention — a live forward pass of <code>esm1b_t33_650M_UR50S</code> over this exact sequence, no fine-tuning. The precision numbers below are measured directly against the real contact map, searched over all 33×20&nbsp;=&nbsp;660 heads in the model: the best head found this way hits <b>60%</b> precision@top-L/5 on long-range pairs; a typical early-layer head hits <b>0%</b>. That's the actual range on this one protein, not an illustration of it.
+  <b>Where the data comes from.</b> Both panels are real. The left panel is the true contact map: Cα–Cα distances from the experimentally solved 1UBQ crystal structure (1.8&nbsp;Å resolution), thresholded at 8&nbsp;Å. The right panel is ESM-1b (650M) attention, taken from a live forward pass of <code>esm1b_t33_650M_UR50S</code> over this sequence, no fine-tuning. The precision numbers below are measured against the real contact map, across all 33×20&nbsp;=&nbsp;660 heads in the model. The best head hits <b>60%</b> precision@top-L/5 on long-range pairs. A typical early-layer head hits <b>0%</b>. That's the measured range on this one protein.
 </div>
 
 <div class="tabs" id="headTabs"></div>
@@ -159,19 +159,19 @@
   <div class="panel">
     <div class="panel-title"><span class="dot real"></span>Real structure · Cα–Cα &lt; 8&nbsp;Å</div>
     <canvas id="realCanvas" width="380" height="380"></canvas>
-    <div class="panel-caption">Ground truth, from the actual 1UBQ coordinates. The off-diagonal streak around residues 1–8 vs 65–72 is the real β-sheet pairing that holds ubiquitin's core together.</div>
+    <div class="panel-caption">Ground truth, from the 1UBQ coordinates. The off-diagonal streak around residues 1–8 vs 65–72 is the β-sheet pairing that holds ubiquitin's core together.</div>
   </div>
   <div class="panel">
     <div class="panel-title"><span class="dot sim"></span>ESM-1b attention</div>
     <canvas id="attnCanvas" width="380" height="380"></canvas>
-    <div class="panel-caption">Real attention from a live ESM-1b forward pass. Some heads (like Layer 33 · Head 1) correlate strongly with real contacts; most early-layer heads are near-noise on this metric.</div>
+    <div class="panel-caption">Attention from a live ESM-1b forward pass. Some heads, like Layer 33 · Head 1, line up well with real contacts. Most early-layer heads are near noise on this metric.</div>
   </div>
 </div>
 
 <div class="hover-info" id="hoverInfo">Hover or click a cell to see residue pair, sequence distance, and true Cα–Cα distance.</div>
 
 <div class="footer-note">
-  <b>Reproducing this:</b> attention was extracted from a single CPU forward pass of ESM-1b (<code>esm1b_t33_650M_UR50S</code>, via <code>fair-esm</code>) over the sequence below, no fine-tuning. Precision@top-L/5 (long-range, |i&minus;j|&ge;24) was then measured for all 33×20&nbsp;=&nbsp;660 heads against the real 1UBQ contact map; the six heads above span that real range, from the strongest (Layer 33 · Head 1) to representative near-zero early-layer heads. Export script: <code>precompute_esm1b_attention.py</code>, alongside this file. Sequence: <code>MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG</code>
+  <b>Reproducing this:</b> attention was extracted from a single CPU forward pass of ESM-1b (<code>esm1b_t33_650M_UR50S</code>, via <code>fair-esm</code>) over the sequence below, no fine-tuning. Precision@top-L/5 (long-range, |i&minus;j|&ge;24) was then measured for all 33×20&nbsp;=&nbsp;660 heads against the real 1UBQ contact map. The six heads above span that range, from the strongest (Layer 33 · Head 1) down to near-zero early-layer heads. Export script: <code>precompute_esm1b_attention.py</code>, alongside this file. Sequence: <code>MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG</code>
 </div>
 
 <script>
@@ -236,12 +236,12 @@ function renderReal(){
 }
 
 const HEAD_TLDR = {
-  '33-1':  "Has real off-diagonal attention, and it lines up with actual long-range contacts — this is the one head that's genuinely found structure.",
-  '11-10': "Attention is overwhelmingly on the diagonal (local neighbors); the few off-diagonal spots it does have happen to land on real contacts.",
-  '32-4':  "Has some off-diagonal attention, but it's scattered onto a few fixed residues regardless of row — positional, not contact-driven.",
-  '20-20': "Essentially no off-diagonal attention at all (pure diagonal). The score here is coincidence — there's nothing off-diagonal to be right about.",
-  '1-4':   "Off-diagonal attention exists but is spread uniformly everywhere — no discrimination, so it doesn't pick out real contacts.",
-  '1-8':   "Same as Layer 1 · Head 4: uniform blanket attention on and off the diagonal, no real off-diagonal structure.",
+  '33-1':  "Has off-diagonal attention, and it lines up with long-range contacts. This head has found real structure.",
+  '11-10': "Attention sits almost entirely on the diagonal (local neighbors). The few off-diagonal spots it has happen to land on real contacts.",
+  '32-4':  "Has some off-diagonal attention. It lands on the same few residues in every row, so it tracks position rather than contacts.",
+  '20-20': "Almost no off-diagonal attention at all (pure diagonal). The score here is coincidence. There's nothing off-diagonal to be right about.",
+  '1-4':   "Off-diagonal attention is spread uniformly everywhere. It makes no distinctions, so it misses real contacts.",
+  '1-8':   "Same as Layer 1 · Head 4. Uniform attention on and off the diagonal, with no off-diagonal structure.",
 };
 
 let currentHeadIdx = 0;
@@ -253,7 +253,7 @@ function renderAttn(){
   drawGrid(actx, (i,j)=> i===j ? 0 : m[i][j], v=>colorAttn(v,max));
   updatePrecision(m);
   const tldr = HEAD_TLDR[`${head.layer}-${head.head}`];
-  document.getElementById('headTldr').innerHTML = tldr ? `<b>TL;DR —</b> ${tldr}` : '';
+  document.getElementById('headTldr').innerHTML = tldr ? `<b>TL;DR:</b> ${tldr}` : '';
 }
 
 function updatePrecision(m){

@@ -160,7 +160,7 @@
 </div>
 
 <div class="caption">
-  When the observed curve sits above the reference at that distance, the pseudo-energy goes negative &mdash; favorable. When it dips below, the energy goes positive &mdash; unfavorable, meaning that distance is rarer than pure packing geometry alone would predict.
+  If the observed curve is above the reference at a distance, the pseudo-energy is negative, which is favorable. If it's below, the energy is positive and unfavorable. That distance shows up less often than packing geometry alone would predict.
 </div>
 
 <script>
@@ -247,13 +247,13 @@ function render() {
   verdictEl.classList.remove('favorable', 'neutral', 'unfavorable');
   if (energy < -0.3) {
     verdictEl.classList.add('favorable');
-    verdictEl.textContent = 'More common than random packing predicts — chemically favorable';
+    verdictEl.textContent = 'More common than random packing predicts. Favorable.';
   } else if (energy < 0.3) {
     verdictEl.classList.add('neutral');
-    verdictEl.textContent = 'About as likely as random packing — chemically neutral';
+    verdictEl.textContent = 'About as common as random packing predicts. Neutral.';
   } else {
     verdictEl.classList.add('unfavorable');
-    verdictEl.textContent = 'Rarer than random packing predicts — chemically unfavorable';
+    verdictEl.textContent = 'Rarer than random packing predicts. Unfavorable.';
   }
 }
 

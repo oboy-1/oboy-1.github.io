@@ -150,7 +150,7 @@
 <body>
 
 <div class="top-label">ESM-2 scaling laws — drag the slider</div>
-<p class="sub">Six real checkpoints, four orders of magnitude in parameters. Every number below is the actual published value — nothing here is interpolated or simulated.</p>
+<p class="sub">Six real checkpoints, more than three orders of magnitude in parameters. Every number is the published value. Nothing is interpolated or simulated.</p>
 
 <div class="tab-row">
   <div class="tabs" id="metricTabs">
@@ -185,7 +185,7 @@
       <div class="stat-label">Δ vs previous size</div>
       <div class="stat-value" id="delta-val">—</div>
     </div>
-    <div class="verdict neutral" id="verdict">First model in the family — no previous step to compare.</div>
+    <div class="verdict neutral" id="verdict">Smallest model. Nothing to compare it to yet.</div>
   </div>
 </div>
 
@@ -195,7 +195,7 @@
 </div>
 
 <div class="caption" id="captionText">
-  Long-range contact precision comes from a logistic-regression probe over the model's own attention maps — no structural fine-tuning involved. It climbs steeply at first, then visibly flattens: the jump from 3B→15B is a fraction of the jump from 8M→35M, even though the parameter increase is far larger.
+  Long-range contact precision comes from a logistic-regression probe on the model's attention maps. No structural fine-tuning is involved. It climbs steeply at first, then flattens. The jump from 3B→15B is a fraction of the jump from 8M→35M, even though far more parameters are added.
 </div>
 <div class="source">Source: ESM-2 comparison table, facebookresearch/esm README · Lin et al. 2023, <i>Science</i> 379:1123–1130 · perplexity 8M=10.45, 15B=6.37 (paper text)</div>
 
@@ -237,8 +237,8 @@ const METRIC_LABEL = {
   tm: (ds) => `TM-score × 100, ${ds}`,
 };
 const CAPTIONS = {
-  contact: "Long-range contact precision comes from a logistic-regression probe over the model's own attention maps — no structural fine-tuning involved. It climbs steeply at first, then visibly flattens: the jump from 3B→15B is a fraction of the jump from 8M→35M, even though the parameter increase is far larger.",
-  tm: "TM-score here comes from a structure module trained directly on the frozen language-model embeddings. On CAMEO specifically, 3B→15B is nearly flat (71.8 → 72.1) — ten billion extra parameters buy almost nothing on this benchmark, even though CASP14 (the harder set) still shows a real gain.",
+  contact: "Long-range contact precision comes from a logistic-regression probe on the model's attention maps. No structural fine-tuning is involved. It climbs steeply at first, then flattens. The jump from 3B→15B is a fraction of the jump from 8M→35M, even though far more parameters are added.",
+  tm: "TM-score here comes from a structure module trained on the frozen language-model embeddings. On CAMEO, 3B→15B is nearly flat (71.8 → 72.1). Twelve billion extra parameters buy almost nothing there. CASP14, the harder set, still shows a real gain.",
 };
 
 let currentMetric = 'contact';
@@ -374,7 +374,7 @@ function updateReadout(){
   if (currentIdx === 0) {
     deltaEl.textContent = '—';
     verdict.className = 'verdict neutral';
-    verdict.textContent = 'First model in the family — no previous step to compare.';
+    verdict.textContent = 'Smallest model. Nothing to compare it to yet.';
     // still show perplexity note for 8M
     if (PERPLEXITY[m.id] !== undefined) {
       verdict.textContent += ` Validation perplexity: ${PERPLEXITY[m.id]} (paper text).`;
@@ -389,13 +389,13 @@ function updateReadout(){
   let cls, msg;
   if (pct >= 15) {
     cls = 'favorable';
-    msg = `Large jump from ${m.label==='35M'?'8M':MODELS[currentIdx-1].label} → ${m.label} (+${pct.toFixed(1)}%) — scaling is clearly still paying off here.`;
+    msg = `Big jump from ${m.label==='35M'?'8M':MODELS[currentIdx-1].label} → ${m.label} (+${pct.toFixed(1)}%). Scaling still pays off here.`;
   } else if (pct >= 5) {
     cls = 'neutral';
-    msg = `Moderate gain from ${MODELS[currentIdx-1].label} → ${m.label} (+${pct.toFixed(1)}%) — returns are starting to taper.`;
+    msg = `Moderate gain from ${MODELS[currentIdx-1].label} → ${m.label} (+${pct.toFixed(1)}%). Returns are starting to shrink.`;
   } else {
     cls = 'unfavorable';
-    msg = `Small gain from ${MODELS[currentIdx-1].label} → ${m.label} (+${pct.toFixed(1)}%) — a huge parameter jump for a marginal improvement.`;
+    msg = `Small gain from ${MODELS[currentIdx-1].label} → ${m.label} (+${pct.toFixed(1)}%). A huge parameter jump for a small improvement.`;
   }
   verdict.className = 'verdict ' + cls;
   verdict.textContent = msg;

@@ -119,7 +119,7 @@
 <body>
 
 <div class="top-label">Contact map ↔ 3D structure — ubiquitin</div>
-<p class="sub">Pick a preset below, or hover any cell in the contact map — the matching residue pair lights up in the real 3D structure on the right, with a dashed line drawn between their Cα atoms.</p>
+<p class="sub">Pick a preset below, or hover any cell in the contact map. The matching residue pair lights up in the real 3D structure on the right, with a dashed line between their Cα atoms.</p>
 
 <div class="tabs" id="presetTabs">
   <button data-preset="neighbor" class="active">Backbone neighbor</button>
@@ -833,16 +833,16 @@ function classify(resi1, resi2){
   let kind, tldr;
   if (sep <= 1){
     kind = 'Backbone bond';
-    tldr = `Adjacent residues, chemically bonded — always ~3.8&nbsp;Å apart no matter how the protein folds. This is the trivial part of the diagonal; it tells you nothing about 3D structure.`;
+    tldr = `Adjacent residues are chemically bonded, so they're always ~3.8&nbsp;Å apart no matter how the protein folds. This part of the diagonal is trivial. It tells you nothing about 3D structure.`;
   } else if (sep <= 5 && (d < 7)) {
     kind = 'Helix turn';
-    tldr = `Residues ${sep} apart but only ${d.toFixed(2)}&nbsp;Å in space — this is the alpha helix's i&nbsp;&rarr;&nbsp;i+${sep} hydrogen-bonding pattern (~3.6 residues/turn) pulling them close. This is what creates the twin near-diagonal bands in the contact map.`;
+    tldr = `Residues ${sep} apart but only ${d.toFixed(2)}&nbsp;Å in space. The alpha helix's i&nbsp;&rarr;&nbsp;i+${sep} hydrogen-bonding pattern (~3.6 residues/turn) pulls them close. This makes the twin near-diagonal bands in the contact map.`;
   } else if (sep >= 24) {
     kind = 'Long-range (sheet) contact';
-    tldr = `${sep} residues apart in sequence, but only ${d.toFixed(2)}&nbsp;Å apart in 3D — the chain folded back on itself so a beta-strand near the start pairs directly against one much later in the sequence. This is a real off-diagonal contact, and the only reason it exists is 3D folding.`;
+    tldr = `${sep} residues apart in sequence, but only ${d.toFixed(2)}&nbsp;Å apart in 3D. The chain folds back on itself, so a beta-strand near the start pairs with one much later in the sequence. This is a real off-diagonal contact. It only exists because of the 3D fold.`;
   } else {
     kind = 'Local / loop contact';
-    tldr = `${sep} residues apart, ${d.toFixed(2)}&nbsp;Å in space, contact = ${contact ? 'yes' : 'no'}. A shorter-range fold contact, not a clean helix or sheet signature.`;
+    tldr = `${sep} residues apart, ${d.toFixed(2)}&nbsp;Å in space, contact = ${contact ? 'yes' : 'no'}. A shorter-range fold contact. It isn't a clean helix or sheet signature.`;
   }
   return {kind, tldr, sep, d, contact};
 }
@@ -877,9 +877,9 @@ function highlightPair(resi1, resi2){
 
 // ============ presets ============
 const PRESETS = {
-  neighbor: { resi1:30, resi2:31, tldr: "Residues 30 and 31 are directly bonded — of course they're close (~3.8&nbsp;Å). This is the trivial part of every contact map's diagonal, and it requires zero understanding of 3D folding to predict." },
-  helix:    { resi1:27, resi2:31, tldr: "Residues 27 and 31 sit 4 apart in sequence but only ~6.2&nbsp;Å apart in space — the alpha helix (residues 23&ndash;34) coils them next to each other. This i, i+4 pattern repeats down the whole helix, which is why the contact map shows two thin bands running parallel to the main diagonal instead of just one." },
-  sheet:    { resi1:4, resi2:66, tldr: "Residues 4 and 66 are 62 positions apart in sequence, yet only ~4.5&nbsp;Å apart in 3D — the chain folds back so the beta-strand near the N-terminus (residues 1&ndash;7) pairs directly against a strand near the C-terminus (residues 64&ndash;72). This off-diagonal contact only exists because of the fold; nothing about the sequence alone hints at it." },
+  neighbor: { resi1:30, resi2:31, tldr: "Residues 30 and 31 are directly bonded, so they're close (~3.8&nbsp;Å). This part of every contact map's diagonal is trivial. You can predict it without knowing anything about the fold." },
+  helix:    { resi1:27, resi2:31, tldr: "Residues 27 and 31 are 4 apart in sequence but only ~6.2&nbsp;Å apart in space. The alpha helix (residues 23&ndash;34) coils them next to each other. This i, i+4 pattern repeats down the whole helix. That's why the contact map has a thin band running right next to the main diagonal (mirrored on both sides)." },
+  sheet:    { resi1:4, resi2:66, tldr: "Residues 4 and 66 are 62 positions apart in sequence but only ~4.5&nbsp;Å apart in 3D. The chain folds back, so the beta-strand near the N-terminus (residues 1&ndash;7) pairs with a strand near the C-terminus (residues 64&ndash;72). This off-diagonal contact only exists because of the fold. Nothing about the sequence alone hints at it." },
 };
 
 document.getElementById('presetTabs').addEventListener('click', (e)=>{
